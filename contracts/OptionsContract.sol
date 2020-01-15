@@ -452,8 +452,6 @@ contract OptionsContract is Ownable, ERC20 {
      */
     function transferVaultOwnership(address payable newOwner) public {
         require(hasVault(msg.sender), "Vault does not exist");
-        require(newOwner != address(0), "Invalid new owner address");
-        require(nmsg.sender != newOwner, "Cannot transferVaultOwnership to current owner");
 
         Vault storage oldVault = vaults[msg.sender];
 
@@ -469,7 +467,6 @@ contract OptionsContract is Ownable, ERC20 {
      * @param amtToRemove Amount of collateral to remove in 10^-18.
      */
     function removeCollateral(uint256 amtToRemove) public notExpired {
-        require(amtToRemove > 0, "Cannot remove 0 collateral");
         require(hasVault(msg.sender), "Vault does not exist");
 
         Vault storage vault = vaults[msg.sender];
