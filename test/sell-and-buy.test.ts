@@ -49,6 +49,10 @@ contract('OptionsContract', accounts => {
   const firstRepoOwnerAddress = accounts[1];
   const secondRepoOwnerAddress = accounts[2];
 
+  // Amount of ETH to put down as collateral in Wei.
+  const ETHCollateralForOcDai = '7000000000000000000';
+  const ETHCollateralForOcUSDC = '7000000000000000000';
+
   let daiAddress: string;
   let usdcAddress: string;
   let cUSDCAddress: string;
@@ -208,7 +212,7 @@ contract('OptionsContract', accounts => {
   });
 
   describe('add liquidity on uniswap', () => {
-    it('create the uniswap exchange', async () => {
+    xit('create the uniswap exchange', async () => {
       if (!contractsDeployed) {
         let i;
         for (i = 0; i < optionsContracts.length; i++) {
@@ -217,7 +221,7 @@ contract('OptionsContract', accounts => {
       }
     });
 
-    it('should be able to create oTokens', async () => {
+    xit('should be able to create oTokens', async () => {
       if (!contractsDeployed) {
         const collateral = '2000000000000000';
         const strikePrices = [2 * 10 ** -10, 208 * 10 ** -12, 9 * 10 ** -15];
@@ -247,7 +251,7 @@ contract('OptionsContract', accounts => {
       }
     });
 
-    it('should be able to add liquidity to Uniswap', async () => {
+    xit('should be able to add liquidity to Uniswap', async () => {
       if (!contractsDeployed) {
         const strikePrices = [2 * 10 ** -10, 208 * 10 ** -12, 9 * 10 ** -15];
         const apr = [2, 1];
@@ -289,27 +293,38 @@ contract('OptionsContract', accounts => {
       }
     });
 
-    xit('should be able to create more liquidity', async () => {
-      const collateral = '200000000000000';
+    it('should be able to create more oToken liquidity', async () => {
+      const collateral = [ETHCollateralForOcDai, ETHCollateralForOcUSDC];
       const strikePrices = [2 * 10 ** -10, 208 * 10 ** -12, 9 * 10 ** -15];
       const ETHToUSDCPrice =
         10 ** 18 / Number(await oracle.getPrice(usdcAddress));
       for (let i = 0; i < optionsContracts.length; i++) {
         const numOptions = (
           calculateMaxOptionsToCreate(
-            Number(collateral) * 10 ** -18,
+            Number(collateral[i]) * 10 ** -18,
             strikePrices[i],
             ETHToUSDCPrice
           ) - 10000
         ).toString();
-        await optionsContracts[i].addETHCollateralOption(
-          numOptions,
-          creatorAddress,
-          {
-            from: creatorAddress,
-            value: collateral
-          }
-        );
+        if (Boolean(await optionsContracts[i].hasVault(creatorAddress))) {
+          await optionsContracts[i].addETHCollateralOption(
+            numOptions,
+            creatorAddress,
+            {
+              from: creatorAddress,
+              value: collateral[i].toString()
+            }
+          );
+        } else {
+          await optionsContracts[i].createETHCollateralOption(
+            numOptions,
+            creatorAddress,
+            {
+              from: creatorAddress,
+              value: collateral[i].toString()
+            }
+          );
+        }
       }
     });
 
@@ -326,6 +341,7 @@ contract('OptionsContract', accounts => {
           '0x0000000000000000000000000000000000000000',
           '1'
         );
+        console.log(premiumToPay.toString());
         const insuredAPR =
           ((Number(premiumToPay) * 10 ** -18) / priceInUSD[i]) *
           100 *
