@@ -66,7 +66,7 @@ vault owners can also burn oTokens to increase the collateralization ratio by bu
 
 #### Liquidate the undercollateralized vaults
 
-Liquidation happens by calling `liquidate(vaultIndex, _oTokens)`. All vaults need `collateralizationRatio * strikePrice * puts <= collateral * collateralToStrikePrice` to be safe.
+Liquidation happens by calling `liquidate(vaultIndex, _oTokens)`. All vaults need `collateralizationRatio * strikePrice * oTokensIssued <= collateral * collateralToStrikePrice` to be safe.
 
 If that condition fails, a liquidator can come with `_oTokens`. The liquidator gets `_oTokens * strikePrice * (incentive + fee)` amount of collateral out. They can liquidate a max of `liquidationFactor * vault.collateral` in one function call i.e. partial liquidations.
 ![image info](./images/liquidate.png)
@@ -80,5 +80,5 @@ Any oToken holder can call `exercise (oTokens, vaultsToExerciseFrom[])` during t
 After the contract expires, the insurance providers can collect their collateral back. The amount they receive depends on how many times their vault was exercised from. The oTokens expire so don't have to be burned as they no longer have any value. Vaults can't be unsafe after expiry because they no longer have a promised insurance amount.
 ![image info](./images/claim.png)
 
-The vault owner can withdraw their share of underlying at any time, if their vault was exercised, by calling the `removeUnderlying()` function. 
+The vault owner can withdraw their share of underlying at any time, if their vault was exercised, by calling the `removeUnderlying()` function.
 
