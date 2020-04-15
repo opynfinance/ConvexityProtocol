@@ -1,4 +1,4 @@
-import {expect} from 'chai';
+/*import {expect} from 'chai';
 import {OracleInstance} from '../build/types/truffle-types';
 
 const Oracle = artifacts.require('Oracle.sol');
@@ -116,4 +116,4 @@ contract('OptionsContract', accounts => {
       );
     });
   });
-});
+});*/
