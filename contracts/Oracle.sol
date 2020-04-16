@@ -129,12 +129,12 @@ contract Oracle {
      * @return bool
      */
     function isETH(address asset) public view returns (bool) {
-        return asset == ETH;
+        return asset == address(0);
     }
 
     /**
      * @notice check if asset is cToken
-     * @param asset asset address
+     * @param cToken cToken address
      * @return bool
      */
     function iscToken(address cToken) external view returns (bool) {
