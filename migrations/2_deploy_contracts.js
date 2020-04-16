@@ -52,9 +52,9 @@ module.exports = function (deployer) {
     }
 
     // // For all testnets / mainnets
-    // const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
-    // console.log("Options Exchange ", optionsExchange.address.toString());
-    // await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
-    // console.log("Options Factory ", OptionsFactory.address.toString());
+    const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
+    console.log("Options Exchange ", optionsExchange.address.toString());
+    await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
+    console.log("Options Factory ", OptionsFactory.address.toString());
   })
 };
