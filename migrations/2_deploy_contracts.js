@@ -5,18 +5,19 @@ const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const Oracle = artifacts.require('Oracle.sol');
 const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 
-module.exports = function (deployer) {
+module.exports = function (deployer, network) {
   deployer.then(async () => {
     var uniswapFactoryAddr;
     var compoundOracleAddress;
     var compoundOracle;
-    if ((await web3.eth.net.getId()) == 4) {
+
+    if (network == "rinkeby") {
       // Rinkeby
       uniswapFactoryAddr = "0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36";
       compoundOracleAddress = "0x332b6e69f21acdba5fb3e8dac56ff81878527e06";
       compoundOracle = await deployer.deploy(Oracle, compoundOracleAddress);
       // compoundOracle = await deployer.deploy(MockCompoundOracle);
-    } else if ((await web3.eth.net.getId()) == 42) {
+    } else if (network == "kovan") {
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
       // Kovan
@@ -24,7 +25,7 @@ module.exports = function (deployer) {
       compoundOracleAddress = "0x6998ed7daf969ea0950e01071aceeee54cccbab5";
       // compoundOracle = await deployer.deploy(Oracle, compoundOracleAddress);
       compoundOracle = await deployer.deploy(MockCompoundOracle);
-    } else if ((await web3.eth.net.getId()) == 3) {
+    } else if (network == "ropsten") {
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
       // Ropsten
@@ -32,7 +33,7 @@ module.exports = function (deployer) {
       compoundOracleAddress = "0xc7E20CF485b8E0Bcec3e2fCc23e3aD93b1b0cB39";
       // compoundOracle = await deployer.deploy(Oracle, compoundOracleAddress);
       compoundOracle = await deployer.deploy(MockCompoundOracle);
-    } else if ((await web3.eth.net.getId()) == 1) {
+    } else if (network == "mainnet") {
       // await deployer.deploy(StringComparator);
       // await deployer.link(StringComparator, OptionsFactory);
       // // Mainnet
@@ -41,7 +42,7 @@ module.exports = function (deployer) {
       // compoundOracle = await deployer.deploy(Oracle, compoundOracleAddress);
       // // compoundOracle = await Oracle.at('0x317166AB2bF19152D16871C8Cf1B33583e26932B');
       // console.log("Oracle Address ", compoundOracle.address.toString());
-    } else {
+    } else if (network == "development") {
       // For the local testnet
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
@@ -51,10 +52,10 @@ module.exports = function (deployer) {
       compoundOracle = await deployer.deploy(MockCompoundOracle);
     }
 
-    // // For all testnets / mainnets
-    // const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
-    // console.log("Options Exchange ", optionsExchange.address.toString());
-    // await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
-    // console.log("Options Factory ", OptionsFactory.address.toString());
+    // For all testnets / mainnets
+    const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
+    console.log("Options Exchange ", optionsExchange.address.toString());
+    await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
+    console.log("Options Factory ", OptionsFactory.address.toString());
   })
 };
