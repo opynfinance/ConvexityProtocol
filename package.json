@@ -34,22 +34,26 @@
     "build"
   ],
   "scripts": {
+    "ganache": "ganache-cli --allowUnlimitedContractSize",
     "compile:contracts": "truffle compile",
     "compile:types": "typechain --target=truffle --outDir build/types/truffle-types \"build/contracts/*.json\"",
     "build": "npm run compile:contracts && npm run compile:types",
     "pretest": "npm run build",
     "test": "truffle test",
-    "test:kovan":"truffle test --network kovan ./test/sell-and-buy.test.ts",
-    "test:ropsten":"truffle test --network ropsten ./test/sell-and-buy.test.ts",
+    "test:kovan": "truffle test --network kovan ./test/sell-and-buy.test.ts",
+    "test:ropsten": "truffle test --network ropsten ./test/sell-and-buy.test.ts",
     "test:rinkeby": "truffle test --network rinkeby ./test/sell-and-buy.test.ts",
     "sellOptions:mainnet": "truffle test --network mainnet ./test/sell-and-buy.test.ts",
+    "test:oyDai": "truffle test --network mainnet ./test/oyDai.test.ts",
     "lint:contracts": "solhint 'contracts/**/*.sol'",
     "lint:tests": "eslint 'test/**/*.ts'",
     "lint:tests:fix": "npm run lint:tests -- --fix",
     "lint:sol": "solhint 'contracts/**/*.sol'",
     "lint:sol:prettier:fix": "prettier --write \"contracts/**/*.sol\"",
     "migrate": "truffle migrate",
-    "deploy:kovan": "npm run build && npm run migrate -- --network kovan"
+    "deploy:development": "npm run build && npm run migrate -- --network development",
+    "deploy:kovan": "npm run build && npm run migrate -- --network kovan",
+    "deploy:mainnet": "npm run build && npm run migrate -- --network mainnet"
   },
   "prettier": {
     "singleQuote": true,
