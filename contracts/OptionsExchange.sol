@@ -22,7 +22,8 @@ contract OptionsExchange {
         address payable receiver,
         address oTokenAddress,
         address payoutTokenAddress,
-        uint256 oTokensToSell
+        uint256 oTokensToSell,
+        uint256 payoutTokensReceived
     );
     event BuyOTokens(
         address buyer,
@@ -50,14 +51,20 @@ contract OptionsExchange {
         IERC20 oToken = IERC20(oTokenAddress);
         IERC20 payoutToken = IERC20(payoutTokenAddress);
         oToken.transferFrom(msg.sender, address(this), oTokensToSell);
-        uniswapSellOToken(oToken, payoutToken, oTokensToSell, receiver);
+        uint256 payoutTokensReceived = uniswapSellOToken(
+            oToken,
+            payoutToken,
+            oTokensToSell,
+            receiver
+        );
 
         emit SellOTokens(
             msg.sender,
             receiver,
             oTokenAddress,
             payoutTokenAddress,
-            oTokensToSell
+            oTokensToSell,
+            payoutTokensReceived
         );
     }
 
