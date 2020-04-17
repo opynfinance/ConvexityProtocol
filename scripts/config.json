@@ -21,5 +21,9 @@
         "options_factory" : "0x90Eab7D251A582Ab85495b0653DDF53a145d1A76",
         "asset": "",
         "address": ""
+    },
+    "create_uniswap_exchange": {
+        "uniswap_factory": "0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36",
+        "oToken_address": "0xB64E66F7F776eaeba640a6C0139A83940825b26d"
     }
 }
