@@ -18,7 +18,7 @@ contract oToken is OptionsContract {
     * @param _strikeExp The precision of the strike asset (-18 if ETH)
     * @param _strike The asset in which the insurance is calculated
     * @param _expiry The time at which the insurance expires
-    * @param _optionsExchangeAddress The contract which interfaces with the exchange + oracle
+    * @param _optionsExchange The contract which interfaces with the exchange + oracle
     * @param _oracleAddress The address of the oracle
     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
     */
@@ -32,7 +32,7 @@ contract oToken is OptionsContract {
         int32 _strikeExp,
         IERC20 _strike,
         uint256 _expiry,
-        address _optionsExchangeAddress,
+        OptionsExchange _optionsExchange,
         address _oracleAddress,
         uint256 _windowSize
     )
@@ -47,7 +47,7 @@ contract oToken is OptionsContract {
             _strikeExp,
             _strike,
             _expiry,
-            _optionsExchangeAddress,
+            _optionsExchange,
             _oracleAddress,
             _windowSize
         )

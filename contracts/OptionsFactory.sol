@@ -15,7 +15,7 @@ contract OptionsFactory is Ownable {
     address[] public optionsContracts;
 
     // The contract which interfaces with the exchange
-    address public optionsExchangeAddress;
+    OptionsExchange public optionsExchange;
     address public oracleAddress;
 
     event OptionsContractCreated(address addr);
@@ -24,16 +24,13 @@ contract OptionsFactory is Ownable {
     event AssetDeleted(string indexed asset);
 
     /**
-     * @param optionsExchangeAddress The contract which interfaces with the exchange
+     * @param _optionsExchangeAddr: The contract which interfaces with the exchange
      * @param _oracleAddress Address of the oracle
      */
-    constructor(address optionsExchangeAddress, address _oracleAddress) public {
-        require(
-            optionsExchangeAddress != address(0),
-            "invalid options exchange"
-        );
-
-        optionsExchangeAddress = optionsExchangeAddress;
+    constructor(OptionsExchange _optionsExchangeAddr, address _oracleAddress)
+        public
+    {
+        optionsExchange = OptionsExchange(_optionsExchangeAddr);
         oracleAddress = _oracleAddress;
     }
 
@@ -84,7 +81,7 @@ contract OptionsFactory is Ownable {
             _strikeExp,
             tokens[_strikeAsset],
             _expiry,
-            optionsExchangeAddress,
+            optionsExchange,
             oracleAddress,
             _windowSize
         );

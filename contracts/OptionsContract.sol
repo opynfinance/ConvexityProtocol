@@ -1,15 +1,15 @@
 pragma solidity 0.5.10;
 
+import "./lib/CompoundOracleInterface.sol";
+import "./OptionsExchange.sol";
+import "./OptionsUtils.sol";
+import "./lib/UniswapFactoryInterface.sol";
+import "./lib/UniswapExchangeInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./lib/CompoundOracleInterface.sol";
-import "./lib/UniswapFactoryInterface.sol";
-import "./lib/UniswapExchangeInterface.sol";
-import "./interfaces/IOptionsExchange.sol";
-import "./OptionsUtils.sol";
 
 /**
  * @title Opyn's Options Contract
@@ -33,7 +33,7 @@ contract OptionsContract is Ownable, ERC20 {
         bool owned;
     }
 
-    IOptionsExchange public optionsExchange;
+    OptionsExchange public optionsExchange;
 
     mapping(address => Vault) internal vaults;
 
@@ -107,7 +107,7 @@ contract OptionsContract is Ownable, ERC20 {
     * @param _strikeExp The precision of the strike price.
     * @param _strike The asset in which the insurance is calculated
     * @param _expiry The time at which the insurance expires
-    * @param _optionsExchangeAddress The contract which interfaces with the exchange + oracle
+    * @param _optionsExchange The contract which interfaces with the exchange + oracle
     * @param _oracleAddress The address of the oracle
     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
     */
@@ -121,7 +121,7 @@ contract OptionsContract is Ownable, ERC20 {
         int32 _strikeExp,
         IERC20 _strike,
         uint256 _expiry,
-        address _optionsExchangeAddress,
+        OptionsExchange _optionsExchange,
         address _oracleAddress,
         uint256 _windowSize
     ) public {
@@ -159,7 +159,7 @@ contract OptionsContract is Ownable, ERC20 {
 
         expiry = _expiry;
         COMPOUND_ORACLE = CompoundOracleInterface(_oracleAddress);
-        optionsExchange = IOptionsExchange(_optionsExchangeAddress);
+        optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
 
