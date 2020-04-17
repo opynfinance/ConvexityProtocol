@@ -34,7 +34,7 @@
     "build"
   ],
   "scripts": {
-    "ganache": "ganache-cli --allowUnlimitedContractSize",
+    "ganache": "ganache-cli --port 8545 --allowUnlimitedContractSize",
     "compile:contracts": "truffle compile",
     "compile:types": "typechain --target=truffle --outDir build/types/truffle-types \"build/contracts/*.json\"",
     "build": "npm run compile:contracts && npm run compile:types",
