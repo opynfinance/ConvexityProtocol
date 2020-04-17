@@ -16,5 +16,10 @@
         "oToken": "",
         "name": "Opyn cDai Insurance",
         "symbol": "ocDai"
+    },
+    "manage_factory": {
+        "options_factory" : "0x90Eab7D251A582Ab85495b0653DDF53a145d1A76",
+        "asset": "",
+        "address": ""
     }
 }

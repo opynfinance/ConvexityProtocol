@@ -31,12 +31,6 @@ module.exports = async function(callback) {
         console.log("oToken address: ", option.address);
         console.log("oToken owner: ", await option.owner());
 
-        // set oToken details
-        await option.setDetails(
-            config.create_option.name,
-            config.create_option.symbol
-        );
-
         callback();
     }
     catch(err) {

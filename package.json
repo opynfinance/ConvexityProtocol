@@ -114,6 +114,7 @@
   },
   "homepage": "https://github.com/aparnakr/OptionsProtocol#readme",
   "dependencies": {
+    "minimist": "^1.2.5",
     "truffle-hdwallet-provider": "^1.0.17"
   }
 }
