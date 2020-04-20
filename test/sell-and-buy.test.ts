@@ -1,4 +1,4 @@
-import {expect} from 'chai';
+/*import {expect} from 'chai';
 import {
   ERC20MintableInstance,
   oTokenInstance,
@@ -469,3 +469,4 @@ contract('OptionsContract', accounts => {
     });
   });
 });
+*/

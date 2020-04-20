@@ -35,6 +35,7 @@
     "build"
   ],
   "scripts": {
+    "ganache": "ganache-cli --allowUnlimitedContractSize",
     "compile:contracts": "truffle compile",
     "compile:types": "typechain --target=truffle --outDir build/types/truffle-types \"build/contracts/*.json\"",
     "build": "npm run compile:contracts && npm run compile:types",
@@ -51,7 +52,9 @@
     "lint:sol": "solhint 'contracts/**/*.sol'",
     "lint:sol:prettier:fix": "prettier --write \"contracts/**/*.sol\"",
     "migrate": "truffle migrate",
+    "deploy:development": "npm run build && npm run migrate -- --network development",
     "deploy:kovan": "npm run build && npm run migrate -- --network kovan",
+    "deploy:mainnet": "npm run build && npm run migrate -- --network mainnet",
     "docgen": "solidoc"
   },
   "prettier": {
