@@ -1,7 +1,7 @@
 // This enables us to use TypeScript in the unit tests.
 require('ts-node/register');
-const mnemonic = require('./secret.js');
-const HDWalletProvider = require('truffle-hdwallet-provider');
+//const mnemonic = require('./secret.js');
+//const HDWalletProvider = require('truffle-hdwallet-provider');
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
