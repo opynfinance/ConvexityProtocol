@@ -86,7 +86,7 @@ contract OptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public COMPOUND_ORACLE;
+    CompoundOracleInterface public compoundOracle;
 
     // The name of  the contract
     string public name;
@@ -98,19 +98,19 @@ contract OptionsContract is Ownable, ERC20 {
     uint8 public decimals;
 
     /**
-    * @param _collateral The collateral asset
-    * @param _collExp The precision of the collateral (-18 if ETH)
-    * @param _underlying The asset that is being protected
-    * @param _underlyingExp The precision of the underlying asset
-    * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
-    * @param _strikePrice The amount of strike asset that will be paid out per oToken
-    * @param _strikeExp The precision of the strike price.
-    * @param _strike The asset in which the insurance is calculated
-    * @param _expiry The time at which the insurance expires
-    * @param _optionsExchange The contract which interfaces with the exchange + oracle
-    * @param _oracleAddress The address of the oracle
-    * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
-    */
+     * @param _collateral The collateral asset
+     * @param _collExp The precision of the collateral (-18 if ETH)
+     * @param _underlying The asset that is being protected
+     * @param _underlyingExp The precision of the underlying asset
+     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
+     * @param _strikePrice The amount of strike asset that will be paid out per oToken
+     * @param _strikeExp The precision of the strike price.
+     * @param _strike The asset in which the insurance is calculated
+     * @param _expiry The time at which the insurance expires
+     * @param _optionsExchange The contract which interfaces with the exchange + oracle
+     * @param _oracleAddress The address of the oracle
+     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+     */
     constructor(
         IERC20 _collateral,
         int32 _collExp,
@@ -158,7 +158,7 @@ contract OptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        COMPOUND_ORACLE = CompoundOracleInterface(_oracleAddress);
+        compoundOracle = CompoundOracleInterface(_oracleAddress);
         optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
@@ -454,7 +454,6 @@ contract OptionsContract is Ownable, ERC20 {
 
         transferUnderlying(msg.sender, underlyingToTransfer);
         emit RemoveUnderlying(underlyingToTransfer, msg.sender);
-
     }
 
     /**
@@ -704,7 +703,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @notice This function calculates and returns the amount of collateral in the vault
-    */
+     */
     function getCollateral(address payable vaultOwner)
         internal
         view
@@ -716,7 +715,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @notice This function calculates and returns the amount of puts issued by the Vault
-    */
+     */
     function getOTokensIssued(address payable vaultOwner)
         internal
         view
@@ -820,7 +819,6 @@ contract OptionsContract is Ownable, ERC20 {
             msg.sender,
             vaultToExerciseFrom
         );
-
     }
 
     /**
@@ -895,7 +893,6 @@ contract OptionsContract is Ownable, ERC20 {
         returns (uint256)
     {
         return calculateOTokens(collateralAmt, minCollateralizationRatio);
-
     }
 
     /**
@@ -988,7 +985,6 @@ contract OptionsContract is Ownable, ERC20 {
         }
 
         return amtCollateralToPay;
-
     }
 
     /**
@@ -1025,7 +1021,7 @@ contract OptionsContract is Ownable, ERC20 {
         if (asset == address(0)) {
             return (10**18);
         } else {
-            return COMPOUND_ORACLE.getPrice(asset);
+            return compoundOracle.getPrice(asset);
         }
     }
 }
