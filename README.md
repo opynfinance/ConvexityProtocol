@@ -1,4 +1,4 @@
-# Convexity Protocol
+# Convexity Protocol [![CircleCI](https://circleci.com/gh/opynfinance/OptionsProtocol/tree/dev.svg?style=svg&circle-token=dff9c1ce21f639bc170ef267bf2a93f43a5e5870)](https://circleci.com/gh/opynfinance/OptionsProtocol/tree/dev)
 
 This vault contains all the smart contracts for Opyn's Convexity Protocol. Convexity allows options sellers to earn premiums on their collateral and options buyers to protect themselves against technical, financial and systemic risks that the underlying token faces.
 
