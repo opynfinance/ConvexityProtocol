@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+
 /**
  * @title Opyn's Options Contract
  * @author Opyn
@@ -494,7 +495,12 @@ contract OptionsContract is Ownable, ERC20 {
     function getVault(address payable vaultOwner)
         public
         view
-        returns (uint256, uint256, uint256, bool)
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            bool
+        )
     {
         Vault storage vault = vaults[vaultOwner];
         return (
