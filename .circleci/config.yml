@@ -3,11 +3,11 @@ version: 2.1
 #  coveralls: coveralls/coveralls@1.0.4
 jobs:
   build:
-    # working_directory: ~/daihard
+    working_directory: ~/optionsprotocol
     docker:
       - image: circleci/node:10.18.0
-      - image: trufflesuite/ganache-cli
-        command: ganache-cli --port 8545 --allowUnlimitedContractSize
+      - image: trufflesuite/ganache-cli:v6.7.0
+        command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
     steps:
       - checkout
       - restore_cache:
