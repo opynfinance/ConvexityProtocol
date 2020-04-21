@@ -6,6 +6,7 @@ import "./lib/CompoundOracleInterface.sol";
 import "./lib/CTokenInterface.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+
 contract Oracle {
     using SafeMath for uint256;
 
@@ -15,6 +16,7 @@ contract Oracle {
 
     // The Oracle used for the contract
     CompoundOracleInterface public priceOracle;
+
     constructor(address _oracleAddress) public {
         priceOracle = CompoundOracleInterface(_oracleAddress);
         // Mainnet
@@ -78,7 +80,6 @@ contract Oracle {
                     getPriceUnderlying(underlyingAddress).mul(exchangeRate).div(
                         10**exponent
                     );
-
             } else if (assetToCTokens[asset] != address(0)) {
                 //2. Underlying Tokens that Compound lists
                 return getPriceUnderlying(asset);
