@@ -6,7 +6,7 @@ jobs:
     # working_directory: ~/daihard
     docker:
       - image: circleci/node:10.18.0
-      - image: trufflesuite/ganache-cli@6.7.0
+      - image: trufflesuite/ganache-cli:6.7.0
         command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
     steps:
       - checkout
