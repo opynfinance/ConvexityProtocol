@@ -6,8 +6,8 @@ jobs:
     # working_directory: ~/daihard
     docker:
       - image: circleci/node:10.18.0
-      #- image: trufflesuite/ganache-cli
-      #  command: ganache-cli --port 8545 --allowUnlimitedContractSize
+      - image: trufflesuite/ganache-cli
+        command: command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
     steps:
       - checkout
       - restore_cache:
@@ -18,9 +18,9 @@ jobs:
       - run:
           name: Lint Contracts
           command: npm run lint:sol
-      - run:
-          name: Start Ganache
-          command: npm run ganache:ci
+      #- run:
+      #    name: Start Ganache
+      #    command: npm run ganache:ci
       - run:
           name: Deploy Contracts
           command: npm run deploy:development

@@ -39,7 +39,7 @@
     "build"
   ],
   "scripts": {
-    "ganache:ci": "ganache-cli --allowUnlimitedContractSize --port 8545 > /dev/null & sleep 5",
+    "ganache:ci": "ganache-cli --allowUnlimitedContractSize --port 8545 > /dev/null &",
     "ganache": "ganache-cli --allowUnlimitedContractSize --port 8545",
     "compile:contracts": "truffle compile",
     "compile:types": "typechain --target=truffle --outDir build/types/truffle-types \"build/contracts/*.json\"",
