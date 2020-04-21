@@ -1,7 +1,7 @@
 // This enables us to use TypeScript in the unit tests.
 require('ts-node/register');
-const mnemonic = require('./secret.js');
-const HDWalletProvider = require('truffle-hdwallet-provider');
+//const mnemonic = require('./secret.js');
+//const HDWalletProvider = require('truffle-hdwallet-provider');
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
@@ -11,6 +11,13 @@ const HDWalletProvider = require('truffle-hdwallet-provider');
 
 module.exports = {
   networks: {
+    coverage: {
+      host: "127.0.0.1",
+      port: 8555,
+      network_id: "*",
+      gas: 0xfffffffffff, // <-- Use this high gas value
+      gasPrice: 0x01      // <-- Use this low gas price
+    },
     development: {
       host: "127.0.0.1", // Localhost (default: none)
       port: 8545, // Standard Ethereum port (default: none)
@@ -57,6 +64,8 @@ module.exports = {
   mocha: {
     // timeout: 100000
   },
+
+  plugins: ["solidity-coverage"],
 
   compilers: {
     solc: {
