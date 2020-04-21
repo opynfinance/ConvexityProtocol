@@ -7,13 +7,13 @@ import "./lib/UniswapExchangeInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract OptionsExchange {
-    uint256 constant LARGE_BLOCK_SIZE = 1651753129000;
-    uint256 constant LARGE_APPROVAL_NUMBER = 10**30;
+    uint256 internal constant LARGE_BLOCK_SIZE = 1651753129000;
+    uint256 internal constant LARGE_APPROVAL_NUMBER = 10**30;
 
-    UniswapFactoryInterface public UNISWAP_FACTORY;
+    UniswapFactoryInterface public uniswapFactory;
 
     constructor(address _uniswapFactory) public {
-        UNISWAP_FACTORY = UniswapFactoryInterface(_uniswapFactory);
+        uniswapFactory = UniswapFactoryInterface(_uniswapFactory);
     }
 
     /*** Events ***/
@@ -226,7 +226,7 @@ contract OptionsExchange {
         } else {
             // ETH to Token
             UniswapExchangeInterface exchange = UniswapExchangeInterface(
-                UNISWAP_FACTORY.getExchange(address(oToken))
+                uniswapFactory.getExchange(address(oToken))
             );
 
             uint256 ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
@@ -255,7 +255,7 @@ contract OptionsExchange {
         returns (UniswapExchangeInterface)
     {
         UniswapExchangeInterface exchange = UniswapExchangeInterface(
-            UNISWAP_FACTORY.getExchange(_token)
+            uniswapFactory.getExchange(_token)
         );
 
         if (address(exchange) == address(0)) {

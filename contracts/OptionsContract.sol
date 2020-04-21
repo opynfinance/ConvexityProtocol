@@ -86,7 +86,7 @@ contract OptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public COMPOUND_ORACLE;
+    CompoundOracleInterface public compoundOracle;
 
     // The name of  the contract
     string public name;
@@ -158,7 +158,7 @@ contract OptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        COMPOUND_ORACLE = CompoundOracleInterface(_oracleAddress);
+        compoundOracle = CompoundOracleInterface(_oracleAddress);
         optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
@@ -1034,7 +1034,7 @@ contract OptionsContract is Ownable, ERC20 {
         if (asset == address(0)) {
             return (10**18);
         } else {
-            return COMPOUND_ORACLE.getPrice(asset);
+            return compoundOracle.getPrice(asset);
         }
     }
 }
