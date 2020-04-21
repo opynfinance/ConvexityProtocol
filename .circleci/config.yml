@@ -3,7 +3,7 @@ version: 2.1
 #  coveralls: coveralls/coveralls@1.0.4
 jobs:
   build:
-    # working_directory: ~/daihard
+    working_directory: ~/optionsprotocol
     docker:
       - image: circleci/node:10.18.0
       - image: trufflesuite/ganache-cli:v6.7.0
@@ -18,9 +18,6 @@ jobs:
       - run:
           name: Lint Contracts
           command: npm run lint:sol
-      #- run:
-      #    name: Start Ganache
-      #    command: npm run ganache:ci
       - run:
           name: Deploy Contracts
           command: npm run deploy:development
