@@ -1,10 +1,12 @@
 pragma solidity 0.5.10;
 
 contract MockCompoundOracle {
+    uint256 price;
+
     constructor() public {
+        price = 5 * (10 ** 15);
     }
 
-    uint256 price = 5 * (10 ** 15);
     function getPrice(address asset) public view returns (uint) {
         return price;
     }
