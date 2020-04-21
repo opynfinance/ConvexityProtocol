@@ -7,7 +7,7 @@ jobs:
     docker:
       - image: circleci/node:10.18.0
       - image: trufflesuite/ganache-cli
-        command: command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
+        command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
     steps:
       - checkout
       - restore_cache:
