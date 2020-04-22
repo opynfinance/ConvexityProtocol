@@ -607,6 +607,17 @@ contract(
     });
 
     describe('Remove collateral', () => {
+      it('should revert removing collateral from unsafe vault', async () => {
+        const vault3 = await optionContract.getVault(vaultOwner3);
+
+        await expectRevert(
+          optionContract.removeCollateral(vault3[0].toString(), {
+            from: vaultOwner3
+          }),
+          'revert'
+        );
+      });
+
       it('burn issued tokens before expiry', async () => {
         const vault3 = await optionContract.getVault(vaultOwner3);
 
