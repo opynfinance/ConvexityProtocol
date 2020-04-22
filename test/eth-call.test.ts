@@ -12,18 +12,9 @@ const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
-const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-const {
-  BN,
-  constants,
-  balance,
-  time,
-  expectEvent,
-  expectRevert,
-  ether
-} = require('@openzeppelin/test-helpers');
+const {expectRevert, ether} = require('@openzeppelin/test-helpers');
 
 function calculateMaxOptionsToCreate(
   collateral: number,
@@ -67,11 +58,11 @@ contract(
     const _expiry = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
     const _windowSize = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
     const _liquidationIncentiveValue = 0;
-    const _liquidationIncentiveExp = -3;
+    //const _liquidationIncentiveExp = -3;
     const _liquidationFactorValue = 0;
-    const _liquidationFactorExp = -3;
+    //const _liquidationFactorExp = -3;
     const _transactionFeeValue = 0;
-    const _transactionFeeExp = -3;
+    //const _transactionFeeExp = -3;
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
@@ -220,6 +211,26 @@ contract(
           true,
           'error creating vault for owner3'
         );
+        assert.equal(
+          (await optionContract.getVaultOwnersLength()).toString(),
+          '3',
+          'vaults length mismatch'
+        );
+        assert.equal(
+          await optionContract.vaultOwners(0),
+          vaultOwner1,
+          'vault owner address mismatch'
+        );
+        assert.equal(
+          await optionContract.vaultOwners(1),
+          vaultOwner2,
+          'vault owner address mismatch'
+        );
+        assert.equal(
+          await optionContract.vaultOwners(2),
+          vaultOwner3,
+          'vault owner address mismatch'
+        );
       });
 
       it('should revert openning a vault for an already vault owner', async () => {
@@ -360,13 +371,6 @@ contract(
       });
 
       it('should revert issuing oToken more than maximum', async () => {
-        const vaultCollateral = (
-          await optionContract.getVault(vaultOwner1)
-        )[0].toString();
-        const _maxIssuable = (
-          await optionContract.maxOTokensIssuable(vaultCollateral)
-        ).toString();
-
         await expectRevert(
           optionContract.issueOTokens('5000', vaultOwner1, {
             from: vaultOwner1,
@@ -420,7 +424,5 @@ contract(
         );
       });
     });
-
-    describe('Exercice', () => {});
   }
 );
