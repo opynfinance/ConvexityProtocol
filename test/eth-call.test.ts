@@ -14,7 +14,7 @@ const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-const {expectRevert, ether} = require('@openzeppelin/test-helpers');
+const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
 
 function calculateMaxOptionsToCreate(
   collateral: number,
@@ -383,7 +383,7 @@ contract(
 
       it('should revert issuing oToken more than maximum', async () => {
         await expectRevert(
-          optionContract.issueOTokens('5000', vaultOwner1, {
+          optionContract.issueOTokens('200000001', vaultOwner1, {
             from: vaultOwner1,
             value: ethCollateralToAdd
           }),
@@ -392,15 +392,27 @@ contract(
       });
 
       it('issue oToken', async () => {
-        const _amountToIssue = '2000';
+        const vault1 = await optionContract.getVault(vaultOwner1);
+        const vault2 = await optionContract.getVault(vaultOwner2);
+        const vault3 = await optionContract.getVault(vaultOwner3);
 
-        await optionContract.issueOTokens(_amountToIssue, vaultOwner1, {
+        const _amountToIssue1 = (
+          await optionContract.maxOTokensIssuable(vault1[0])
+        ).toString();
+        const _amountToIssue2 = (
+          await optionContract.maxOTokensIssuable(vault2[0])
+        ).toString();
+        const _amountToIssue3 = (
+          await optionContract.maxOTokensIssuable(vault3[0])
+        ).toString();
+
+        await optionContract.issueOTokens(_amountToIssue1, vaultOwner1, {
           from: vaultOwner1
         });
-        await optionContract.issueOTokens(_amountToIssue, vaultOwner2, {
+        await optionContract.issueOTokens(_amountToIssue2, vaultOwner2, {
           from: vaultOwner2
         });
-        await optionContract.issueOTokens(_amountToIssue, vaultOwner3, {
+        await optionContract.issueOTokens(_amountToIssue3, vaultOwner3, {
           from: vaultOwner3
         });
 
@@ -436,7 +448,7 @@ contract(
       });
     });
 
-    describe('Exercise USDCS for ETH', async () => {
+    describe('Exercise USDC for ETH', async () => {
       before(async () => {
         optionContract.transfer(
           buyer1,
@@ -451,7 +463,7 @@ contract(
         );
       });
 
-      it('should revert exercising when buyer does not have enough USDCS balance', async () => {
+      it('should revert exercising when buyer does not have enough USDC balance', async () => {
         const _amountToExercise = (
           await optionContract.balanceOf(buyer1)
         ).toString();
@@ -493,7 +505,7 @@ contract(
         );
       });
 
-      it('exercise 4000USDC+4000oToken to get 20ETH', async () => {
+      it('exercise USDC+oToken to get 20ETH', async () => {
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
@@ -507,6 +519,10 @@ contract(
             buyerTokenBalanceBefore
           )
         ).toString();
+
+        const _collateralToPayOut = new BigNumber(vault1Before[0]).plus(
+          new BigNumber(vault2Before[0])
+        );
 
         const tx1 = await usdc.approve(
           optionContract.address,
@@ -541,9 +557,6 @@ contract(
         const vault1After = await optionContract.getVault(vaultOwner1);
         const vault2After = await optionContract.getVault(vaultOwner2);
         const vault3After = await optionContract.getVault(vaultOwner3);
-        const _collateralToPayOut = new BigNumber(vault1Before[0]).plus(
-          new BigNumber(vault2Before[0])
-        );
 
         assert.equal(
           vault1After[0].toString(),
@@ -552,7 +565,7 @@ contract(
         );
         assert.equal(
           vault1After[2].toString(),
-          '2000',
+          new BigNumber(buyerTokenBalanceBefore).dividedBy(2).toString(),
           'vault1 underlying mismatch'
         );
         assert.equal(
@@ -562,7 +575,7 @@ contract(
         );
         assert.equal(
           vault2After[2].toString(),
-          '2000',
+          new BigNumber(buyerTokenBalanceBefore).dividedBy(2).toString(),
           'vault2 underlying mismatch'
         );
         assert.equal(
@@ -582,11 +595,73 @@ contract(
           buyerTokenBalanceAfter,
           'buyer1 oToken balance mismatch'
         );
-        /*assert.equal(
+        assert.equal(
           new BigNumber(buyerETHBalanceBefore).toString(),
-          (new BigNumber(buyerETHBalanceAfter).minus(_collateralToPayOut).minus(gasUsed)).toString(),
+          new BigNumber(buyerETHBalanceAfter)
+            .minus(_collateralToPayOut)
+            .plus(gasUsed)
+            .toString(),
           'buyer1 ETH balance mismatch'
-        );*/
+        );
+      });
+    });
+
+    describe('Remove collateral', () => {
+      it('burn issued tokens before expiry', async () => {
+        const vault3 = await optionContract.getVault(vaultOwner3);
+
+        await optionContract.burnOTokens(vault3[1].toString(), {
+          from: vaultOwner3
+        });
+
+        const vault3TokensAfter = (
+          await optionContract.getVault(vaultOwner3)
+        )[1];
+
+        assert.equal(
+          vault3TokensAfter.toString(),
+          '0',
+          'vault3 oToken issued mismatch'
+        );
+      });
+
+      it('remove collateral from vault before expiry', async () => {
+        const vault3 = await optionContract.getVault(vaultOwner3);
+
+        await optionContract.removeCollateral(vault3[0].toString(), {
+          from: vaultOwner3
+        });
+
+        const vault3CollateralAfter = (
+          await optionContract.getVault(vaultOwner3)
+        )[0];
+
+        assert.equal(
+          vault3CollateralAfter.toString(),
+          '0',
+          'vault3 collateral mismatch'
+        );
+      });
+    });
+
+    describe('Redeem vault', () => {
+      before(async () => {
+        await time.increaseTo(_windowSize + 2);
+      });
+
+      it('redeem vault balance', async () => {
+        await optionContract.redeemVaultBalance({from: vaultOwner1});
+        await optionContract.redeemVaultBalance({from: vaultOwner2});
+
+        const vault1After = await optionContract.getVault(vaultOwner1);
+        const vault2After = await optionContract.getVault(vaultOwner2);
+
+        assert.equal(vault1After[0].toString(), '0', 'collateral mismatch');
+        assert.equal(vault1After[1].toString(), '0', 'oToken issued mismatch');
+        assert.equal(vault1After[2].toString(), '0', 'underlying mismatch');
+        assert.equal(vault2After[0].toString(), '0', 'collateral mismatch');
+        assert.equal(vault2After[1].toString(), '0', 'oToken issued mismatch');
+        assert.equal(vault2After[2].toString(), '0', 'underlying mismatch');
       });
     });
   }
