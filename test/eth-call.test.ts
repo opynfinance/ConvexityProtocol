@@ -28,6 +28,17 @@ function calculateMaxOptionsToCreate(
   );
 }
 
+function calculateCollateralToPay(
+  proportion: number,
+  strikePrice: number,
+  strikeToCollateralPrice: number,
+  oTokens: number
+): number {
+  return Math.floor(
+    (proportion * strikePrice * strikeToCollateralPrice * oTokens) / 10 ** 27
+  );
+}
+
 contract(
   'ETH Call Option',
   ([
@@ -422,6 +433,160 @@ contract(
           vaultOwner3BalanceAfter.toString(),
           'invalid issued amount'
         );
+      });
+    });
+
+    describe('Exercise USDCS for ETH', async () => {
+      before(async () => {
+        optionContract.transfer(
+          buyer1,
+          await optionContract.balanceOf(vaultOwner1),
+          {from: vaultOwner1}
+        );
+
+        optionContract.transfer(
+          buyer1,
+          await optionContract.balanceOf(vaultOwner2),
+          {from: vaultOwner2}
+        );
+      });
+
+      it('should revert exercising when buyer does not have enough USDCS balance', async () => {
+        const _amountToExercise = (
+          await optionContract.balanceOf(buyer1)
+        ).toString();
+
+        await usdc.approve(optionContract.address, '500', {from: buyer1});
+
+        await expectRevert(
+          optionContract.exercise(
+            _amountToExercise,
+            [vaultOwner1, vaultOwner2, vaultOwner3],
+            {
+              from: buyer1
+            }
+          ),
+          'revert'
+        );
+      });
+
+      it('should revert exercising from an address that have no vault', async () => {
+        const _amountToExercise = (
+          await optionContract.balanceOf(buyer1)
+        ).toString();
+        const _amountUnderlyingNeeded = (
+          await optionContract.underlyingRequiredToExercise(_amountToExercise)
+        ).toString();
+
+        // mint needed underlying balance
+        await usdc.mint(buyer1, _amountUnderlyingNeeded);
+
+        await usdc.approve(optionContract.address, _amountUnderlyingNeeded, {
+          from: buyer1
+        });
+
+        await expectRevert(
+          optionContract.exercise(_amountToExercise, [vaultOwner1, random], {
+            from: buyer1
+          }),
+          'revert'
+        );
+      });
+
+      it('exercise 4000USDC+4000oToken to get 20ETH', async () => {
+        const buyerTokenBalanceBefore = (
+          await optionContract.balanceOf(buyer1)
+        ).toString();
+        const buyerETHBalanceBefore = await web3.eth.getBalance(buyer1);
+        const vault1Before = await optionContract.getVault(vaultOwner1);
+        const vault2Before = await optionContract.getVault(vaultOwner2);
+        const vault3Before = await optionContract.getVault(vaultOwner3);
+
+        const _amountUnderlyingNeeded = (
+          await optionContract.underlyingRequiredToExercise(
+            buyerTokenBalanceBefore
+          )
+        ).toString();
+
+        const tx1 = await usdc.approve(
+          optionContract.address,
+          _amountUnderlyingNeeded,
+          {from: buyer1}
+        );
+
+        const tx2 = await optionContract.exercise(
+          buyerTokenBalanceBefore,
+          [vaultOwner1, vaultOwner2, vaultOwner3],
+          {
+            from: buyer1
+          }
+        );
+
+        const tx1GasUsed = new BigNumber(tx1.receipt.gasUsed);
+        const tx1GasPrice = new BigNumber(
+          (await web3.eth.getTransaction(tx1.tx)).gasPrice
+        );
+        const tx2GasUsed = new BigNumber(tx2.receipt.gasUsed);
+        const tx2GasPrice = new BigNumber(
+          (await web3.eth.getTransaction(tx2.tx)).gasPrice
+        );
+        const gasUsed = tx1GasUsed
+          .multipliedBy(tx1GasPrice)
+          .plus(tx2GasUsed.multipliedBy(tx2GasPrice));
+
+        const buyerTokenBalanceAfter = (
+          await optionContract.balanceOf(buyer1)
+        ).toString();
+        const buyerETHBalanceAfter = await web3.eth.getBalance(buyer1);
+        const vault1After = await optionContract.getVault(vaultOwner1);
+        const vault2After = await optionContract.getVault(vaultOwner2);
+        const vault3After = await optionContract.getVault(vaultOwner3);
+        const _collateralToPayOut = new BigNumber(vault1Before[0]).plus(
+          new BigNumber(vault2Before[0])
+        );
+
+        assert.equal(
+          vault1After[0].toString(),
+          '0',
+          'vault1 collateral mismatch'
+        );
+        assert.equal(
+          vault1After[2].toString(),
+          '2000',
+          'vault1 underlying mismatch'
+        );
+        assert.equal(
+          vault2After[0].toString(),
+          '0',
+          'vault2 collateral mismatch'
+        );
+        assert.equal(
+          vault2After[2].toString(),
+          '2000',
+          'vault2 underlying mismatch'
+        );
+        assert.equal(
+          vault3After[0].toString(),
+          vault3Before[0].toString(),
+          'vault3 collateral mismatch'
+        );
+        assert.equal(
+          vault3After[2].toString(),
+          vault3Before[2].toString(),
+          'vault3 undelrying mismatch'
+        );
+        assert.equal(
+          new BigNumber(buyerTokenBalanceBefore)
+            .minus(new BigNumber(_amountUnderlyingNeeded))
+            .toString(),
+          buyerTokenBalanceAfter,
+          'buyer1 oToken balance mismatch'
+        );
+        /*assert.equal(
+          new BigNumber(buyerETHBalanceBefore).toString(),
+          (new BigNumber(buyerETHBalanceAfter).minus(_collateralToPayOut).minus(gasUsed)).toString(),
+          'buyer1 ETH balance mismatch'
+        );*/
       });
     });
   }
