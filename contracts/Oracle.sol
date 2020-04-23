@@ -151,6 +151,14 @@ contract Oracle {
         return assetToCTokens[asset];
     }
 
+    /**
+     * @notice get asset price
+     * @dev if asset == ETH return 1e18
+     * if asset is a cToken, get price of underlying in ETH * underlying exchange rate
+     * if asset is supported by Compound, get asset price from compound
+     * @param asset asset address
+     * @return asset price
+     */
     function getPrice(address asset) external view returns (uint256) {
         if (isETH(asset)) {
             return (10**18);
