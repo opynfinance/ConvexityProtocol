@@ -18,8 +18,8 @@ contract Oracle {
     address internal cWBTC;
     address internal cZRX;
 
-    mapping(address => bool) public isCToken;
-    mapping(address => address) public assetToCTokens;
+    mapping(address => bool) internal isCToken;
+    mapping(address => address) internal assetToCTokens;
 
     // The Oracle used for the contract
     CompoundOracleInterface public priceOracle;
