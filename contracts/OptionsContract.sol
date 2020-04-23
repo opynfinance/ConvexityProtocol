@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+
 /**
  * @title Opyn's Options Contract
  * @author Opyn
@@ -37,7 +38,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     mapping(address => Vault) internal vaults;
 
-    address payable[] internal vaultOwners;
+    address payable[] public vaultOwners;
 
     // 10 is 0.01 i.e. 1% incentive.
     Number public liquidationIncentive = Number(10, -3);
@@ -86,7 +87,7 @@ contract OptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public COMPOUND_ORACLE;
+    CompoundOracleInterface public compoundOracle;
 
     // The name of  the contract
     string public name;
@@ -98,19 +99,19 @@ contract OptionsContract is Ownable, ERC20 {
     uint8 public decimals;
 
     /**
-    * @param _collateral The collateral asset
-    * @param _collExp The precision of the collateral (-18 if ETH)
-    * @param _underlying The asset that is being protected
-    * @param _underlyingExp The precision of the underlying asset
-    * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
-    * @param _strikePrice The amount of strike asset that will be paid out per oToken
-    * @param _strikeExp The precision of the strike price.
-    * @param _strike The asset in which the insurance is calculated
-    * @param _expiry The time at which the insurance expires
-    * @param _optionsExchange The contract which interfaces with the exchange + oracle
-    * @param _oracleAddress The address of the oracle
-    * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
-    */
+     * @param _collateral The collateral asset
+     * @param _collExp The precision of the collateral (-18 if ETH)
+     * @param _underlying The asset that is being protected
+     * @param _underlyingExp The precision of the underlying asset
+     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
+     * @param _strikePrice The amount of strike asset that will be paid out per oToken
+     * @param _strikeExp The precision of the strike price.
+     * @param _strike The asset in which the insurance is calculated
+     * @param _expiry The time at which the insurance expires
+     * @param _optionsExchange The contract which interfaces with the exchange + oracle
+     * @param _oracleAddress The address of the oracle
+     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+     */
     constructor(
         IERC20 _collateral,
         int32 _collExp,
@@ -158,7 +159,7 @@ contract OptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        COMPOUND_ORACLE = CompoundOracleInterface(_oracleAddress);
+        compoundOracle = CompoundOracleInterface(_oracleAddress);
         optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
@@ -220,19 +221,10 @@ contract OptionsContract is Ownable, ERC20 {
     }
 
     /**
-     * @notice This function gets the array of vaultOwners
+     * @notice This function gets the length of vaultOwners array
      */
-    function getVaultOwners() public view returns (address payable[] memory) {
-        address payable[] memory owners;
-        uint256 index = 0;
-        for (uint256 i = 0; i < vaultOwners.length; i++) {
-            if (hasVault(vaultOwners[i])) {
-                owners[index] = vaultOwners[i];
-                index++;
-            }
-        }
-
-        return owners;
+    function getVaultOwnersLength() public view returns (uint256) {
+        return vaultOwners.length;
     }
 
     /**
@@ -463,7 +455,6 @@ contract OptionsContract is Ownable, ERC20 {
 
         transferUnderlying(msg.sender, underlyingToTransfer);
         emit RemoveUnderlying(underlyingToTransfer, msg.sender);
-
     }
 
     /**
@@ -504,7 +495,12 @@ contract OptionsContract is Ownable, ERC20 {
     function getVault(address payable vaultOwner)
         public
         view
-        returns (uint256, uint256, uint256, bool)
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            bool
+        )
     {
         Vault storage vault = vaults[vaultOwner];
         return (
@@ -713,7 +709,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @notice This function calculates and returns the amount of collateral in the vault
-    */
+     */
     function getCollateral(address payable vaultOwner)
         internal
         view
@@ -725,7 +721,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @notice This function calculates and returns the amount of puts issued by the Vault
-    */
+     */
     function getOTokensIssued(address payable vaultOwner)
         internal
         view
@@ -829,7 +825,6 @@ contract OptionsContract is Ownable, ERC20 {
             msg.sender,
             vaultToExerciseFrom
         );
-
     }
 
     /**
@@ -860,8 +855,13 @@ contract OptionsContract is Ownable, ERC20 {
         returns (bool)
     {
         // get price from Oracle
-        uint256 collateralToEthPrice = getPrice(address(collateral));
-        uint256 strikeToEthPrice = getPrice(address(strike));
+        uint256 collateralToEthPrice = 1;
+        uint256 strikeToEthPrice = 1;
+
+        if (collateral != strike) {
+            collateralToEthPrice = getPrice(address(collateral));
+            strikeToEthPrice = getPrice(address(strike));
+        }
 
         // check `oTokensIssued * minCollateralizationRatio * strikePrice <= collAmt * collateralToStrikePrice`
         uint256 leftSideVal = oTokensIssued
@@ -899,7 +899,6 @@ contract OptionsContract is Ownable, ERC20 {
         returns (uint256)
     {
         return calculateOTokens(collateralAmt, minCollateralizationRatio);
-
     }
 
     /**
@@ -917,8 +916,13 @@ contract OptionsContract is Ownable, ERC20 {
         returns (uint256)
     {
         // get price from Oracle
-        uint256 collateralToEthPrice = getPrice(address(collateral));
-        uint256 strikeToEthPrice = getPrice(address(strike));
+        uint256 collateralToEthPrice = 1;
+        uint256 strikeToEthPrice = 1;
+
+        if (collateral != strike) {
+            collateralToEthPrice = getPrice(address(collateral));
+            strikeToEthPrice = getPrice(address(strike));
+        }
 
         // oTokensIssued  <= collAmt * collateralToStrikePrice / (proportion * strikePrice)
         uint256 denomVal = proportion.value.mul(strikePrice.value);
@@ -957,8 +961,13 @@ contract OptionsContract is Ownable, ERC20 {
         Number memory proportion
     ) internal view returns (uint256) {
         // Get price from oracle
-        uint256 collateralToEthPrice = getPrice(address(collateral));
-        uint256 strikeToEthPrice = getPrice(address(strike));
+        uint256 collateralToEthPrice = 1;
+        uint256 strikeToEthPrice = 1;
+
+        if (collateral != strike) {
+            collateralToEthPrice = getPrice(address(collateral));
+            strikeToEthPrice = getPrice(address(strike));
+        }
 
         // calculate how much should be paid out
         uint256 amtCollateralToPayInEthNum = _oTokens
@@ -982,7 +991,6 @@ contract OptionsContract is Ownable, ERC20 {
         }
 
         return amtCollateralToPay;
-
     }
 
     /**
@@ -1019,7 +1027,7 @@ contract OptionsContract is Ownable, ERC20 {
         if (asset == address(0)) {
             return (10**18);
         } else {
-            return COMPOUND_ORACLE.getPrice(asset);
+            return compoundOracle.getPrice(asset);
         }
     }
 }

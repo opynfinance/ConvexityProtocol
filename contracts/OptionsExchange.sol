@@ -6,14 +6,15 @@ import "./lib/UniswapFactoryInterface.sol";
 import "./lib/UniswapExchangeInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract OptionsExchange {
-    uint256 constant LARGE_BLOCK_SIZE = 1651753129000;
-    uint256 constant LARGE_APPROVAL_NUMBER = 10**30;
 
-    UniswapFactoryInterface public UNISWAP_FACTORY;
+contract OptionsExchange {
+    uint256 internal constant LARGE_BLOCK_SIZE = 1651753129000;
+    uint256 internal constant LARGE_APPROVAL_NUMBER = 10**30;
+
+    UniswapFactoryInterface public uniswapFactory;
 
     constructor(address _uniswapFactory) public {
-        UNISWAP_FACTORY = UniswapFactoryInterface(_uniswapFactory);
+        uniswapFactory = UniswapFactoryInterface(_uniswapFactory);
     }
 
     /*** Events ***/
@@ -22,7 +23,8 @@ contract OptionsExchange {
         address payable receiver,
         address oTokenAddress,
         address payoutTokenAddress,
-        uint256 oTokensToSell
+        uint256 oTokensToSell,
+        uint256 payoutTokensReceived
     );
     event BuyOTokens(
         address buyer,
@@ -34,12 +36,12 @@ contract OptionsExchange {
     );
 
     /**
-    * @notice This function sells oTokens on Uniswap and sends back payoutTokens to the receiver
-    * @param receiver The address to send the payout tokens back to
-    * @param oTokenAddress The address of the oToken to sell
-    * @param payoutTokenAddress The address of the token to receive the premiums in
-    * @param oTokensToSell The number of oTokens to sell
-    */
+     * @notice This function sells oTokens on Uniswap and sends back payoutTokens to the receiver
+     * @param receiver The address to send the payout tokens back to
+     * @param oTokenAddress The address of the oToken to sell
+     * @param payoutTokenAddress The address of the token to receive the premiums in
+     * @param oTokensToSell The number of oTokens to sell
+     */
     function sellOTokens(
         address payable receiver,
         address oTokenAddress,
@@ -50,24 +52,30 @@ contract OptionsExchange {
         IERC20 oToken = IERC20(oTokenAddress);
         IERC20 payoutToken = IERC20(payoutTokenAddress);
         oToken.transferFrom(msg.sender, address(this), oTokensToSell);
-        uniswapSellOToken(oToken, payoutToken, oTokensToSell, receiver);
+        uint256 payoutTokensReceived = uniswapSellOToken(
+            oToken,
+            payoutToken,
+            oTokensToSell,
+            receiver
+        );
 
         emit SellOTokens(
             msg.sender,
             receiver,
             oTokenAddress,
             payoutTokenAddress,
-            oTokensToSell
+            oTokensToSell,
+            payoutTokensReceived
         );
     }
 
     /**
-    * @notice This function buys oTokens on Uniswap and using paymentTokens from the receiver
-    * @param receiver The address to send the oTokens back to
-    * @param oTokenAddress The address of the oToken to buy
-    * @param paymentTokenAddress The address of the token to pay the premiums in
-    * @param oTokensToBuy The number of oTokens to buy
-    */
+     * @notice This function buys oTokens on Uniswap and using paymentTokens from the receiver
+     * @param receiver The address to send the oTokens back to
+     * @param oTokenAddress The address of the oToken to buy
+     * @param paymentTokenAddress The address of the token to pay the premiums in
+     * @param oTokensToBuy The number of oTokens to buy
+     */
     function buyOTokens(
         address payable receiver,
         address oTokenAddress,
@@ -80,12 +88,12 @@ contract OptionsExchange {
     }
 
     /**
-    * @notice This function calculates the amount of premiums that the seller
-    * will receive if they sold oTokens on Uniswap
-    * @param oTokenAddress The address of the oToken to sell
-    * @param payoutTokenAddress The address of the token to receive the premiums in
-    * @param oTokensToSell The number of oTokens to sell
-    */
+     * @notice This function calculates the amount of premiums that the seller
+     * will receive if they sold oTokens on Uniswap
+     * @param oTokenAddress The address of the oToken to sell
+     * @param payoutTokenAddress The address of the token to receive the premiums in
+     * @param oTokensToSell The number of oTokens to sell
+     */
     function premiumReceived(
         address oTokenAddress,
         address payoutTokenAddress,
@@ -105,16 +113,15 @@ contract OptionsExchange {
             return payoutExchange.getEthToTokenInputPrice(ethReceived);
         }
         return ethReceived;
-
     }
 
     /**
-    * @notice This function calculates the premiums to be paid if a buyer wants to
-    * buy oTokens on Uniswap
-    * @param oTokenAddress The address of the oToken to buy
-    * @param paymentTokenAddress The address of the token to pay the premiums in
-    * @param oTokensToBuy The number of oTokens to buy
-    */
+     * @notice This function calculates the premiums to be paid if a buyer wants to
+     * buy oTokens on Uniswap
+     * @param oTokenAddress The address of the oToken to buy
+     * @param paymentTokenAddress The address of the token to pay the premiums in
+     * @param oTokensToBuy The number of oTokens to buy
+     */
     function premiumToPay(
         address oTokenAddress,
         address paymentTokenAddress,
@@ -219,7 +226,7 @@ contract OptionsExchange {
         } else {
             // ETH to Token
             UniswapExchangeInterface exchange = UniswapExchangeInterface(
-                UNISWAP_FACTORY.getExchange(address(oToken))
+                uniswapFactory.getExchange(address(oToken))
             );
 
             uint256 ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
@@ -248,7 +255,7 @@ contract OptionsExchange {
         returns (UniswapExchangeInterface)
     {
         UniswapExchangeInterface exchange = UniswapExchangeInterface(
-            UNISWAP_FACTORY.getExchange(_token)
+            uniswapFactory.getExchange(_token)
         );
 
         if (address(exchange) == address(0)) {
@@ -265,5 +272,4 @@ contract OptionsExchange {
     function() external payable {
         // to get ether from uniswap exchanges
     }
-
 }

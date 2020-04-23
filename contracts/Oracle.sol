@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./lib/CompoundOracleInterface.sol";
 import "./lib/CTokenInterface.sol";
 
+
 contract Oracle {
     using SafeMath for uint256;
 
@@ -17,11 +18,11 @@ contract Oracle {
     address internal cWBTC;
     address internal cZRX;
 
-    mapping(address => bool) internal isCToken;
-    mapping(address => address) internal assetToCTokens;
+    mapping(address => bool) public isCToken;
+    mapping(address => address) public assetToCTokens;
 
     // The Oracle used for the contract
-    CompoundOracleInterface internal PriceOracle;
+    CompoundOracleInterface public priceOracle;
 
     constructor(address _oracleAddress) public {
         require(
@@ -29,15 +30,15 @@ contract Oracle {
             "invalid compound oracle address"
         );
 
-        PriceOracle = CompoundOracleInterface(_oracleAddress);
+        priceOracle = CompoundOracleInterface(_oracleAddress);
 
-        address ETH = address(0);
-        address BAT = 0x0D8775F648430679A709E98d2b0Cb6250d2887EF;
-        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address REP = 0x1985365e9f78359a9B6AD760e32412f4a445E862;
-        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
-        address ZRX = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
+        address eth = address(0);
+        address bat = 0x0D8775F648430679A709E98d2b0Cb6250d2887EF;
+        address dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+        address rep = 0x1985365e9f78359a9B6AD760e32412f4a445E862;
+        address usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        address wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+        address zrx = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
 
         // Mainnet cToken
         cETH = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
@@ -56,13 +57,13 @@ contract Oracle {
         isCToken[cUSDC] = true;
         isCToken[cZRX] = true;
 
-        assetToCTokens[ETH] = cETH;
-        assetToCTokens[BAT] = cBAT;
-        assetToCTokens[DAI] = cDAI;
-        assetToCTokens[REP] = cREP;
-        assetToCTokens[WBTC] = cWBTC;
-        assetToCTokens[USDC] = cUSDC;
-        assetToCTokens[ZRX] = cZRX;
+        assetToCTokens[eth] = cETH;
+        assetToCTokens[bat] = cBAT;
+        assetToCTokens[dai] = cDAI;
+        assetToCTokens[rep] = cREP;
+        assetToCTokens[wbtc] = cWBTC;
+        assetToCTokens[usdc] = cUSDC;
+        assetToCTokens[zrx] = cZRX;
     }
 
     /**
@@ -175,7 +176,6 @@ contract Oracle {
                     getPriceUnderlying(underlyingAddress).mul(exchangeRate).div(
                         10**exponent
                     );
-
             } else if (assetToCTokens[asset] != address(0)) {
                 //2. Underlying Tokens that Compound lists
                 return getPriceUnderlying(asset);
@@ -185,12 +185,12 @@ contract Oracle {
     }
 
     function getPriceUnderlying(address asset) internal view returns (uint256) {
-        uint256 EthToAssetPrice = PriceOracle.getUnderlyingPrice(
+        uint256 ethToAssetPrice = priceOracle.getUnderlyingPrice(
             ERC20(assetToCTokens[asset])
         );
         uint256 decimalsOfAsset = ERC20Detailed(asset).decimals();
         uint256 maxExponent = 18;
         uint256 exponent = maxExponent.sub(decimalsOfAsset);
-        return EthToAssetPrice.div(10**exponent);
+        return ethToAssetPrice.div(10**exponent);
     }
 }
