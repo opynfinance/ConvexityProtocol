@@ -4,3 +4,4 @@ flattened/
 .idea
 secret.js
 .mnemonic
+coverage/
