@@ -24,6 +24,8 @@
     },
     "create_uniswap_exchange": {
         "uniswap_factory": "0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36",
-        "oToken_address": "0xB64E66F7F776eaeba640a6C0139A83940825b26d"
+        "oToken_address": "0xB64E66F7F776eaeba640a6C0139A83940825b26d",
+        "eth_liquidity": "",
+        "token_liquidity": ""
     }
 }
