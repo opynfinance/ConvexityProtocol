@@ -1,0 +1,31 @@
+{
+    "create_option": {
+        "options_factory" : "0x90Eab7D251A582Ab85495b0653DDF53a145d1A76",
+        "collateralType" : "ETH",
+        "collateralExp" : -18,
+        "underlyingType": "cDAI",
+        "underlyingExp": -8,
+        "oTokenExchangeExp": -8,
+        "strikePrice" : 1859,
+        "strikeExp": -13,
+        "strikeAsset": "USDC",
+        "expiry": "1612915200",
+        "windowSize": 1612915200 
+    },
+    "set_option_details": {
+        "oToken": "",
+        "name": "Opyn cDai Insurance",
+        "symbol": "ocDai"
+    },
+    "manage_factory": {
+        "options_factory" : "0x90Eab7D251A582Ab85495b0653DDF53a145d1A76",
+        "asset": "",
+        "address": ""
+    },
+    "create_uniswap_exchange": {
+        "uniswap_factory": "0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36",
+        "oToken_address": "0xB64E66F7F776eaeba640a6C0139A83940825b26d",
+        "eth_liquidity": "",
+        "token_liquidity": ""
+    }
+}
