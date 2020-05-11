@@ -18,6 +18,7 @@ const UniswapFactory = artifacts.require("UniswapFactoryInterface.sol");
 const UniswapExchange = artifacts.require("UniswapExchangeInterface.sol");
 const oToken = artifacts.require("oToken.sol");
 
+// get ETH/Token liqudity at a specific price
 const getUniswapPrice = (ethBalance, tokenBalance, targetPrice) => {
     let constantProduct = ethBalance.multipliedBy(tokenBalance);
     let ethLiquidityPool = Math.sqrt(constantProduct.toFixed() / targetPrice)
@@ -29,13 +30,16 @@ const getUniswapPrice = (ethBalance, tokenBalance, targetPrice) => {
 async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
     const ethDecimals = 18;
 
+    // get oToken instance
     let opynOptionContract = await oToken.at(`0x${oTokenAdd}`);
+    // get uniswap factory instance
     let uniswapFactoryContract = await UniswapFactory.at("0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95")
+    // get uniswap exchange for oToken address
     let uniswapExchangeAdd = await uniswapFactoryContract.getExchange(opynOptionContract.address);
-
     if(uniswapExchangeAdd == 0x0000000000000000000000000000000000000000) {
         throw new Error("Can't find uniswap exchange or option ", opynOptionContract.address);
     }
+    // get uniswap exchange instance
     let uniswapExchangeContract = await UniswapExchange.at(uniswapExchangeAdd);
     
     Logger.info(
@@ -77,6 +81,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
 
         Logger.info('Option price: ', otokenEthPrice.toFixed(), 'ETH');
 
+        // oToken price > Deribit ask price
         if(otokenEthPrice.toFixed() > deribitAskPrice) {
             Logger.info('Opyn price is above Deribit lowest ask');
 
@@ -96,6 +101,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
             Logger.info('Amount of oToken to sell: ', amountOtokenToSell/10**otokenDecimals);
             Logger.info('Amount of ETH to buy: ', amountEthToBuy);
             
+            // get tx gas price
             // TODO: change this to input form user
             let gasPrice = await getGasPrice(web3, 1);
             let gasEstimation = await uniswapExchangeContract.tokenToEthSwapInput.estimateGas(
@@ -108,6 +114,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
             Logger.info('Current gas price: ', gasPrice, 'WEI');
             Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
 
+            // sell oToken for ETH
             // TODO: add gas limiter + better error management
             try {
                 await uniswapExchangeContract.tokenToEthSwapInput(
@@ -122,6 +129,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
                 Logger.error('Failed transaction')
             }
         }
+        // oToken price < Deribit bid price
         else if(otokenEthPrice.toFixed() < deribitBidPrice) {
             Logger.info('Opyn price is below Deribit bid');
 
@@ -141,6 +149,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
             Logger.info('Amount of oToken to buy: ', amountOtokenToBuy/10**otokenDecimals);
             Logger.info('Amount of ETH to sell: ', amountEthToSell);
 
+            // get tx gas price
             // TODO: change this to input form user
             let gasPrice = await getGasPrice(web3, 1);
             let gasEstimation = await uniswapExchangeContract.ethToTokenSwapOutput.estimateGas(
@@ -153,6 +162,7 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
             Logger.info('Current gas price: ', gasPrice, 'WEI');
             Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
 
+            // sell ETH for oToken
             // TODO: add gas limiter + better error management
             try {
                 await uniswapExchangeContract.ethToTokenSwapOutput(
