@@ -1,13 +1,9 @@
 // This enables us to use TypeScript in the unit tests.
 require('ts-node/register');
-//const mnemonic = require('./secret.js');
-//const HDWalletProvider = require('truffle-hdwallet-provider');
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
-// if (process.env.NODE_ENV !== 'test') {
-//   secrets = require("./secrets.json");
-// }
+// un-comment the below in case of public blockchain
+const HDWalletProvider = require('truffle-hdwallet-provider');	//const HDWalletProvider = require('truffle-hdwallet-provider');
+const fs = require('fs');
+const mnemonic = fs.readFileSync(".mnemonic").toString().trim();
 
 module.exports = {
   networks: {

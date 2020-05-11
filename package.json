@@ -123,6 +123,9 @@
   },
   "homepage": "https://github.com/aparnakr/OptionsProtocol#readme",
   "dependencies": {
+    "axios": "^0.19.2",
+    "bignumber.js": "^9.0.0",
+    "logger": "0.0.1",
     "minimist": "^1.2.5",
     "truffle-hdwallet-provider": "^1.0.17"
   }
