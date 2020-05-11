@@ -1,7 +1,7 @@
 // This enables us to use TypeScript in the unit tests.
 require('ts-node/register');
 // un-comment the below in case of public blockchain
-const HDWalletProvider = require('truffle-hdwallet-provider');	//const HDWalletProvider = require('truffle-hdwallet-provider');
+const HDWalletProvider = require('truffle-hdwallet-provider');
 const fs = require('fs');
 const mnemonic = fs.readFileSync(".mnemonic").toString().trim();
 
