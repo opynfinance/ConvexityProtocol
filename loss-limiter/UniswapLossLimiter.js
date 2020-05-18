@@ -30,6 +30,9 @@ const getUniswapPrice = (ethBalance, tokenBalance, targetPrice) => {
 async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
     const ethDecimals = 18;
 
+    // get accounts
+    const accounts = await web3.eth.getAccounts();
+    const marketMaker = accounts[0];
     // get oToken instance
     let opynOptionContract = await oToken.at(`0x${oTokenAdd}`);
     // get uniswap factory instance
@@ -100,33 +103,47 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
 
             Logger.info('Amount of oToken to sell: ', amountOtokenToSell/10**otokenDecimals);
             Logger.info('Amount of ETH to buy: ', amountEthToBuy);
-            
-            // get tx gas price
-            // TODO: change this to input form user
-            let gasPrice = await getGasPrice(web3, 1);
-            let gasEstimation = await uniswapExchangeContract.tokenToEthSwapInput.estimateGas(
-                amountOtokenToSell,
-                '1',
-                '1651753129000'
-            );
-            let gasCostEstimation = gasPrice*gasEstimation;
 
-            Logger.info('Current gas price: ', gasPrice, 'WEI');
-            Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
+            let mmTokenBalance = new BigNumber((await opynOptionContract.balanceOf(marketMaker)).toString());
+            let mmEthBalance = await web3.eth.getBalance(marketMaker);
+            if(amountOtokenToSell > mmTokenBalance) {
+                Logger.setLevel('error');
+                Logger.error('Insufficient token balance');
+            }
+            else if(mmEthBalance == 0) {
+                Logger.setLevel('error');
+                Logger.error('Insufficient ETH balance');
+            }
+            else {
+                // approve token transfer
+                await opynOptionContract.approve(uniswapExchangeContract.address, amountOtokenToSell);
 
-            // sell oToken for ETH
-            // TODO: add gas limiter + better error management
-            try {
-                await uniswapExchangeContract.tokenToEthSwapInput(
+                // get tx gas price
+                // TODO: change this to input form user
+                let gasPrice = await getGasPrice(web3, 1);
+                let gasEstimation = await uniswapExchangeContract.tokenToEthSwapInput.estimateGas(
                     amountOtokenToSell,
                     '1',
-                    '1651753129000',
-                    { gasPrice: String(gasCostEstimation)}
+                    '1651753129000'
                 );
-            }
-            catch(e) {
-                Logger.setLevel('error');
-                Logger.error('Failed transaction')
+                let gasCostEstimation = gasPrice*gasEstimation;
+
+                Logger.info('Current gas price: ', gasPrice, 'WEI');
+                Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
+
+                // sell oToken for ETH
+                try {
+                    await uniswapExchangeContract.tokenToEthSwapInput(
+                        amountOtokenToSell,
+                        '1',
+                        '1651753129000',
+                        { gasPrice: String(gasCostEstimation)}
+                    );
+                }
+                catch(e) {
+                    Logger.setLevel('error');
+                    Logger.error('Failed transaction')
+                }
             }
         }
         // oToken price < Deribit bid price
@@ -149,34 +166,40 @@ async function run(oTokenAdd, deribitOption, Logger, keepMonitoring) {
             Logger.info('Amount of oToken to buy: ', amountOtokenToBuy/10**otokenDecimals);
             Logger.info('Amount of ETH to sell: ', amountEthToSell);
 
-            // get tx gas price
-            // TODO: change this to input form user
-            let gasPrice = await getGasPrice(web3, 1);
-            let gasEstimation = await uniswapExchangeContract.ethToTokenSwapOutput.estimateGas(
-                amountOtokenToBuy,
-                '1651753129000',
-                {value: web3.utils.toWei(amountEthToSell, 'ether')}
-            );
-            let gasCostEstimation = gasPrice*gasEstimation;
-
-            Logger.info('Current gas price: ', gasPrice, 'WEI');
-            Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
-
-            // sell ETH for oToken
-            // TODO: add gas limiter + better error management
-            try {
-                await uniswapExchangeContract.ethToTokenSwapOutput(
+            let mmEthBalance = await web3.eth.getBalance(marketMaker);
+            if(mmEthBalance < amountEthToSell) {
+                Logger.setLevel('error');
+                Logger.error('Insufficient ETH balance');
+            }
+            else {
+                // get tx gas price
+                // TODO: change this to input form user
+                let gasPrice = await getGasPrice(web3, 1);
+                let gasEstimation = await uniswapExchangeContract.ethToTokenSwapOutput.estimateGas(
                     amountOtokenToBuy,
                     '1651753129000',
-                    { 
-                        value: web3.utils.toWei(amountEthToSell, 'ether'),
-                        gasPrice: String(gasCostEstimation)
-                    }
-                );  
-            }
-            catch(e) {
-                Logger.setLevel('error');
-                Logger.error('Failed transaction')
+                    {value: web3.utils.toWei(amountEthToSell, 'ether')}
+                );
+                let gasCostEstimation = gasPrice*gasEstimation;
+
+                Logger.info('Current gas price: ', gasPrice, 'WEI');
+                Logger.info('Gas cost estimation: ', String(gasCostEstimation), 'WEI', web3.utils.fromWei(String(gasCostEstimation), 'ether'), 'ETH');
+
+                // sell ETH for oToken
+                try {
+                    await uniswapExchangeContract.ethToTokenSwapOutput(
+                        amountOtokenToBuy,
+                        '1651753129000',
+                        { 
+                            value: web3.utils.toWei(amountEthToSell, 'ether'),
+                            gasPrice: String(gasCostEstimation)
+                        }
+                    );  
+                }
+                catch(e) {
+                    Logger.setLevel('error');
+                    Logger.error('Failed transaction')
+                }
             }
         }
 
