@@ -36,7 +36,8 @@ module.exports = {
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
       timeoutBlocks: 2000,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true,    // Skip dry run before migrations? (default: false for public nets )
-      gasPrice: 7000000000  // 7 gwei (in wei) (default: 100 gwei)
+      gasPrice: 7000000000,  // 7 gwei (in wei) (default: 100 gwei)
+      networkCheckTimeout: 10000
     },
     kovan: {
       provider: () => {
