@@ -10,7 +10,7 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-const truffleAssert = require('truffle-assertions');
+import {getUnixTime, addMonths} from 'date-fns';
 
 const {
   BN,
@@ -31,6 +31,10 @@ contract('OptionsContract', accounts => {
   let optionsContracts: oTokenInstance;
   let optionsFactory: OptionsFactoryInstance;
   let dai: ERC20MintableInstance;
+
+  const now = Date.now();
+  const expiry = getUnixTime(addMonths(now, 3));
+  const windowSize = expiry;
 
   before('set up contracts', async () => {
     // 1. Deploy mock contracts
@@ -61,8 +65,8 @@ contract('OptionsContract', accounts => {
       '9',
       -'15',
       'USDC',
-      '1589932800',
-      '1589932800',
+      expiry,
+      windowSize,
       {from: creatorAddress, gas: '4000000'}
     );
 
@@ -216,7 +220,7 @@ contract('OptionsContract', accounts => {
     it('first person should be able to collect their share of collateral', async () => {
       const vaultIndex = '0';
 
-      await time.increaseTo(1589932800);
+      await time.increaseTo(expiry);
 
       const initialETH = await balance.current(creatorAddress);
 

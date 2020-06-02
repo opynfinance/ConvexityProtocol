@@ -14,11 +14,10 @@ const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
+import {getUnixTime, addMonths} from 'date-fns';
 const {
   BN,
-  constants,
   balance,
-  time,
   expectEvent,
   expectRevert
 } = require('@openzeppelin/test-helpers');
@@ -67,6 +66,10 @@ contract('OptionsContract', accounts => {
     // TODO: deploy a mock USDC and get its address
     await optionsFactory.addAsset('USDC', usdc.address);
 
+    const now = Date.now();
+    const expiry = getUnixTime(addMonths(now, 3));
+    const windowSize = expiry;
+
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       'ETH',
@@ -77,8 +80,8 @@ contract('OptionsContract', accounts => {
       '9',
       -'15',
       'USDC',
-      '1589932800',
-      '1589932800',
+      expiry,
+      windowSize,
       {from: creatorAddress, gas: '4000000'}
     );
 
