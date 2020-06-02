@@ -9,14 +9,14 @@ import {
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
-const MockUniswapFactory = artifacts.require('MockUniswapFactory');
+// const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
 import {getUnixTime, addMonths} from 'date-fns';
 const {
   BN,
-  constants,
+  // constants,
   balance,
   time,
   expectEvent,
@@ -50,8 +50,6 @@ contract('OptionsContract', accounts => {
   const now = Date.now();
   const expiry = getUnixTime(addMonths(now, 3));
   const windowSize = expiry;
-
-  // const windowSize = 1589932800;
 
   before('set up contracts', async () => {
     // 1. Deploy mock contracts

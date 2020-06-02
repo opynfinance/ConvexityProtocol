@@ -27,7 +27,7 @@ function checkVault(
     '0': expectedCollateral,
     '1': expectedPutsOutstanding
   }: {'0': string; '1': string}
-) {
+): void {
   expect(vault['0'].toString()).to.equal(expectedCollateral);
   expect(vault['1'].toString()).to.equal(expectedPutsOutstanding);
 }

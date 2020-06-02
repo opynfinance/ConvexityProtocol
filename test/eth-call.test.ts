@@ -1,6 +1,6 @@
 import {
   ERC20MintableInstance,
-  MockCompoundOracleInstance,
+  // MockCompoundOracleInstance,
   OptionsContractInstance,
   OptionsExchangeInstance,
   OptionsFactoryInstance
@@ -53,7 +53,7 @@ contract(
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
     let optionsExchange: OptionsExchangeInstance;
-    let compoundOracle: MockCompoundOracleInstance;
+    // let compoundOracle: MockCompoundOracleInstance;
     let usdc: ERC20MintableInstance;
 
     const _name = 'test call option $200';
@@ -82,7 +82,7 @@ contract(
 
     before('set up contracts', async () => {
       // deploy compound oracle mock
-      compoundOracle = await MockCompoundOracle.deployed();
+      // compoundOracle = await MockCompoundOracle.deployed();
 
       // usdc token
       usdc = await MintableToken.new();

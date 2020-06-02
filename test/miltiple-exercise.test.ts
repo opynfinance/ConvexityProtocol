@@ -9,7 +9,7 @@ import {
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
-const MockUniswapFactory = artifacts.require('MockUniswapFactory');
+// const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
@@ -19,8 +19,8 @@ const {
   BN,
   balance,
   time,
-  expectEvent,
-  expectRevert
+  expectEvent
+  // expectRevert
 } = require('@openzeppelin/test-helpers');
 
 contract('OptionsContract', accounts => {

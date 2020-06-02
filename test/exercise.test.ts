@@ -81,7 +81,7 @@ contract('OptionsContract', accounts => {
     });
 
     // Add Collateral to both vaults
-    let vaultNum = '0';
+    // let vaultNum = '0';
     let msgValue = '20000000';
     await optionsContracts.addETHCollateral(creatorAddress, {
       from: creatorAddress,
@@ -89,7 +89,7 @@ contract('OptionsContract', accounts => {
       value: msgValue
     });
 
-    vaultNum = '1';
+    // vaultNum = '1';
     msgValue = '10000000';
     await optionsContracts.addETHCollateral(firstOwnerAddress, {
       from: firstOwnerAddress,
@@ -98,14 +98,14 @@ contract('OptionsContract', accounts => {
     });
 
     // Mint tokens
-    vaultNum = '0';
+    // vaultNum = '0';
     let numTokens = '25000';
     optionsContracts.issueOTokens(numTokens, creatorAddress, {
       from: creatorAddress,
       gas: '100000'
     });
 
-    vaultNum = '1';
+    // vaultNum = '1';
     numTokens = '10000';
     optionsContracts.issueOTokens(numTokens, firstOwnerAddress, {
       from: firstOwnerAddress,
@@ -218,8 +218,6 @@ contract('OptionsContract', accounts => {
 
   describe('#exercise() after expiry window', () => {
     it('first person should be able to collect their share of collateral', async () => {
-      const vaultIndex = '0';
-
       await time.increaseTo(expiry);
 
       const initialETH = await balance.current(creatorAddress);
@@ -251,7 +249,6 @@ contract('OptionsContract', accounts => {
     });
 
     it('only the owner of a vault should be able to collect collateral', async () => {
-      const vaultIndex = '1';
       await expectRevert(
         optionsContracts.redeemVaultBalance({
           from: nonOwnerAddress,
@@ -266,7 +263,6 @@ contract('OptionsContract', accounts => {
     );
 
     it('the second person should be able to collect their share of collateral', async () => {
-      const vaultIndex = '1';
       const tx = await optionsContracts.redeemVaultBalance({
         from: firstOwnerAddress,
         gas: '1000000'

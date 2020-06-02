@@ -3,15 +3,15 @@ import {
   ERC20MintableInstance,
   MockCompoundOracleInstance,
   OptionsContractInstance,
-  OptionsExchangeInstance,
+  // OptionsExchangeInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const OptionsExchange = artifacts.require('OptionsExchange');
+// const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
-const MockUniswapFactory = artifacts.require('MockUniswapFactory');
+// const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import {getUnixTime, addMonths} from 'date-fns';
@@ -31,7 +31,7 @@ contract('OptionsContract', accounts => {
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
-  let optionsExchange: OptionsExchangeInstance;
+  // let optionsExchange: OptionsExchangeInstance;
   let compoundOracle: MockCompoundOracleInstance;
   let dai: ERC20MintableInstance;
   let usdc: ERC20MintableInstance;
@@ -47,7 +47,7 @@ contract('OptionsContract', accounts => {
     // 1.1 Compound Oracle
     compoundOracle = await MockCompoundOracle.deployed();
     // 1.2 Uniswap Factory
-    const uniswapFactory = await MockUniswapFactory.new();
+    // const uniswapFactory = await MockUniswapFactory.new();
     // 1.3 Mock Dai contract
     dai = await MintableToken.new();
     await dai.mint(creatorAddress, '10000000');
@@ -57,7 +57,7 @@ contract('OptionsContract', accounts => {
     await usdc.mint(creatorAddress, '10000000');
     // 2. Deploy our contracts
     // deploys the Options Exhange contract
-    optionsExchange = await OptionsExchange.deployed();
+    // optionsExchange = await OptionsExchange.deployed();
 
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
