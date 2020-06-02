@@ -2,16 +2,17 @@ import {
   ERC20MintableInstance,
   // MockCompoundOracleInstance,
   OptionsContractInstance,
-  OptionsExchangeInstance,
+  // OptionsExchangeInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
-const BigNumber = require('bignumber.js');
+import BigNumber from 'bignumber.js';
+import {getUnixTime, addMonths} from 'date-fns';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const OptionsExchange = artifacts.require('OptionsExchange');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+// const OptionsExchange = artifacts.require('OptionsExchange');
+// const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
@@ -28,16 +29,16 @@ function calculateMaxOptionsToCreate(
   );
 }
 
-function calculateCollateralToPay(
-  proportion: number,
-  strikePrice: number,
-  strikeToCollateralPrice: number,
-  oTokens: number
-): number {
-  return Math.floor(
-    (proportion * strikePrice * strikeToCollateralPrice * oTokens) / 10 ** 27
-  );
-}
+// function calculateCollateralToPay(
+//   proportion: number,
+//   strikePrice: number,
+//   strikeToCollateralPrice: number,
+//   oTokens: number
+// ): number {
+//   return Math.floor(
+//     (proportion * strikePrice * strikeToCollateralPrice * oTokens) / 10 ** 27
+//   );
+// }
 
 contract(
   'ETH Call Option',
@@ -52,7 +53,7 @@ contract(
   ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let optionsExchange: OptionsExchangeInstance;
+    // let optionsExchange: OptionsExchangeInstance;
     // let compoundOracle: MockCompoundOracleInstance;
     let usdc: ERC20MintableInstance;
 
@@ -66,8 +67,10 @@ contract(
     const _strikePrice = 5;
     const _strikeExp = -9;
     const _strikeAsset = 'ETH';
-    const _expiry = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
-    const _windowSize = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
+    const now = Date.now();
+
+    const _expiry = getUnixTime(addMonths(now, 1));
+    const _windowSize = _expiry;
     const _liquidationIncentiveValue = 0;
     //const _liquidationIncentiveExp = -3;
     const _liquidationFactorValue = 0;
@@ -90,7 +93,7 @@ contract(
       // get deployed opyn protocol contracts
 
       // Options Exhange contract
-      optionsExchange = await OptionsExchange.deployed();
+      // optionsExchange = await OptionsExchange.deployed();
 
       // Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
@@ -183,7 +186,7 @@ contract(
           'invalid strike asset'
         );
         assert.equal(
-          await (await optionContract.expiry()).toString(),
+          (await optionContract.expiry()).toString(),
           String(_expiry),
           'invalid expiry'
         );
@@ -382,12 +385,20 @@ contract(
       });
 
       it('should revert issuing oToken more than maximum', async () => {
+        const vault1 = await optionContract.getVault(vaultOwner1);
+        const _amountToIssue1 = await optionContract.maxOTokensIssuable(
+          vault1[0]
+        );
+
         await expectRevert(
-          optionContract.issueOTokens('200000001', vaultOwner1, {
-            from: vaultOwner1,
-            value: ethCollateralToAdd
-          }),
-          'revert'
+          optionContract.issueOTokens(
+            new BigNumber(_amountToIssue1).plus(1).toString(),
+            vaultOwner1,
+            {
+              from: vaultOwner1
+            }
+          ),
+          'unsafe to mint'
         );
       });
 
