@@ -133,7 +133,6 @@ contract('OptionsContract', accounts => {
     let finalETH: BN;
     let gasUsed: BN;
     let gasPrice: BN;
-    let txInfo: any;
 
     it('should be able to call exercise', async () => {
       const amtToExercise = '10';
@@ -168,7 +167,7 @@ contract('OptionsContract', accounts => {
 
       initialETH = await balance.current(secondOwnerAddress);
 
-      txInfo = await optionsContracts.exercise(
+      const txInfo = await optionsContracts.exercise(
         amtToExercise,
         [creatorAddress],
         {
@@ -258,9 +257,29 @@ contract('OptionsContract', accounts => {
       );
     });
 
-    it(
-      'once collateral has been collected, should not be able to collect again'
-    );
+    it('once collateral has been collected, should not be able to collect again', async () => {
+      const ownerETHBalBefore = await balance.current(creatorAddress);
+      const ownerDaiBalBefore = await dai.balanceOf(creatorAddress);
+
+      const txInfo = await optionsContracts.redeemVaultBalance({
+        from: creatorAddress,
+        gas: '1000000'
+      });
+      const tx = await web3.eth.getTransaction(txInfo.tx);
+
+      // check ETH balance after = balance before - gas
+      const gasUsed = new BN(txInfo.receipt.gasUsed);
+      const gasPrice = new BN(tx.gasPrice);
+      const ownerETHBalAfter = await balance.current(creatorAddress);
+      const ownerDaiBalAfter = await dai.balanceOf(creatorAddress);
+      expect(ownerETHBalBefore.sub(gasUsed.mul(gasPrice)).toString()).to.equal(
+        ownerETHBalAfter.toString()
+      );
+      // check underlying balance stays the same
+      expect(ownerDaiBalBefore.toString()).to.equal(
+        ownerDaiBalAfter.toString()
+      );
+    });
 
     it('the second person should be able to collect their share of collateral', async () => {
       const tx = await optionsContracts.redeemVaultBalance({
