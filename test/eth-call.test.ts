@@ -1,8 +1,6 @@
 import {
   ERC20MintableInstance,
-  // MockCompoundOracleInstance,
   OptionsContractInstance,
-  // OptionsExchangeInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
@@ -39,8 +37,6 @@ contract(
   ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
-    // let optionsExchange: OptionsExchangeInstance;
-    // let compoundOracle: MockCompoundOracleInstance;
     let usdc: ERC20MintableInstance;
 
     const _name = 'test call option $200';
@@ -70,8 +66,8 @@ contract(
 
     before('set up contracts', async () => {
       const now = (await time.latest()).toNumber();
-      _expiry = now + 1 * 30 * 24 * 60 * 60;
-      _windowSize = _expiry;
+      _expiry = now + time.duration.days(30).toNumber();
+      _windowSize = _expiry; // time.duration.days(1).toNumber();
 
       // usdc token
       usdc = await MintableToken.new();
@@ -444,6 +440,9 @@ contract(
 
     describe('Exercise USDC for ETH', async () => {
       before(async () => {
+        const timeToExercise = _expiry - _windowSize;
+        await time.increaseTo(timeToExercise);
+
         optionContract.transfer(
           buyer1,
           await optionContract.balanceOf(vaultOwner1),
@@ -651,7 +650,7 @@ contract(
 
     describe('Redeem vault', () => {
       before(async () => {
-        await time.increaseTo(_windowSize + 2);
+        await time.increaseTo(_expiry + 2);
       });
 
       it('redeem vault balance', async () => {
