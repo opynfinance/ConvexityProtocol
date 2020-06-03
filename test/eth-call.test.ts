@@ -441,7 +441,8 @@ contract(
     describe('Exercise USDC for ETH', async () => {
       before(async () => {
         const timeToExercise = _expiry - _windowSize;
-        await time.increaseTo(timeToExercise);
+        const now = await time.latest();
+        if (timeToExercise > now) await time.increaseTo(timeToExercise);
 
         optionContract.transfer(
           buyer1,
