@@ -39,15 +39,15 @@ contract(
     let optionsFactory: OptionsFactoryInstance;
     let usdc: ERC20MintableInstance;
 
-    const _name = 'test call option $200';
-    const _symbol = 'test oETH $200';
+    const _name = 'test call option $280';
+    const _symbol = 'test oETH $280';
     const _collateralType = 'ETH';
     const _collateralExp = -18;
     const _underlyingType = 'USDC';
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 5;
-    const _strikeExp = -9;
+    const _strikePrice = 3571428;
+    const _strikeExp = -15;
     const _strikeAsset = 'ETH';
 
     let _expiry: number;
@@ -61,8 +61,8 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = ether('500');
-    const ethCollateralToAdd = ether('10');
+    const mintedAmount = '5600000896'; // 5600.00896 USD ~ 20 call options
+    const ethCollateralToAdd = ether('9.999999999999744000');
 
     before('set up contracts', async () => {
       const now = (await time.latest()).toNumber();
@@ -357,7 +357,7 @@ contract(
             (
               await optionContract.maxOTokensIssuable(vaultsCollateral[0])
             ).toString(),
-            String(_maxIssuable),
+            new BigNumber(_maxIssuable).integerValue().toString(),
             'max otoken issuable mismatch'
           );
         }
@@ -462,7 +462,15 @@ contract(
           await optionContract.balanceOf(buyer1)
         ).toString();
 
-        await usdc.approve(optionContract.address, '500', {from: buyer1});
+        await usdc.approve(
+          optionContract.address,
+          (await usdc.balanceOf(buyer1)).toString(),
+          {
+            from: buyer1
+          }
+        );
+
+        await usdc.transfer(vaultOwner1, '1', {from: buyer1});
 
         await expectRevert(
           optionContract.exercise(
@@ -472,7 +480,35 @@ contract(
               from: buyer1
             }
           ),
-          'revert'
+          'ERC20: transfer amount exceeds balance'
+        );
+
+        // transfer usdc back to buyer1
+        await usdc.transfer(buyer1, '1', {from: vaultOwner1});
+      });
+
+      it('should revert exercising when buyer does not have enough oToken balance', async () => {
+        const _amountToExercise = new BigNumber(
+          await optionContract.balanceOf(buyer1)
+        )
+          .plus(1)
+          .toString();
+
+        const balance = (await usdc.balanceOf(buyer1)).toString();
+
+        await usdc.approve(optionContract.address, balance, {
+          from: buyer1
+        });
+
+        await expectRevert(
+          optionContract.exercise(
+            _amountToExercise,
+            [vaultOwner1, vaultOwner2, vaultOwner3],
+            {
+              from: buyer1
+            }
+          ),
+          'Not enough oTokens'
         );
       });
 
@@ -503,6 +539,7 @@ contract(
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
+
         const buyerETHBalanceBefore = await web3.eth.getBalance(buyer1);
         const vault1Before = await optionContract.getVault(vaultOwner1);
         const vault2Before = await optionContract.getVault(vaultOwner2);
