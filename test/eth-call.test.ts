@@ -7,12 +7,9 @@ import {
 } from '../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
-import {getUnixTime, addMonths} from 'date-fns';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-// const OptionsExchange = artifacts.require('OptionsExchange');
-// const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
@@ -28,17 +25,6 @@ function calculateMaxOptionsToCreate(
       (minminCollateralizationRatio * strikePrice)
   );
 }
-
-// function calculateCollateralToPay(
-//   proportion: number,
-//   strikePrice: number,
-//   strikeToCollateralPrice: number,
-//   oTokens: number
-// ): number {
-//   return Math.floor(
-//     (proportion * strikePrice * strikeToCollateralPrice * oTokens) / 10 ** 27
-//   );
-// }
 
 contract(
   'ETH Call Option',
@@ -67,10 +53,9 @@ contract(
     const _strikePrice = 5;
     const _strikeExp = -9;
     const _strikeAsset = 'ETH';
-    const now = Date.now();
 
-    const _expiry = getUnixTime(addMonths(now, 1));
-    const _windowSize = _expiry;
+    let _expiry: number;
+    let _windowSize: number;
     const _liquidationIncentiveValue = 0;
     //const _liquidationIncentiveExp = -3;
     const _liquidationFactorValue = 0;
@@ -84,16 +69,14 @@ contract(
     const ethCollateralToAdd = ether('10');
 
     before('set up contracts', async () => {
-      // deploy compound oracle mock
-      // compoundOracle = await MockCompoundOracle.deployed();
+      const now = (await time.latest()).toNumber();
+      _expiry = now + 1 * 30 * 24 * 60 * 60;
+      _windowSize = _expiry;
 
       // usdc token
       usdc = await MintableToken.new();
 
       // get deployed opyn protocol contracts
-
-      // Options Exhange contract
-      // optionsExchange = await OptionsExchange.deployed();
 
       // Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
