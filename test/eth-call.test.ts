@@ -53,11 +53,8 @@ contract(
     let _expiry: number;
     let _windowSize: number;
     const _liquidationIncentiveValue = 0;
-    //const _liquidationIncentiveExp = -3;
     const _liquidationFactorValue = 0;
-    //const _liquidationFactorExp = -3;
     const _transactionFeeValue = 0;
-    //const _transactionFeeExp = -3;
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 

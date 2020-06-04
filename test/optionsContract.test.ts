@@ -29,15 +29,6 @@ function checkVault(
   expect(vault['1'].toString()).to.equal(expectedPutsOutstanding);
 }
 
-// function checkVaultOwners(vaults: any, expected: string[]): void {
-//   expect(vaults)
-//     .to.be.an('array')
-//     .with.length(expected.length);
-//   for (let i = 0; i < vaults.length; i++) {
-//     expect(vaults[i].toString()).to.equal(expected[i]);
-//   }
-// }
-
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
