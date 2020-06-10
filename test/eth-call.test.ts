@@ -1,17 +1,13 @@
 import {
   ERC20MintableInstance,
-  MockCompoundOracleInstance,
   OptionsContractInstance,
-  OptionsExchangeInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
-const BigNumber = require('bignumber.js');
+import BigNumber from 'bignumber.js';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const OptionsExchange = artifacts.require('OptionsExchange');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
@@ -28,17 +24,6 @@ function calculateMaxOptionsToCreate(
   );
 }
 
-function calculateCollateralToPay(
-  proportion: number,
-  strikePrice: number,
-  strikeToCollateralPrice: number,
-  oTokens: number
-): number {
-  return Math.floor(
-    (proportion * strikePrice * strikeToCollateralPrice * oTokens) / 10 ** 27
-  );
-}
-
 contract(
   'ETH Call Option',
   ([
@@ -52,45 +37,39 @@ contract(
   ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let optionsExchange: OptionsExchangeInstance;
-    let compoundOracle: MockCompoundOracleInstance;
     let usdc: ERC20MintableInstance;
 
-    const _name = 'test call option $200';
-    const _symbol = 'test oETH $200';
+    const _name = 'test call option $280';
+    const _symbol = 'test oETH $280';
     const _collateralType = 'ETH';
     const _collateralExp = -18;
     const _underlyingType = 'USDC';
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 5;
-    const _strikeExp = -9;
+    const _strikePrice = 3571428;
+    const _strikeExp = -15;
     const _strikeAsset = 'ETH';
-    const _expiry = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
-    const _windowSize = Math.round(new Date().getTime() / 1000) + 3600 * 24 * 7;
+
+    let _expiry: number;
+    let _windowSize: number;
     const _liquidationIncentiveValue = 0;
-    //const _liquidationIncentiveExp = -3;
     const _liquidationFactorValue = 0;
-    //const _liquidationFactorExp = -3;
     const _transactionFeeValue = 0;
-    //const _transactionFeeExp = -3;
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = ether('500');
-    const ethCollateralToAdd = ether('10');
+    const mintedAmount = '5600000896'; // 5600.00896 USD ~ 20 call options
+    const ethCollateralToAdd = ether('9.999999999999744000');
 
     before('set up contracts', async () => {
-      // deploy compound oracle mock
-      compoundOracle = await MockCompoundOracle.deployed();
+      const now = (await time.latest()).toNumber();
+      _expiry = now + time.duration.days(30).toNumber();
+      _windowSize = _expiry; // time.duration.days(1).toNumber();
 
       // usdc token
       usdc = await MintableToken.new();
 
       // get deployed opyn protocol contracts
-
-      // Options Exhange contract
-      optionsExchange = await OptionsExchange.deployed();
 
       // Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
@@ -183,7 +162,7 @@ contract(
           'invalid strike asset'
         );
         assert.equal(
-          await (await optionContract.expiry()).toString(),
+          (await optionContract.expiry()).toString(),
           String(_expiry),
           'invalid expiry'
         );
@@ -375,19 +354,27 @@ contract(
             (
               await optionContract.maxOTokensIssuable(vaultsCollateral[0])
             ).toString(),
-            String(_maxIssuable),
+            new BigNumber(_maxIssuable).integerValue().toString(),
             'max otoken issuable mismatch'
           );
         }
       });
 
       it('should revert issuing oToken more than maximum', async () => {
+        const vault1 = await optionContract.getVault(vaultOwner1);
+        const _amountToIssue1 = await optionContract.maxOTokensIssuable(
+          vault1[0]
+        );
+
         await expectRevert(
-          optionContract.issueOTokens('200000001', vaultOwner1, {
-            from: vaultOwner1,
-            value: ethCollateralToAdd
-          }),
-          'revert'
+          optionContract.issueOTokens(
+            new BigNumber(_amountToIssue1).plus(1).toString(),
+            vaultOwner1,
+            {
+              from: vaultOwner1
+            }
+          ),
+          'unsafe to mint'
         );
       });
 
@@ -450,6 +437,10 @@ contract(
 
     describe('Exercise USDC for ETH', async () => {
       before(async () => {
+        const timeToExercise = _expiry - _windowSize;
+        const now = await time.latest();
+        if (timeToExercise > now) await time.increaseTo(timeToExercise);
+
         optionContract.transfer(
           buyer1,
           await optionContract.balanceOf(vaultOwner1),
@@ -468,7 +459,15 @@ contract(
           await optionContract.balanceOf(buyer1)
         ).toString();
 
-        await usdc.approve(optionContract.address, '500', {from: buyer1});
+        await usdc.approve(
+          optionContract.address,
+          (await usdc.balanceOf(buyer1)).toString(),
+          {
+            from: buyer1
+          }
+        );
+
+        await usdc.transfer(vaultOwner1, '1', {from: buyer1});
 
         await expectRevert(
           optionContract.exercise(
@@ -478,7 +477,35 @@ contract(
               from: buyer1
             }
           ),
-          'revert'
+          'ERC20: transfer amount exceeds balance'
+        );
+
+        // transfer usdc back to buyer1
+        await usdc.transfer(buyer1, '1', {from: vaultOwner1});
+      });
+
+      it('should revert exercising when buyer does not have enough oToken balance', async () => {
+        const _amountToExercise = new BigNumber(
+          await optionContract.balanceOf(buyer1)
+        )
+          .plus(1)
+          .toString();
+
+        const balance = (await usdc.balanceOf(buyer1)).toString();
+
+        await usdc.approve(optionContract.address, balance, {
+          from: buyer1
+        });
+
+        await expectRevert(
+          optionContract.exercise(
+            _amountToExercise,
+            [vaultOwner1, vaultOwner2, vaultOwner3],
+            {
+              from: buyer1
+            }
+          ),
+          'Not enough oTokens'
         );
       });
 
@@ -509,6 +536,7 @@ contract(
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
+
         const buyerETHBalanceBefore = await web3.eth.getBalance(buyer1);
         const vault1Before = await optionContract.getVault(vaultOwner1);
         const vault2Before = await optionContract.getVault(vaultOwner2);
@@ -657,7 +685,7 @@ contract(
 
     describe('Redeem vault', () => {
       before(async () => {
-        await time.increaseTo(_windowSize + 2);
+        await time.increaseTo(_expiry + 2);
       });
 
       it('redeem vault balance', async () => {
