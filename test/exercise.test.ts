@@ -100,16 +100,14 @@ contract('OptionsContract', accounts => {
     // Mint tokens
     // vaultNum = '0';
     let numTokens = '25000';
-    optionsContracts.issueOTokens(numTokens, creatorAddress, {
-      from: creatorAddress,
-      gas: '100000'
+    await optionsContracts.issueOTokens(numTokens, creatorAddress, {
+      from: creatorAddress
     });
 
     // vaultNum = '1';
     numTokens = '10000';
-    optionsContracts.issueOTokens(numTokens, firstOwnerAddress, {
-      from: firstOwnerAddress,
-      gas: '100000'
+    await optionsContracts.issueOTokens(numTokens, firstOwnerAddress, {
+      from: firstOwnerAddress
     });
 
     // Issue Max oTokens allowed

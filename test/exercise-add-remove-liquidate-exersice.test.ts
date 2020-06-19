@@ -107,8 +107,7 @@ contract('OptionsContract', accounts => {
       vault1PutsOutstanding,
       firstVaultOwnerAddress,
       {
-        from: firstVaultOwnerAddress,
-        gas: '100000'
+        from: firstVaultOwnerAddress
       }
     );
 
@@ -138,8 +137,7 @@ contract('OptionsContract', accounts => {
       vault2PutsOutstanding,
       secondVaultOwnerAddress,
       {
-        from: secondVaultOwnerAddress,
-        gas: '100000'
+        from: secondVaultOwnerAddress
       }
     );
 
