@@ -2,20 +2,13 @@ import {
   OptionsFactoryInstance,
   oTokenInstance,
   ERC20MintableInstance
-  // MockCompoundOracleInstance
 } from '../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
-const {
-  time,
-  // ether,
-  expectRevert,
-  expectEvent
-} = require('@openzeppelin/test-helpers');
+const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-// const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
@@ -45,14 +38,9 @@ contract('Comption COMP:USDC put', accounts => {
     const windowSize = expiry; // time.duration.days(1).toNumber();
 
     // 1. Deploy mock contracts
-    // 1.1 Compound Oracle
-    // oracle = await MockCompoundOracle.deployed();
-    // oracle = MockCompoundOracle.at()
-
     // 1.2 Mock Comp contract
     comp = await MintableToken.new();
     await comp.mint(creatorAddress, compAmount); // 1000 comp
-    // await comp.mint(firstOwner, '1000000000000000000000');
     await comp.mint(tokenHolder, compAmount);
 
     // 1.3 Mock USDC contract
