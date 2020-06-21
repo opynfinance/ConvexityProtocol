@@ -97,8 +97,7 @@ contract('OptionsContract', accounts => {
       vault1PutsOutstanding,
       firstVaultOwnerAddress,
       {
-        from: firstVaultOwnerAddress,
-        gas: '100000'
+        from: firstVaultOwnerAddress
       }
     );
 
@@ -123,8 +122,7 @@ contract('OptionsContract', accounts => {
       vault2PutsOutstanding,
       secondVaultOwnerAddress,
       {
-        from: secondVaultOwnerAddress,
-        gas: '100000'
+        from: secondVaultOwnerAddress
       }
     );
 
@@ -256,8 +254,7 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         '101010',
         {
-          from: tokenHolder,
-          gas: '100000'
+          from: tokenHolder
         }
       );
 
@@ -305,8 +302,7 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         '100',
         {
-          from: tokenHolder,
-          gas: '100000'
+          from: tokenHolder
         }
       );
 
