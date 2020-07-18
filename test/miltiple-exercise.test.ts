@@ -9,12 +9,18 @@ import {
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
-import {getUnixTime, addMonths} from 'date-fns';
 
-const {BN, balance, time, expectEvent} = require('@openzeppelin/test-helpers');
+const {
+  BN,
+  balance,
+  time,
+  expectEvent,
+  expectRevert
+} = require('@openzeppelin/test-helpers');
 
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
@@ -38,9 +44,7 @@ contract('OptionsContract', accounts => {
   const vault2Collateral = '10000000';
   const vault2PutsOutstanding = '100000';
 
-  const now = Date.now();
-  const expiry = getUnixTime(addMonths(now, 3));
-  const windowSize = expiry;
+  const windowSize = 1589932800;
 
   before('set up contracts', async () => {
     // 1. Deploy mock contracts
@@ -75,7 +79,7 @@ contract('OptionsContract', accounts => {
       '9',
       -'15',
       'USDC',
-      expiry,
+      '1589932800',
       windowSize,
       {from: creatorAddress, gas: '4000000'}
     );
@@ -99,7 +103,8 @@ contract('OptionsContract', accounts => {
       vault1PutsOutstanding,
       firstVaultOwnerAddress,
       {
-        from: firstVaultOwnerAddress
+        from: firstVaultOwnerAddress,
+        gas: '100000'
       }
     );
 

@@ -5,13 +5,12 @@ const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const Oracle = artifacts.require('Oracle.sol');
 const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 
-module.exports = function (deployer, network) {
+module.exports = function (deployer) {
   deployer.then(async () => {
     var uniswapFactoryAddr;
     var compoundOracleAddress;
     var compoundOracle;
-
-    if (network == "rinkeby") {
+    if ((await web3.eth.net.getId()) == 4) {
       // Rinkeby
       uniswapFactoryAddr = "0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36";
       compoundOracleAddress = "0x332b6e69f21acdba5fb3e8dac56ff81878527e06";
@@ -23,8 +22,7 @@ module.exports = function (deployer, network) {
       console.log("Options Exchange ", optionsExchange.address.toString());
       await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
       console.log("Options Factory ", OptionsFactory.address.toString());
-    } 
-    else if (network == "kovan") {
+    } else if ((await web3.eth.net.getId()) == 42) {
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
       // Kovan
@@ -35,8 +33,7 @@ module.exports = function (deployer, network) {
 
       const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
       await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
-    } 
-    else if (network == "ropsten") {
+    } else if ((await web3.eth.net.getId()) == 3) {
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
       // Ropsten
@@ -47,7 +44,7 @@ module.exports = function (deployer, network) {
 
       const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
       await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
-    } else if (network == "mainnet") {
+    } else if ((await web3.eth.net.getId()) == 1) {
       // await deployer.deploy(StringComparator);
       // await deployer.link(StringComparator, OptionsFactory);
       // // Mainnet
@@ -62,7 +59,7 @@ module.exports = function (deployer, network) {
       // await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
       // console.log("Options Factory ", OptionsFactory.address.toString());
     } else {
-      // For the development network
+      // For the local testnet
       await deployer.deploy(StringComparator);
       await deployer.link(StringComparator, OptionsFactory);
 
@@ -73,5 +70,8 @@ module.exports = function (deployer, network) {
       const optionsExchange = await deployer.deploy(OptionsExchange, uniswapFactoryAddr);
       await deployer.deploy(OptionsFactory, optionsExchange.address, compoundOracle.address);
     }
+
+    // For all testnets / mainnets
+
   })
 };

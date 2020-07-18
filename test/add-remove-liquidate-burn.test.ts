@@ -3,18 +3,22 @@ import {
   ERC20MintableInstance,
   MockCompoundOracleInstance,
   OptionsContractInstance,
+  OptionsExchangeInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
+const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockUniswapFactory = artifacts.require('MockUniswapFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import {getUnixTime, addMonths} from 'date-fns';
 const {
   BN,
+  constants,
   balance,
+  time,
   expectEvent,
   expectRevert
 } = require('@openzeppelin/test-helpers');
@@ -28,6 +32,7 @@ contract('OptionsContract', accounts => {
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
+  let optionsExchange: OptionsExchangeInstance;
   let compoundOracle: MockCompoundOracleInstance;
   let dai: ERC20MintableInstance;
   let usdc: ERC20MintableInstance;
@@ -43,7 +48,7 @@ contract('OptionsContract', accounts => {
     // 1.1 Compound Oracle
     compoundOracle = await MockCompoundOracle.deployed();
     // 1.2 Uniswap Factory
-
+    const uniswapFactory = await MockUniswapFactory.new();
     // 1.3 Mock Dai contract
     dai = await MintableToken.new();
     await dai.mint(creatorAddress, '10000000');
@@ -51,6 +56,9 @@ contract('OptionsContract', accounts => {
     // 1.4 Mock Dai contract
     usdc = await MintableToken.new();
     await usdc.mint(creatorAddress, '10000000');
+    // 2. Deploy our contracts
+    // deploys the Options Exhange contract
+    optionsExchange = await OptionsExchange.deployed();
 
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
@@ -58,10 +66,6 @@ contract('OptionsContract', accounts => {
     await optionsFactory.addAsset('DAI', dai.address);
     // TODO: deploy a mock USDC and get its address
     await optionsFactory.addAsset('USDC', usdc.address);
-
-    const now = Date.now();
-    const expiry = getUnixTime(addMonths(now, 3));
-    const windowSize = expiry;
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
@@ -73,8 +77,8 @@ contract('OptionsContract', accounts => {
       '9',
       -'15',
       'USDC',
-      expiry,
-      windowSize,
+      '1589932800',
+      '1589932800',
       {from: creatorAddress, gas: '4000000'}
     );
 
@@ -97,7 +101,8 @@ contract('OptionsContract', accounts => {
       vault1PutsOutstanding,
       firstVaultOwnerAddress,
       {
-        from: firstVaultOwnerAddress
+        from: firstVaultOwnerAddress,
+        gas: '100000'
       }
     );
 
@@ -122,7 +127,8 @@ contract('OptionsContract', accounts => {
       vault2PutsOutstanding,
       secondVaultOwnerAddress,
       {
-        from: secondVaultOwnerAddress
+        from: secondVaultOwnerAddress,
+        gas: '100000'
       }
     );
 
@@ -254,7 +260,8 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         '101010',
         {
-          from: tokenHolder
+          from: tokenHolder,
+          gas: '100000'
         }
       );
 
@@ -302,7 +309,8 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         '100',
         {
-          from: tokenHolder
+          from: tokenHolder,
+          gas: '100000'
         }
       );
 

@@ -3,4 +3,3 @@ build/
 flattened/
 .idea
 secret.js
-coverage/

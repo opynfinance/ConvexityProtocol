@@ -5,16 +5,15 @@ import "./lib/UniswapExchangeInterface.sol";
 import "./lib/UniswapFactoryInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 contract OptionsUtils {
     // defauls are for mainnet
-    UniswapFactoryInterface public uniswapFactory;
+    UniswapFactoryInterface public UNISWAP_FACTORY;
 
-    CompoundOracleInterface public compoundOracle;
+    CompoundOracleInterface public COMPOUND_ORACLE;
 
     constructor(address _uniswapFactory, address _compoundOracle) public {
-        uniswapFactory = UniswapFactoryInterface(_uniswapFactory);
-        compoundOracle = CompoundOracleInterface(_compoundOracle);
+        UNISWAP_FACTORY = UniswapFactoryInterface(_uniswapFactory);
+        COMPOUND_ORACLE = CompoundOracleInterface(_compoundOracle);
     }
 
     // TODO: for now gets Uniswap, later update to get other exchanges
@@ -23,12 +22,12 @@ contract OptionsUtils {
         view
         returns (UniswapExchangeInterface)
     {
-        if (address(uniswapFactory.getExchange(_token)) == address(0)) {
+        if (address(UNISWAP_FACTORY.getExchange(_token)) == address(0)) {
             revert("No payout exchange");
         }
 
         UniswapExchangeInterface exchange = UniswapExchangeInterface(
-            uniswapFactory.getExchange(_token)
+            UNISWAP_FACTORY.getExchange(_token)
         );
 
         return exchange;

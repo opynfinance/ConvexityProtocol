@@ -2,7 +2,6 @@ pragma solidity 0.5.10;
 
 import "./OptionsContract.sol";
 
-
 /**
  * @title Opyn's Options Contract
  * @author Opyn
@@ -10,19 +9,19 @@ import "./OptionsContract.sol";
 
 contract oToken is OptionsContract {
     /**
-     * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
-     * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
-     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
-     * @param _strikePrice The amount of strike asset that will be paid out
-     * @param _strikeExp The precision of the strike asset (-18 if ETH)
-     * @param _strike The asset in which the insurance is calculated
-     * @param _expiry The time at which the insurance expires
-     * @param _optionsExchange The contract which interfaces with the exchange + oracle
-     * @param _oracleAddress The address of the oracle
-     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
-     */
+    * @param _collateral The collateral asset
+    * @param _collExp The precision of the collateral (-18 if ETH)
+    * @param _underlying The asset that is being protected
+    * @param _underlyingExp The precision of the underlying asset
+    * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
+    * @param _strikePrice The amount of strike asset that will be paid out
+    * @param _strikeExp The precision of the strike asset (-18 if ETH)
+    * @param _strike The asset in which the insurance is calculated
+    * @param _expiry The time at which the insurance expires
+    * @param _optionsExchange The contract which interfaces with the exchange + oracle
+    * @param _oracleAddress The address of the oracle
+    * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+    */
     constructor(
         IERC20 _collateral,
         int32 _collExp,
