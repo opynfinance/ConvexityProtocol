@@ -26,20 +26,28 @@ function calculateMaxOptionsToCreate(
 
 contract(
   'ETH Call Option',
-  ([opynDeployer, vaultOwner1, vaultOwner2, vaultOwner3, buyer1, random]) => {
+  ([
+    opynDeployer,
+    vaultOwner1,
+    vaultOwner2,
+    vaultOwner3,
+    buyer1,
+    buyer2,
+    random
+  ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
     let usdc: ERC20MintableInstance;
 
-    const _name = 'test call option $400';
-    const _symbol = 'test oETH $400';
+    const _name = 'test call option $280';
+    const _symbol = 'test oETH $280';
     const _collateralType = 'ETH';
     const _collateralExp = -18;
     const _underlyingType = 'USDC';
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 250;
-    const _strikeExp = -11;
+    const _strikePrice = 3571428;
+    const _strikeExp = -15;
     const _strikeAsset = 'ETH';
 
     let _expiry: number;
@@ -50,8 +58,8 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = '2000000000'; // 2000 usdc + 2000 oToken => get back 5 eth
-    const ethCollateralToAdd = ether('5');
+    const mintedAmount = '5600000896'; // 5600.00896 USD ~ 20 call options
+    const ethCollateralToAdd = ether('9.999999999999744000');
 
     before('set up contracts', async () => {
       const now = (await time.latest()).toNumber();
@@ -105,6 +113,8 @@ contract(
       await usdc.mint(vaultOwner1, mintedAmount);
       await usdc.mint(vaultOwner2, mintedAmount);
       await usdc.mint(vaultOwner3, mintedAmount);
+      await usdc.mint(buyer1, mintedAmount);
+      await usdc.mint(buyer2, mintedAmount);
     });
 
     describe('Check deployment', () => {
@@ -431,14 +441,6 @@ contract(
         const now = await time.latest();
         if (timeToExercise > now) await time.increaseTo(timeToExercise);
 
-        // mint usdc for buyer1
-        await usdc.mint(buyer1, mintedAmount);
-
-        await usdc.approve(optionContract.address, mintedAmount, {
-          from: buyer1
-        });
-
-        // transfer some oToken to buyer1
         optionContract.transfer(
           buyer1,
           await optionContract.balanceOf(vaultOwner1),
@@ -453,14 +455,23 @@ contract(
       });
 
       it('should revert exercising when buyer does not have enough USDC balance', async () => {
-        // user have 8000 call token at this point. but only 4000 USDC
-        const amountToExercise = (
+        const _amountToExercise = (
           await optionContract.balanceOf(buyer1)
         ).toString();
 
+        await usdc.approve(
+          optionContract.address,
+          (await usdc.balanceOf(buyer1)).toString(),
+          {
+            from: buyer1
+          }
+        );
+
+        await usdc.transfer(vaultOwner1, '1', {from: buyer1});
+
         await expectRevert(
           optionContract.exercise(
-            amountToExercise,
+            _amountToExercise,
             [vaultOwner1, vaultOwner2, vaultOwner3],
             {
               from: buyer1
@@ -468,23 +479,27 @@ contract(
           ),
           'ERC20: transfer amount exceeds balance'
         );
+
+        // transfer usdc back to buyer1
+        await usdc.transfer(buyer1, '1', {from: vaultOwner1});
       });
 
       it('should revert exercising when buyer does not have enough oToken balance', async () => {
-        const amountToExercise = new BigNumber(
+        const _amountToExercise = new BigNumber(
           await optionContract.balanceOf(buyer1)
         )
           .plus(1)
           .toString();
 
-        await usdc.mint(buyer1, amountToExercise);
-        await usdc.approve(optionContract.address, amountToExercise, {
+        const balance = (await usdc.balanceOf(buyer1)).toString();
+
+        await usdc.approve(optionContract.address, balance, {
           from: buyer1
         });
 
         await expectRevert(
           optionContract.exercise(
-            amountToExercise,
+            _amountToExercise,
             [vaultOwner1, vaultOwner2, vaultOwner3],
             {
               from: buyer1
