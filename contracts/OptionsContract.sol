@@ -217,10 +217,49 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
+        require(
+            _liquidationIncentive <= 200,
+            "Can't have >20% liquidation incentive"
+        );
+        require(
+            _liquidationFactor <= 1000,
+            "Can't liquidate more than 100% of the vault"
+        );
+        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
+        require(
+            _minCollateralizationRatio >= 10,
+            "Can't have minCollateralizationRatio < 1"
+        );
+
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
         transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
+        emit UpdateParameters(
+            _liquidationIncentive,
+            _liquidationFactor,
+            _transactionFee,
+            _minCollateralizationRatio,
+            owner()
+        );
+    }
+
+    /**
+     * @notice Can only be called by owner. Used to set the name, symbol and decimals of the contract
+     * @param _name The name of the contract
+     * @param _symbol The symbol of the contract
+     */
+    function setDetails(string memory _name, string memory _symbol)
+        public
+        onlyOwner
+    {
+        name = _name;
+        symbol = _symbol;
+        decimals = uint8(-1 * oTokenExchangeRate.exponent);
+        require(
+            decimals >= 0,
+            "1 oToken cannot protect less than the smallest unit of the asset"
+        );
     }
 
     /**
