@@ -751,7 +751,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 ethToStrikePrice = getPrice(address(strike));
 
         // calculate how much should be paid out
-        uint256 amtCollateralToPayNum = _oTokens
+        uint256 amtCollateralToPayInEthNum = _oTokens
             .mul(strikePrice.value)
             .mul(proportion.value)
             .mul(ethToCollateralPrice);
@@ -761,12 +761,12 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 amtCollateralToPay = 0;
         if (amtCollateralToPayExp > 0) {
             uint32 exp = uint32(amtCollateralToPayExp);
-            amtCollateralToPay = amtCollateralToPayNum.mul(10**exp).div(
+            amtCollateralToPay = amtCollateralToPayInEthNum.mul(10**exp).div(
                 ethToStrikePrice
             );
         } else {
             uint32 exp = uint32(-1 * amtCollateralToPayExp);
-            amtCollateralToPay = (amtCollateralToPayNum.div(10**exp)).div(
+            amtCollateralToPay = (amtCollateralToPayInEthNum.div(10**exp)).div(
                 ethToStrikePrice
             );
         }
