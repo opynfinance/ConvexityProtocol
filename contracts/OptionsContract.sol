@@ -255,7 +255,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
 
     /**
      * @notice If the collateral type is any ERC20, anyone can call this function any time before
-     * expiry to increase the amount of collateral in a vault. Can only transfer in the collateral asset.
+     * expiry to increase the amount of collateral in a Vault. Can only transfer in the collateral asset.
      * Will fail if ETH is the collateral asset.
      * @param vaultIndex the index of the vault to which collateral will be added.
      * @param amt the amount of collateral to be transferred in.
