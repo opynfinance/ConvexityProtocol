@@ -45,8 +45,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     max collateral that can be taken in one function call */
     Number public liquidationFactor = Number(500, -3);
 
-
-    /* 16 means 1.6. The minimum ratio of a vault's collateral to insurance promised.
+    /* 16 means 1.6. The minimum ratio of a Vault's collateral to insurance promised.
     The ratio is calculated as below:
     vault.collateral / (Vault.oTokensIssued * strikePrice) */
     Number public minCollateralizationRatio = Number(16, -1);
