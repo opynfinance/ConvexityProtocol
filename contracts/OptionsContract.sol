@@ -45,9 +45,6 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     max collateral that can be taken in one function call */
     Number public liquidationFactor = Number(500, -3);
 
-    /* 1054 is 1.054 i.e. 5.4% liqFee.
-    The fees paid to our protocol every time a liquidation happens */
-    Number public liquidationFee = Number(0, -3);
 
     /* 16 means 1.6. The minimum ratio of a vault's collateral to insurance promised.
     The ratio is calculated as below:
@@ -100,18 +97,16 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     IERC20 public strike;
 
     /**
-     * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
-     * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
-     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
-     * @param _strikePrice The amount of strike asset that will be paid out per oToken
-     * @param _strikeExp The precision of the strike price.
-     * @param _strike The asset in which the insurance is calculated
-     * @param _expiry The time at which the insurance expires
-     * @param _optionsExchange The contract which interfaces with the exchange + oracle
-     * @param _oracleAddress The address of the oracle
-     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+    * @param _collateral The collateral asset
+    * @param _collExp The precision of the collateral (-18 if ETH)
+    * @param _underlying The asset that is being protected
+    * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
+    * @param _strikePrice The amount of strike asset that will be paid out
+    * @param _strikeExp The precision of the strike asset (-18 if ETH)
+    * @param _strike The asset in which the insurance is calculated
+    * @param _expiry The time at which the insurance expires
+    * @param _optionsExchange The contract which interfaces with the exchange + oracle
+    * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
     */
     constructor(
         IERC20 _collateral,
@@ -175,6 +170,11 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         address vaultOwner
     );
     event BurnOTokens(uint256 vaultIndex, uint256 oTokensBurned);
+    event TransferVaultOwnership(
+        uint256 vaultIndex,
+        address oldOwner,
+        address payable newOwner
+);
     event UpdateParameters(
         uint256 liquidationIncentive,
         uint256 liquidationFactor,
@@ -182,7 +182,6 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 minCollateralizationRatio,
         address owner
     );
-    event TransferFee(address payable to, uint256 fees);
     event RemoveCollateral(
         uint256 vaultIndex,
         uint256 amtRemoved,
@@ -193,40 +192,21 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
      * @notice Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
      * @param _liquidationIncentive The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive.
      * @param _liquidationFactor Max amount that a Vault can be liquidated by. 500 is 0.5.
-     * @param _liquidationFee The fees paid to our protocol every time a liquidation happens. 1054 is 1.054 i.e. 5.4% liqFee.
      * @param _transactionFee The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%.
      * @param _minCollateralizationRatio The minimum ratio of a Vault's collateral to insurance promised. 16 means 1.6.
      */
     function updateParameters(
         uint256 _liquidationIncentive,
         uint256 _liquidationFactor,
+        uint256 _liquidationFee,
         uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
-        require(
-            _liquidationIncentive <= 200,
-            "Can't have >20% liquidation incentive"
-        );
-        require(
-            _liquidationFactor <= 1000,
-            "Can't liquidate more than 100% of the vault"
-        );
-        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
-        require(
-            _minCollateralizationRatio >= 10,
-            "Can't have minCollateralizationRatio < 1"
-        );
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
+        liquidationFee.value = _liquidationFee;
         transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
-        emit UpdateParameters(
-            _liquidationIncentive,
-            _liquidationFactor,
-            _transactionFee,
-            _minCollateralizationRatio,
-            owner()
-        );
     }
 
     /**
@@ -237,8 +217,6 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 fees = totalFee;
         totalFee = 0;
         transferCollateral(_address, fees);
-        
-        emit TransferFee(_address, fees);
     }
 
     /**
@@ -261,7 +239,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
 
     /**
      * @notice If the collateral type is ETH, anyone can call this function any time before
-     * expiry to increase the amount of collateral in a vault. Will fail if ETH is not the
+     * expiry to increase the amount of collateral in a Vault. Will fail if ETH is not the
      * collateral asset.
      * @param vaultIndex the index of the vault to which collateral will be added.
      */
@@ -412,7 +390,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
             }
         }
 
-        return;
+        return vaultsOwned;
     }
 
     /**
@@ -521,6 +499,21 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         emit BurnOTokens(vaultIndex, amtToBurn);
     }
 
+    /**
+     * @notice allows the owner to transfer ownership of their vault to someone else
+     * @param vaultIndex Index of the vault to be transferred
+     * @param newOwner address of the new owner
+     */
+    function transferVaultOwnership(
+        uint256 vaultIndex,
+        address payable newOwner
+    ) public {
+        require(
+            vaults[vaultIndex].owner == msg.sender,
+            "Cannot transferVaultOwnership as non owner"
+        );
+        vaults[vaultIndex].owner = newOwner;
+        emit TransferVaultOwnership(vaultIndex, msg.sender, newOwner);
     }
 
     /**
@@ -746,7 +739,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     /**
      * @notice This function calculates the amount of collateral to be paid out.
      * @dev The amount of collateral to paid out is determined by:
-     * `proportion` * s`trikePrice` * `oTokens` amount of collateral.
+     * (proportion * strikePrice * strikeToCollateralPrice * oTokens) amount of collateral.
      * @param _oTokens The number of oTokens.
      * @param proportion The proportion of the collateral to pay out. If 100% of collateral
      * should be paid out, pass in Number(1, 0). The proportion might be less than 100% if
@@ -823,17 +816,5 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         }
     }
 
-    /**
-     * @notice Returns the differnce in precision in decimals between the
-     * underlying token and the oToken. If the underlying has a precision of 18 digits
-     * and the oTokenExchange is 14 digits of precision, the underlyingExp is 4.
-     */
-    function underlyingExp() internal returns (uint32) {
-        // TODO: change this to be _oTokenExhangeExp - decimals(underlying)
-        return uint32(oTokenExchangeRate.exponent - (-18));
-    }
 
-    function() external payable {
-        // to get ether from uniswap exchanges
-    }
 }
