@@ -182,6 +182,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 minCollateralizationRatio,
         address owner
     );
+    event TransferFee(address payable to, uint256 fees);
     event RemoveCollateral(
         uint256 vaultIndex,
         uint256 amtRemoved,
@@ -236,6 +237,8 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 fees = totalFee;
         totalFee = 0;
         transferCollateral(_address, fees);
+        
+        emit TransferFee(_address, fees);
     }
 
     /**
