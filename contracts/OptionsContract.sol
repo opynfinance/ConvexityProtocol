@@ -274,7 +274,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     }
 
     /**
-     * @notice Called by anyone holding the oTokens and equal amount of underlying during the
+     * @notice Called by anyone holding the oTokens and underlying during the
      * exercise window i.e. from `expiry - windowSize` time to `expiry` time. The caller
      * transfers in their oTokens and corresponding amount of underlying and gets
      * `strikePrice * oTokens` amount of collateral out. The collateral paid out is taken from
