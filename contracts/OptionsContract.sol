@@ -202,7 +202,6 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
     function updateParameters(
         uint256 _liquidationIncentive,
         uint256 _liquidationFactor,
-        uint256 _liquidationFee,
         uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
@@ -221,10 +220,8 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         );
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
-        liquidationFee.value = _liquidationFee;
         transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
-        
         emit UpdateParameters(
             _liquidationIncentive,
             _liquidationFactor,
