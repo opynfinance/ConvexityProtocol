@@ -224,6 +224,14 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         liquidationFee.value = _liquidationFee;
         transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
+        
+        emit UpdateParameters(
+            _liquidationIncentive,
+            _liquidationFactor,
+            _transactionFee,
+            _minCollateralizationRatio,
+            owner()
+        );
     }
 
     /**
