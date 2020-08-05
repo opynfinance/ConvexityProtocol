@@ -521,21 +521,6 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         emit BurnOTokens(vaultIndex, amtToBurn);
     }
 
-    /**
-     * @notice allows the owner to transfer ownership of their vault to someone else
-     * @param vaultIndex Index of the vault to be transferred
-     * @param newOwner address of the new owner
-     */
-    function transferVaultOwnership(
-        uint256 vaultIndex,
-        address payable newOwner
-    ) public {
-        require(
-            vaults[vaultIndex].owner == msg.sender,
-            "Cannot transferVaultOwnership as non owner"
-        );
-        vaults[vaultIndex].owner = newOwner;
-        emit TransferVaultOwnership(vaultIndex, msg.sender, newOwner);
     }
 
     /**
