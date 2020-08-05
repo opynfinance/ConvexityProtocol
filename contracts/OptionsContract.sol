@@ -177,6 +177,13 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 vaultIndex,
         address oldOwner,
         address payable newOwner
+);
+event UpdateParameters(
+        uint256 liquidationIncentive,
+        uint256 liquidationFactor,
+        uint256 transactionFee,
+        uint256 minCollateralizationRatio,
+        address owner
     );
     event RemoveCollateral(
         uint256 vaultIndex,
