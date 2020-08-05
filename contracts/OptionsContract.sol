@@ -412,7 +412,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
             }
         }
 
-        return vaultsOwned;
+        return;
     }
 
     /**
