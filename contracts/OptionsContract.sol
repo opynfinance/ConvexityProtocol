@@ -178,7 +178,7 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         address oldOwner,
         address payable newOwner
 );
-event UpdateParameters(
+    event UpdateParameters(
         uint256 liquidationIncentive,
         uint256 liquidationFactor,
         uint256 transactionFee,
