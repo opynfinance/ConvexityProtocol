@@ -206,6 +206,19 @@ contract OptionsContract is Ownable, OptionsUtils, ERC20 {
         uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
+        require(
+            _liquidationIncentive <= 200,
+            "Can't have >20% liquidation incentive"
+        );
+        require(
+            _liquidationFactor <= 1000,
+            "Can't liquidate more than 100% of the vault"
+        );
+        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
+        require(
+            _minCollateralizationRatio >= 10,
+            "Can't have minCollateralizationRatio < 1"
+        );
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
         liquidationFee.value = _liquidationFee;
