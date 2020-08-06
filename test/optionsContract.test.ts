@@ -15,19 +15,8 @@ const truffleAssert = require('truffle-assertions');
 import Reverter from './utils/reverter';
 
 import {getUnixTime, addMonths} from 'date-fns';
-
+import {checkVault} from './utils/helper';
 const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
-
-function checkVault(
-  vault: any,
-  {
-    '0': expectedCollateral,
-    '1': expectedPutsOutstanding
-  }: {'0': string; '1': string}
-): void {
-  expect(vault['0'].toString()).to.equal(expectedCollateral);
-  expect(vault['1'].toString()).to.equal(expectedPutsOutstanding);
-}
 
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract('OptionsContract', accounts => {
@@ -177,11 +166,7 @@ contract('OptionsContract', accounts => {
 
       // test that the vault's balances have been updated.
       const vault = await optionsContracts[0].getVault(creatorAddress);
-      const expectedVault = {
-        '0': '10000000',
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '10000000', '0');
 
       // check proper events emitted
       expect(result.logs[0].event).to.equal('ETHCollateralAdded');
@@ -199,11 +184,7 @@ contract('OptionsContract', accounts => {
 
       // test that the vault's balances have been updated.
       let vault = await optionsContracts[0].getVault(creatorAddress);
-      let expectedVault = {
-        '0': '20000000',
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '20000000', '0');
       // check proper events emitted
       expect(result.logs[0].event).to.equal('ETHCollateralAdded');
       expect(result.logs[0].args.vaultOwner).to.equal(creatorAddress);
@@ -218,11 +199,7 @@ contract('OptionsContract', accounts => {
 
       // test that the vault's balances have been updated.
       vault = await optionsContracts[0].getVault(firstOwnerAddress);
-      expectedVault = {
-        '0': '10000000',
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '10000000', '0');
     });
   });
 
@@ -233,11 +210,7 @@ contract('OptionsContract', accounts => {
       });
 
       const vault = await optionsContracts[1].getVault(creatorAddress);
-      const expectedVault = {
-        '0': '0',
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '0', '0');
     });
 
     it('should add ERC20 collateral successfully', async () => {
@@ -259,11 +232,7 @@ contract('OptionsContract', accounts => {
 
       // test that the vault's balances have been updated.
       const vault = await optionsContracts[1].getVault(creatorAddress);
-      const expectedVault = {
-        '0': msgValue,
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, msgValue, '0');
     });
 
     it("shouldn't be able to add ERC20 collateral to a 0x0 address", async () => {
@@ -426,11 +395,7 @@ contract('OptionsContract', accounts => {
       });
 
       const vault = await optionsContracts[0].getVault(firstOwnerAddress);
-      const expectedVault = {
-        '0': '9999000',
-        '1': '0'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '9999000', '0');
 
       // TODO: Check that the owner correctly got their collateral back.
       expectEvent(result, 'RemoveCollateral', {
@@ -463,11 +428,7 @@ contract('OptionsContract', accounts => {
 
       // Check the contract correctly updated the vault
       const vault = await optionsContracts[0].getVault(creatorAddress);
-      const expectedVault = {
-        '0': '19999500',
-        '1': '138878'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '19999500', '138878');
     });
 
     it('should not be able to remove collateral if not sufficient collateral', async () => {
@@ -485,11 +446,7 @@ contract('OptionsContract', accounts => {
 
       // check that the collateral in the vault remains the same
       const vault = await optionsContracts[0].getVault(creatorAddress);
-      const expectedVault = {
-        '0': '19999500',
-        '1': '138878'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '19999500', '138878');
     });
   });
 

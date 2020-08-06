@@ -13,24 +13,13 @@ const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
 import {getUnixTime, addMonths} from 'date-fns';
-
+import {checkVault} from './utils/helper';
 const {
   BN,
   balance,
   expectEvent,
   expectRevert
 } = require('@openzeppelin/test-helpers');
-
-function checkVault(
-  vault: any,
-  {
-    '0': expectedCollateral,
-    '1': expectedPutsOutstanding
-  }: {'0': string; '1': string}
-): void {
-  expect(vault['0'].toString()).to.equal(expectedCollateral);
-  expect(vault['1'].toString()).to.equal(expectedPutsOutstanding);
-}
 
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
@@ -180,11 +169,7 @@ contract('OptionsContract', accounts => {
 
       // check that the vault balances have changed
       const vault = await optionsContracts[0].getVault(firstVaultOwnerAddress);
-      const expectedVault = {
-        '0': '10818191',
-        '1': '148990'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '10818191', '148990');
 
       // check that the liquidator balances have changed
       const amtPTokens2 = await optionsContracts[0].balanceOf(tokenHolder);
@@ -231,11 +216,7 @@ contract('OptionsContract', accounts => {
 
       // check that the vault balances have changed
       const vault = await optionsContracts[0].getVault(firstVaultOwnerAddress);
-      const expectedVault = {
-        '0': '5409187',
-        '1': '89485'
-      };
-      checkVault(vault, expectedVault);
+      checkVault(vault, '5409187', '89485');
 
       // check that the liquidator balances have changed
       const amtPTokens2 = await optionsContracts[0].balanceOf(tokenHolder);
