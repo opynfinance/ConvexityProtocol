@@ -170,7 +170,7 @@ returns(uint256)
 
 ### updateParameters
 
-Can only be called by owner. Used to update the fees, minminCollateralizationRatio, etc
+Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
 
 ```js
 function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio) public nonpayable onlyOwner 
