@@ -6,7 +6,9 @@ workflows:
   build-test-report:
     jobs:
       - build
-      - test
+      - test:
+          requires:
+            - build
 
 jobs:
   build:
