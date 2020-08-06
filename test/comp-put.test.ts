@@ -13,7 +13,7 @@ const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
 
-contract('Comption COMP:USDC put', accounts => {
+contract('OptionsContract: COMP put', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -75,109 +75,111 @@ contract('Comption COMP:USDC put', accounts => {
     await reverter.snapshot();
   });
 
-  it('should have basic setting', async () => {
-    await oComp.setDetails(_name, _symbol, {
-      from: creatorAddress
+  describe('New option parameter test', () => {
+    it('should have basic setting', async () => {
+      await oComp.setDetails(_name, _symbol, {
+        from: creatorAddress
+      });
+
+      assert.equal(await oComp.name(), String(_name), 'set name error');
+      assert.equal(await oComp.symbol(), String(_symbol), 'set symbol error');
     });
 
-    assert.equal(await oComp.name(), String(_name), 'set name error');
-    assert.equal(await oComp.symbol(), String(_symbol), 'set symbol error');
-  });
-
-  it('should update parameters', async () => {
-    await oComp.updateParameters('100', '500', 0, 10, {from: creatorAddress});
-  });
-
-  it('should open empty vault', async () => {
-    await oComp.openVault({
-      from: creatorAddress
-    });
-    const vault = await oComp.getVault(creatorAddress);
-    assert.equal(vault[0].toString(), '0');
-    assert.equal(vault[1].toString(), '0');
-    assert.equal(vault[2].toString(), '0');
-  });
-
-  it('should add USDC collateral successfully', async () => {
-    await usdc.approve(oComp.address, usdcAmount, {from: creatorAddress});
-    await oComp.addERC20Collateral(creatorAddress, usdcAmount, {
-      from: creatorAddress
+    it('should update parameters', async () => {
+      await oComp.updateParameters('100', '500', 0, 10, {from: creatorAddress});
     });
 
-    // test that the vault's balances have been updated.
-    const vault = await oComp.getVault(creatorAddress);
-    assert.equal(vault[0].toString(), usdcAmount);
-    assert.equal(vault[1].toString(), '0');
-    assert.equal(vault[2].toString(), '0');
-  });
+    it('should open empty vault', async () => {
+      await oComp.openVault({
+        from: creatorAddress
+      });
+      const vault = await oComp.getVault(creatorAddress);
+      assert.equal(vault[0].toString(), '0');
+      assert.equal(vault[1].toString(), '0');
+      assert.equal(vault[2].toString(), '0');
+    });
 
-  it('should add USDC collateral and Mint', async () => {
-    const amountToIssue = new BigNumber('4000000'); // 1000 usdc can issue 4 250 put.
+    it('should add USDC collateral successfully', async () => {
+      await usdc.approve(oComp.address, usdcAmount, {from: creatorAddress});
+      await oComp.addERC20Collateral(creatorAddress, usdcAmount, {
+        from: creatorAddress
+      });
 
-    await usdc.approve(oComp.address, usdcAmount, {from: firstOwner});
+      // test that the vault's balances have been updated.
+      const vault = await oComp.getVault(creatorAddress);
+      assert.equal(vault[0].toString(), usdcAmount);
+      assert.equal(vault[1].toString(), '0');
+      assert.equal(vault[2].toString(), '0');
+    });
 
-    await expectRevert(
-      oComp.createERC20CollateralOption(
-        amountToIssue.plus(1).toString(),
+    it('should add USDC collateral and Mint', async () => {
+      const amountToIssue = new BigNumber('4000000'); // 1000 usdc can issue 4 250 put.
+
+      await usdc.approve(oComp.address, usdcAmount, {from: firstOwner});
+
+      await expectRevert(
+        oComp.createERC20CollateralOption(
+          amountToIssue.plus(1).toString(),
+          usdcAmount,
+          firstOwner,
+          {
+            from: firstOwner
+          }
+        ),
+        'unsafe to mint'
+      );
+
+      await oComp.createERC20CollateralOption(
+        amountToIssue.toString(),
         usdcAmount,
         firstOwner,
         {
           from: firstOwner
         }
-      ),
-      'unsafe to mint'
-    );
+      );
 
-    await oComp.createERC20CollateralOption(
-      amountToIssue.toString(),
-      usdcAmount,
-      firstOwner,
-      {
-        from: firstOwner
-      }
-    );
+      // test that the vault's balances have been updated.
+      const vault = await oComp.getVault(firstOwner);
+      assert.equal(vault[0].toString(), usdcAmount);
+      assert.equal(vault[1].toString(), amountToIssue.toString());
+      assert.equal(vault[2].toString(), '0');
+    });
 
-    // test that the vault's balances have been updated.
-    const vault = await oComp.getVault(firstOwner);
-    assert.equal(vault[0].toString(), usdcAmount);
-    assert.equal(vault[1].toString(), amountToIssue.toString());
-    assert.equal(vault[2].toString(), '0');
-  });
+    it('should not exercise without underlying allowance', async () => {
+      await oComp.transfer(tokenHolder, '4000000', {from: firstOwner}); // transfer 80 oComp
 
-  it('should not exercise without underlying allowance', async () => {
-    await oComp.transfer(tokenHolder, '4000000', {from: firstOwner}); // transfer 80 oComp
+      await expectRevert(
+        oComp.exercise('4000000', [firstOwner], {
+          from: tokenHolder
+        }),
+        'transfer amount exceeds allowance.'
+      );
+    });
 
-    await expectRevert(
-      oComp.exercise('4000000', [firstOwner], {
+    it('should be able to exercise', async () => {
+      const amountToExercise = '4000000';
+      const underlyingRequired = (
+        await oComp.underlyingRequiredToExercise(amountToExercise)
+      ).toString();
+
+      await comp.approve(oComp.address, underlyingRequired, {
         from: tokenHolder
-      }),
-      'transfer amount exceeds allowance.'
-    );
-  });
+      });
 
-  it('should be able to exercise', async () => {
-    const amountToExercise = '4000000';
-    const underlyingRequired = (
-      await oComp.underlyingRequiredToExercise(amountToExercise)
-    ).toString();
+      const exerciseTx = await oComp.exercise(amountToExercise, [firstOwner], {
+        from: tokenHolder
+      });
 
-    await comp.approve(oComp.address, underlyingRequired, {
-      from: tokenHolder
+      expectEvent(exerciseTx, 'Exercise', {
+        amtUnderlyingToPay: underlyingRequired,
+        amtCollateralToPay: '1000000000'
+      });
+
+      // test that the vault's balances have been updated.
+      const vault = await oComp.getVault(firstOwner);
+      assert.equal(vault[0].toString(), '0');
+      assert.equal(vault[1].toString(), '0');
+      assert.equal(vault[2].toString(), underlyingRequired);
     });
-
-    const exerciseTx = await oComp.exercise(amountToExercise, [firstOwner], {
-      from: tokenHolder
-    });
-
-    expectEvent(exerciseTx, 'Exercise', {
-      amtUnderlyingToPay: underlyingRequired,
-      amtCollateralToPay: '1000000000'
-    });
-
-    // test that the vault's balances have been updated.
-    const vault = await oComp.getVault(firstOwner);
-    assert.equal(vault[0].toString(), '0');
-    assert.equal(vault[1].toString(), '0');
-    assert.equal(vault[2].toString(), underlyingRequired);
   });
 });

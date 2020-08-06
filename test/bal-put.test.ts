@@ -13,7 +13,7 @@ const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
 
-contract('OptionsContract:BAL', accounts => {
+contract('OptionsContract: BAL put', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -79,7 +79,7 @@ contract('OptionsContract:BAL', accounts => {
     await reverter.snapshot();
   });
 
-  describe('Contract Parameters', () => {
+  describe('New option parameter test', () => {
     it('should have basic setting', async () => {
       await oToken.setDetails(_name, _symbol, {
         from: creatorAddress
@@ -94,9 +94,7 @@ contract('OptionsContract:BAL', accounts => {
         from: creatorAddress
       });
     });
-  });
 
-  describe('Open vaults and mint tokens', () => {
     it('should open empty vault', async () => {
       await oToken.openVault({
         from: creatorAddress
@@ -147,9 +145,7 @@ contract('OptionsContract:BAL', accounts => {
       assert.equal(vault[1].toString(), amountToIssue);
       assert.equal(vault[2].toString(), '0');
     });
-  });
 
-  describe('Exercise', () => {
     it('should be able to exercise', async () => {
       // exercise 500 puts
       const amountToExercise = new BigNumber(500)

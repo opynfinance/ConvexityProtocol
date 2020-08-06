@@ -25,7 +25,7 @@ function calculateMaxOptionsToCreate(
 }
 
 contract(
-  'ETH Call Option',
+  'OptionsContract: ETH Call',
   ([
     opynDeployer,
     vaultOwner1,
