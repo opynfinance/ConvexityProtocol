@@ -1,13 +1,18 @@
 version: 2.1
-#orbs:
-#  coveralls: coveralls/coveralls@1.0.4
+orbs:
+ coveralls: coveralls/coveralls@1.0.4
+
+workflows:
+  build-test-report:
+    jobs:
+      - build
+      - test
+
 jobs:
   build:
     working_directory: ~/optionsprotocol
     docker:
       - image: circleci/node:10.18.0
-      - image: trufflesuite/ganache-cli:v6.7.0
-        command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
     steps:
       - checkout
       - restore_cache:
@@ -18,6 +23,17 @@ jobs:
       - run:
           name: Lint Contracts
           command: npm run lint:sol
+      - run:
+          name: Build types
+          command: npm run build
+  
+  test:
+    working_directory: ~/optionsprotocol
+    docker:
+      - image: circleci/node:10.18.0
+      - image: trufflesuite/ganache-cli:v6.7.0
+        command: ganache-cli --deterministic -e 300 -p 8545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 --allowUnlimitedContractSize
+    steps:
       - run:
           name: Deploy Contracts
           command: npm run deploy:development
@@ -39,5 +55,4 @@ jobs:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - node_modules
-
 
