@@ -2,7 +2,6 @@ pragma solidity 0.5.10;
 
 import "./OptionsContract.sol";
 import "./oToken.sol";
-import "./OptionsUtils.sol";
 import "./lib/StringComparator.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";

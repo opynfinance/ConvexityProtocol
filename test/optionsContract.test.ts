@@ -81,7 +81,7 @@ contract('OptionsContract', accounts => {
       'ETH',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     let optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -98,7 +98,7 @@ contract('OptionsContract', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -111,8 +111,7 @@ contract('OptionsContract', accounts => {
   describe('#openVault()', () => {
     it('should open first vault correctly', async () => {
       const result = await optionsContracts[0].openVault({
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
 
       // test getVault
@@ -129,8 +128,7 @@ contract('OptionsContract', accounts => {
     it("shouldn't allow to open second vault correctly", async () => {
       await expectRevert(
         optionsContracts[0].openVault({
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         }),
         'Vault already created'
       );
@@ -138,8 +136,7 @@ contract('OptionsContract', accounts => {
 
     it('new person should be able to open third vault correctly', async () => {
       await optionsContracts[0].openVault({
-        from: firstOwnerAddress,
-        gas: '100000'
+        from: firstOwnerAddress
       });
 
       // test getVault
@@ -159,7 +156,7 @@ contract('OptionsContract', accounts => {
           '0x0000000000000000000000000000000000000000',
           {
             from: creatorAddress,
-            gas: '100000',
+
             value: msgValue
           }
         ),
@@ -173,7 +170,7 @@ contract('OptionsContract', accounts => {
         creatorAddress,
         {
           from: creatorAddress,
-          gas: '100000',
+
           value: msgValue
         }
       );
@@ -196,7 +193,7 @@ contract('OptionsContract', accounts => {
       const msgValue = '10000000';
       let result = await optionsContracts[0].addETHCollateral(creatorAddress, {
         from: firstOwnerAddress,
-        gas: '100000',
+
         value: msgValue
       });
 
@@ -215,7 +212,7 @@ contract('OptionsContract', accounts => {
 
       result = await optionsContracts[0].addETHCollateral(firstOwnerAddress, {
         from: creatorAddress,
-        gas: '100000',
+
         value: msgValue
       });
 
@@ -232,8 +229,7 @@ contract('OptionsContract', accounts => {
   describe('#addERC20Collateral()', () => {
     it('should open ERC20 vault correctly', async () => {
       await optionsContracts[1].openVault({
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
 
       const vault = await optionsContracts[1].getVault(creatorAddress);
@@ -251,8 +247,7 @@ contract('OptionsContract', accounts => {
         creatorAddress,
         msgValue,
         {
-          from: creatorAddress,
-          gas: '1000000'
+          from: creatorAddress
         }
       );
 
@@ -273,8 +268,7 @@ contract('OptionsContract', accounts => {
 
     it("shouldn't be able to add ERC20 collateral to a 0x0 address", async () => {
       await usdc.approve(optionsContracts[1].address, '10000000000000000', {
-        from: nonOwnerAddress,
-        gas: '1000000'
+        from: nonOwnerAddress
       });
       const msgValue = '10000000';
       await expectRevert(
@@ -282,8 +276,7 @@ contract('OptionsContract', accounts => {
           '0x0000000000000000000000000000000000000000',
           msgValue,
           {
-            from: nonOwnerAddress,
-            gas: '100000'
+            from: nonOwnerAddress
           }
         ),
         'Vault does not exist'
@@ -295,7 +288,7 @@ contract('OptionsContract', accounts => {
         const msgValue = '10000000';
         await optionsContracts[0].addERC20Collateral(firstOwnerAddress, '0', {
           from: firstOwnerAddress,
-          gas: '100000',
+
           value: msgValue
         });
       } catch (err) {
@@ -310,7 +303,7 @@ contract('OptionsContract', accounts => {
 
         await optionsContracts[1].addETHCollateral(creatorAddress, {
           from: firstOwnerAddress,
-          gas: '100000',
+
           value: msgValue
         });
       } catch (err) {
@@ -328,8 +321,7 @@ contract('OptionsContract', accounts => {
         numTokens,
         creatorAddress,
         {
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         }
       );
 
@@ -348,8 +340,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '100';
       await expectRevert(
         optionsContracts[0].issueOTokens(numTokens, firstOwnerAddress, {
-          from: nonOwnerAddress,
-          gas: '100000'
+          from: nonOwnerAddress
         }),
         'Vault does not exist'
       );
@@ -359,8 +350,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '2';
       try {
         await optionsContracts[0].issueOTokens(numTokens, creatorAddress, {
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         });
       } catch (err) {
         return;
@@ -376,8 +366,7 @@ contract('OptionsContract', accounts => {
     it('should be able to issue options in the erc20 contract', async () => {
       const numTokens = '10';
       await optionsContracts[1].issueOTokens(numTokens, creatorAddress, {
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
 
       const amtPTokens = await optionsContracts[1].balanceOf(creatorAddress);
@@ -390,8 +379,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '10';
 
       const result = await optionsContracts[0].burnOTokens(numTokens, {
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
       const amtPTokens = await optionsContracts[0].balanceOf(creatorAddress);
       expect(amtPTokens.toString()).to.equal('138878');
@@ -404,8 +392,7 @@ contract('OptionsContract', accounts => {
 
     it('only owner should be able to burn oTokens', async () => {
       await optionsContracts[0].transfer(nonOwnerAddress, '10', {
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
       const amtPTokens = await optionsContracts[0].balanceOf(nonOwnerAddress);
       expect(amtPTokens.toString()).to.equal('10');
@@ -414,8 +401,7 @@ contract('OptionsContract', accounts => {
 
       await expectRevert(
         optionsContracts[0].burnOTokens(numTokens, {
-          from: nonOwnerAddress,
-          gas: '100000'
+          from: nonOwnerAddress
         }),
         'Vault does not exist'
       );
@@ -426,8 +412,7 @@ contract('OptionsContract', accounts => {
     it('should revert when trying to remove 0 collateral', async () => {
       await expectRevert(
         optionsContracts[0].removeCollateral(0, {
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         }),
         'Cannot remove 0 collateral'
       );
@@ -437,8 +422,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '1000';
 
       const result = await optionsContracts[0].removeCollateral(numTokens, {
-        from: firstOwnerAddress,
-        gas: '100000'
+        from: firstOwnerAddress
       });
 
       const vault = await optionsContracts[0].getVault(firstOwnerAddress);
@@ -459,8 +443,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '10';
       await expectRevert(
         optionsContracts[0].removeCollateral(numTokens, {
-          from: nonOwnerAddress,
-          gas: '100000'
+          from: nonOwnerAddress
         }),
         'Vault does not exist'
       );
@@ -470,8 +453,7 @@ contract('OptionsContract', accounts => {
       const numTokens = '500';
 
       const result = await optionsContracts[0].removeCollateral(numTokens, {
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
 
       expectEvent(result, 'RemoveCollateral', {
@@ -493,8 +475,7 @@ contract('OptionsContract', accounts => {
 
       try {
         await optionsContracts[0].removeCollateral(numTokens, {
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         });
       } catch (err) {
         return;
@@ -553,8 +534,7 @@ contract('OptionsContract', accounts => {
 
       await usdc.mint(nonOwnerAddress, '20000000');
       await usdc.approve(optionsContracts[1].address, '10000000000000000', {
-        from: nonOwnerAddress,
-        gas: '4000000'
+        from: nonOwnerAddress
       });
 
       const result = await optionsContracts[1].createERC20CollateralOption(
@@ -589,8 +569,7 @@ contract('OptionsContract', accounts => {
       await reverter.revert();
 
       await optionsContracts[0].openVault({
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
 
       await time.increaseTo(expiry + 2);
@@ -599,8 +578,7 @@ contract('OptionsContract', accounts => {
     it('should not be able to open a vault in an expired options contract', async () => {
       await expectRevert(
         optionsContracts[0].openVault({
-          from: creatorAddress,
-          gas: '100000'
+          from: creatorAddress
         }),
         'Options contract expired'
       );
@@ -610,7 +588,6 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         optionsContracts[0].addETHCollateral(firstOwnerAddress, {
           from: firstOwnerAddress,
-          gas: '100000',
           value: '10000000'
         }),
         'Options contract expired'
@@ -621,7 +598,6 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         optionsContracts[1].addETHCollateral(creatorAddress, {
           from: creatorAddress,
-          gas: '100000',
           value: '10000000'
         }),
         'Options contract expired'

@@ -96,7 +96,7 @@ contract('OptionsContract', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -104,13 +104,11 @@ contract('OptionsContract', accounts => {
 
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     await optionsContracts[0].addETHCollateral(firstVaultOwnerAddress, {
       from: firstVaultOwnerAddress,
-      gas: '100000',
       value: vault1Collateral
     });
 
@@ -123,8 +121,7 @@ contract('OptionsContract', accounts => {
     );
 
     await optionsContracts[0].transfer(tokenHolder, '101030', {
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     await reverter.snapshot();
@@ -138,8 +135,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 100;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -150,8 +146,7 @@ contract('OptionsContract', accounts => {
       // Try to liquidate the vault
       await expectRevert(
         optionsContracts[0].liquidate(firstVaultOwnerAddress, '1010100', {
-          from: tokenHolder,
-          gas: '100000'
+          from: tokenHolder
         }),
         'Can only liquidate liquidation factor at any given time'
       );
@@ -165,8 +160,7 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         '101010',
         {
-          from: tokenHolder,
-          gas: '200000'
+          from: tokenHolder
         }
       );
 
@@ -207,8 +201,7 @@ contract('OptionsContract', accounts => {
       ).toString();
 
       await optionsContracts[0].transfer(tokenHolder, numOptions, {
-        from: firstVaultOwnerAddress,
-        gas: '100000'
+        from: firstVaultOwnerAddress
       });
 
       const expectedCollateralToPay = new BN(5409004);
@@ -218,8 +211,7 @@ contract('OptionsContract', accounts => {
         firstVaultOwnerAddress,
         numOptions,
         {
-          from: tokenHolder,
-          gas: '200000'
+          from: tokenHolder
         }
       );
 
@@ -254,8 +246,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 250;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -264,8 +255,7 @@ contract('OptionsContract', accounts => {
       // Try to liquidate the vault
       await expectRevert(
         optionsContracts[0].liquidate(firstVaultOwnerAddress, '10', {
-          from: tokenHolder,
-          gas: '100000'
+          from: tokenHolder
         }),
         'Vault is safe'
       );

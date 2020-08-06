@@ -111,7 +111,7 @@
 //         'USDC',
 //         '1585440000',
 //         windowSize,
-//         {from: creatorAddress, gas: '4000000'}
+//         {from: creatorAddress}
 //       );
 
 //       let optionsContractAddr = optionsContractResult.logs[1].args[0];

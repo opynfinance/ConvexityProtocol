@@ -73,7 +73,7 @@ contract('Aave aUSDT:USDT insurance', accounts => {
       'USDT',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];

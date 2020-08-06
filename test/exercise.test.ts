@@ -67,17 +67,16 @@ contract('OptionsContract', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     optionsContracts = await oToken.at(optionsContractAddr);
 
     // Open two vaults
-    await optionsContracts.openVault({from: creatorAddress, gas: '100000'});
+    await optionsContracts.openVault({from: creatorAddress});
     await optionsContracts.openVault({
-      from: firstOwnerAddress,
-      gas: '100000'
+      from: firstOwnerAddress
     });
 
     // Add Collateral to both vaults
@@ -85,7 +84,7 @@ contract('OptionsContract', accounts => {
     let msgValue = '20000000';
     await optionsContracts.addETHCollateral(creatorAddress, {
       from: creatorAddress,
-      gas: '100000',
+
       value: msgValue
     });
 
@@ -93,7 +92,7 @@ contract('OptionsContract', accounts => {
     msgValue = '10000000';
     await optionsContracts.addETHCollateral(firstOwnerAddress, {
       from: firstOwnerAddress,
-      gas: '100000',
+
       value: msgValue
     });
 
@@ -137,8 +136,7 @@ contract('OptionsContract', accounts => {
 
       // ensure the person has enough oTokens
       await optionsContracts.transfer(secondOwnerAddress, amtToExercise, {
-        from: creatorAddress,
-        gas: '100000'
+        from: creatorAddress
       });
       const amtPTokens = await optionsContracts.balanceOf(secondOwnerAddress);
       expect(amtPTokens.toString()).to.equal(amtToExercise);
@@ -169,8 +167,7 @@ contract('OptionsContract', accounts => {
         amtToExercise,
         [creatorAddress],
         {
-          from: secondOwnerAddress,
-          gas: '1000000'
+          from: secondOwnerAddress
         }
       );
 
@@ -220,8 +217,7 @@ contract('OptionsContract', accounts => {
       const initialETH = await balance.current(creatorAddress);
 
       const txInfo = await optionsContracts.redeemVaultBalance({
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const tx = await web3.eth.getTransaction(txInfo.tx);
@@ -248,8 +244,7 @@ contract('OptionsContract', accounts => {
     it('only the owner of a vault should be able to collect collateral', async () => {
       await expectRevert(
         optionsContracts.redeemVaultBalance({
-          from: nonOwnerAddress,
-          gas: '1000000'
+          from: nonOwnerAddress
         }),
         'Vault does not exist'
       );
@@ -260,8 +255,7 @@ contract('OptionsContract', accounts => {
       const ownerDaiBalBefore = await dai.balanceOf(creatorAddress);
 
       const txInfo = await optionsContracts.redeemVaultBalance({
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
       const tx = await web3.eth.getTransaction(txInfo.tx);
 
@@ -281,8 +275,7 @@ contract('OptionsContract', accounts => {
 
     it('the second person should be able to collect their share of collateral', async () => {
       const tx = await optionsContracts.redeemVaultBalance({
-        from: firstOwnerAddress,
-        gas: '1000000'
+        from: firstOwnerAddress
       });
 
       // check the calculations on amount of collateral paid out and underlying transferred is correct

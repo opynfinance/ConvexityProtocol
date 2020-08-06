@@ -77,7 +77,7 @@ contract('OptionsContract', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -85,13 +85,12 @@ contract('OptionsContract', accounts => {
 
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     await optionsContracts[0].addETHCollateral(firstVaultOwnerAddress, {
       from: firstVaultOwnerAddress,
-      gas: '100000',
+
       value: vault1Collateral
     });
 
@@ -104,19 +103,17 @@ contract('OptionsContract', accounts => {
     );
 
     await optionsContracts[0].transfer(firstExerciser, '10', {
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     // Open vault2, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
-      from: secondVaultOwnerAddress,
-      gas: '100000'
+      from: secondVaultOwnerAddress
     });
 
     await optionsContracts[0].addETHCollateral(secondVaultOwnerAddress, {
       from: secondVaultOwnerAddress,
-      gas: '100000',
+
       value: vault2Collateral
     });
 
@@ -124,14 +121,12 @@ contract('OptionsContract', accounts => {
       vault2PutsOutstanding,
       secondVaultOwnerAddress,
       {
-        from: secondVaultOwnerAddress,
-        gas: '100000'
+        from: secondVaultOwnerAddress
       }
     );
 
     await optionsContracts[0].transfer(secondExerciser, '10', {
-      from: secondVaultOwnerAddress,
-      gas: '100000'
+      from: secondVaultOwnerAddress
     });
 
     await reverter.snapshot();
@@ -166,8 +161,7 @@ contract('OptionsContract', accounts => {
         amtToExercise,
         [firstVaultOwnerAddress],
         {
-          from: firstExerciser,
-          gas: '1000000'
+          from: firstExerciser
         }
       );
 
@@ -199,8 +193,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 100;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -212,8 +205,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 100;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(
@@ -234,8 +226,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 200;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const underlyingToPay = new BN(100000);
@@ -265,8 +256,7 @@ contract('OptionsContract', accounts => {
         amtToExercise,
         [secondVaultOwnerAddress],
         {
-          from: secondExerciser,
-          gas: '1000000'
+          from: secondExerciser
         }
       );
 
@@ -318,8 +308,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 200;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const collateralRedeemed = new BN(9999550);
@@ -332,8 +321,7 @@ contract('OptionsContract', accounts => {
       await time.increaseTo(windowSize + 2);
 
       const txInfo = await optionsContracts[0].redeemVaultBalance({
-        from: secondVaultOwnerAddress,
-        gas: '1000000'
+        from: secondVaultOwnerAddress
       });
 
       expectEvent(txInfo, 'RedeemVaultBalance', {
@@ -361,8 +349,7 @@ contract('OptionsContract', accounts => {
       );
       //       await time.increaseTo(1577836802);
       const txInfo = await optionsContracts[0].redeemVaultBalance({
-        from: firstVaultOwnerAddress,
-        gas: '1000000'
+        from: firstVaultOwnerAddress
       });
 
       expectEvent(txInfo, 'RedeemVaultBalance', {

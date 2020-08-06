@@ -27,14 +27,14 @@ jobs:
       - store_artifacts:
           path: /test_output
       # NOTE -> This requires a paid CircleCI plan to increase the RAM size up to 6/8GB. Fails at current
-      #- run:
-      #    name: Produce Coverage Report
-      #    command: npm run coverage
-      #- coveralls/upload
-      #- store_artifacts:
-      #    path: /coverage
-      #- store_artifacts:
-      #    path: /.coverage.json
+      - run:
+         name: Produce Coverage Report
+         command: npm run coverage
+      - coveralls/upload
+      - store_artifacts:
+         path: /coverage
+      - store_artifacts:
+         path: /.coverage.json
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:

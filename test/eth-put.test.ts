@@ -128,7 +128,7 @@
 //         'DAI',
 //         windowSize,
 //         windowSize,
-//         {from: creatorAddress, gas: '4000000'}
+//         {from: creatorAddress}
 //       );
 
 //       let optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -179,7 +179,7 @@
 //           liquidationFactor,
 //           transactionFee,
 //           collateralizationRatio,
-//           {from: creatorAddress, gas: '100000'}
+//           {from: creatorAddress}
 //         );
 
 //         currentCollateralizationRatio = await optionsContracts[0].minCollateralizationRatio();

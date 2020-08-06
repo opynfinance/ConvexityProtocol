@@ -154,7 +154,7 @@ contract('OptionsContract', accounts => {
         'USDC',
         '1612915200',
         windowSize,
-        {from: creatorAddress, gas: '4000000'}
+        {from: creatorAddress}
       );
 
       const optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -172,7 +172,7 @@ contract('OptionsContract', accounts => {
       //   'USDC',
       //   '1612915200',
       //   windowSize,
-      //   {from: creatorAddress, gas: '4000000'}
+      //   {from: creatorAddress}
       // );
 
       // optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -377,7 +377,6 @@ contract('OptionsContract', accounts => {
       // const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       // await oracle.updatePrice(newPrice, {
       //   from: creatorAddress,
-      //   gas: '1000000'
       // });
       // const result = await optionsContracts[0].isUnsafe(creatorAddress);
       // expect(result).to.be.true;

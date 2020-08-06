@@ -66,7 +66,7 @@ contract('Comption COMP:USDC put', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
