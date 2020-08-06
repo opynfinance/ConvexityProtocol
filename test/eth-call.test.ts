@@ -10,19 +10,8 @@ const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
+import {calculateMaxOptionsToCreate} from './utils/helper';
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
-
-function calculateMaxOptionsToCreate(
-  collateral: number,
-  collateralToStrikePrice: number,
-  minminCollateralizationRatio: number,
-  strikePrice: number
-): number {
-  return Math.floor(
-    (collateral * collateralToStrikePrice) /
-      (minminCollateralizationRatio * strikePrice)
-  );
-}
 
 contract(
   'OptionsContract: ETH Call',
