@@ -2,7 +2,7 @@ import {
   OptionsFactoryInstance,
   oTokenInstance,
   ERC20MintableInstance
-} from '../build/types/truffle-types';
+} from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
 const {time, expectEvent} = require('@openzeppelin/test-helpers');
@@ -11,7 +11,7 @@ const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import Reverter from './utils/reverter';
+import Reverter from '../utils/reverter';
 
 contract('OptionsContract: BAL put', accounts => {
   const reverter = new Reverter(web3);

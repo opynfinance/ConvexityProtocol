@@ -3,7 +3,7 @@ import {
   oTokenInstance,
   ERC20MintableInstance,
   MockCompoundOracleInstance
-} from '../build/types/truffle-types';
+} from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
 const {
@@ -18,7 +18,7 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import Reverter from './utils/reverter';
+import Reverter from '../utils/reverter';
 
 contract('OptionsContract: Aave insurance', accounts => {
   const reverter = new Reverter(web3);
