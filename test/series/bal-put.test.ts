@@ -2,7 +2,7 @@ import {
   OptionsFactoryInstance,
   oTokenInstance,
   ERC20MintableInstance
-} from '../build/types/truffle-types';
+} from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
 const {time, expectEvent} = require('@openzeppelin/test-helpers');
@@ -11,9 +11,9 @@ const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import Reverter from './utils/reverter';
+import Reverter from '../utils/reverter';
 
-contract('OptionsContract:BAL', accounts => {
+contract('OptionsContract: BAL put', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -76,10 +76,10 @@ contract('OptionsContract:BAL', accounts => {
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     oToken = await OTokenContract.at(optionsContractAddr);
 
-    // await reverter.snapshot();
+    await reverter.snapshot();
   });
 
-  describe('Contract Parameters', () => {
+  describe('New option parameter test', () => {
     it('should have basic setting', async () => {
       await oToken.setDetails(_name, _symbol, {
         from: creatorAddress
@@ -94,9 +94,7 @@ contract('OptionsContract:BAL', accounts => {
         from: creatorAddress
       });
     });
-  });
 
-  describe('Open vaults and mint tokens', () => {
     it('should open empty vault', async () => {
       await oToken.openVault({
         from: creatorAddress
@@ -147,9 +145,7 @@ contract('OptionsContract:BAL', accounts => {
       assert.equal(vault[1].toString(), amountToIssue);
       assert.equal(vault[2].toString(), '0');
     });
-  });
 
-  describe('Exercise', () => {
     it('should be able to exercise', async () => {
       // exercise 500 puts
       const amountToExercise = new BigNumber(500)

@@ -824,8 +824,6 @@ contract('OptionsContract', accounts => {
       const expectedCollateralToPay = new BN(4590);
       const initialETH = await balance.current(tokenHolder);
 
-      const vault = await optionsContracts[0].getVault(firstVaultOwnerAddress);
-
       const txInfo = await optionsContracts[0].liquidate(
         firstVaultOwnerAddress,
         '100',

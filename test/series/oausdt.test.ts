@@ -3,7 +3,7 @@ import {
   oTokenInstance,
   ERC20MintableInstance,
   MockCompoundOracleInstance
-} from '../build/types/truffle-types';
+} from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
 const {
@@ -18,9 +18,9 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import Reverter from './utils/reverter';
+import Reverter from '../utils/reverter';
 
-contract('Aave aUSDT:USDT insurance', accounts => {
+contract('OptionsContract: Aave insurance', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -82,113 +82,115 @@ contract('Aave aUSDT:USDT insurance', accounts => {
     await reverter.snapshot();
   });
 
-  it('should have basic setting', async () => {
-    await oaUSDT.setDetails(_name, _symbol, {
-      from: creatorAddress
+  describe('New option parameter test', () => {
+    it('should have basic setting', async () => {
+      await oaUSDT.setDetails(_name, _symbol, {
+        from: creatorAddress
+      });
+
+      assert.equal(await oaUSDT.name(), String(_name), 'set name error');
+      assert.equal(await oaUSDT.symbol(), String(_symbol), 'set symbol error');
     });
 
-    assert.equal(await oaUSDT.name(), String(_name), 'set name error');
-    assert.equal(await oaUSDT.symbol(), String(_symbol), 'set symbol error');
-  });
-
-  it('should update parameters', async () => {
-    // await oaUSDT.updateParameters('100', '500', 0, 16, {from: creatorAddress});
-  });
-
-  it('should open empty vault', async () => {
-    await oaUSDT.openVault({
-      from: creatorAddress
-    });
-    const vault = await oaUSDT.getVault(creatorAddress);
-    assert.equal(vault[0].toString(), '0');
-    assert.equal(vault[1].toString(), '0');
-    assert.equal(vault[2].toString(), '0');
-  });
-
-  it('should add ETH collateral successfully', async () => {
-    await oaUSDT.addETHCollateral(creatorAddress, {
-      from: creatorAddress,
-      value: ether('1')
+    it('should update parameters', async () => {
+      // await oaUSDT.updateParameters('100', '500', 0, 16, {from: creatorAddress});
     });
 
-    // test that the vault's balances have been updated.
-    const vault = await oaUSDT.getVault(creatorAddress);
-    assert.equal(vault[0].toString(), ether('1'));
-    assert.equal(vault[1].toString(), '0');
-    assert.equal(vault[2].toString(), '0');
-  });
+    it('should open empty vault', async () => {
+      await oaUSDT.openVault({
+        from: creatorAddress
+      });
+      const vault = await oaUSDT.getVault(creatorAddress);
+      assert.equal(vault[0].toString(), '0');
+      assert.equal(vault[1].toString(), '0');
+      assert.equal(vault[2].toString(), '0');
+    });
 
-  it('should add ETH collateral and Mint', async () => {
-    await oracle.updatePrice('4000000000000000'); // eth price 250, 1 usdt = 0.004 eth
-    const amountToIssue = new BigNumber(250)
-      .div(new BigNumber(1.6))
-      .div(new BigNumber(0.95))
-      .times(new BigNumber(10).exponentiatedBy(6))
-      .integerValue();
-    await expectRevert(
-      oaUSDT.createETHCollateralOption(
-        amountToIssue.plus(1).toString(),
+    it('should add ETH collateral successfully', async () => {
+      await oaUSDT.addETHCollateral(creatorAddress, {
+        from: creatorAddress,
+        value: ether('1')
+      });
+
+      // test that the vault's balances have been updated.
+      const vault = await oaUSDT.getVault(creatorAddress);
+      assert.equal(vault[0].toString(), ether('1'));
+      assert.equal(vault[1].toString(), '0');
+      assert.equal(vault[2].toString(), '0');
+    });
+
+    it('should add ETH collateral and Mint', async () => {
+      await oracle.updatePrice('4000000000000000'); // eth price 250, 1 usdt = 0.004 eth
+      const amountToIssue = new BigNumber(250)
+        .div(new BigNumber(1.6))
+        .div(new BigNumber(0.95))
+        .times(new BigNumber(10).exponentiatedBy(6))
+        .integerValue();
+      await expectRevert(
+        oaUSDT.createETHCollateralOption(
+          amountToIssue.plus(1).toString(),
+          firstOwner,
+          {
+            from: firstOwner,
+            value: ether('1')
+          }
+        ),
+        'unsafe to mint'
+      );
+
+      await oaUSDT.createETHCollateralOption(
+        amountToIssue.toString(),
         firstOwner,
         {
           from: firstOwner,
           value: ether('1')
         }
-      ),
-      'unsafe to mint'
-    );
+      );
 
-    await oaUSDT.createETHCollateralOption(
-      amountToIssue.toString(),
-      firstOwner,
-      {
-        from: firstOwner,
-        value: ether('1')
-      }
-    );
+      // test that the vault's balances have been updated.
+      const vault = await oaUSDT.getVault(firstOwner);
+      assert.equal(vault[0].toString(), ether('1'));
+      assert.equal(vault[1].toString(), amountToIssue.toString());
+      assert.equal(vault[2].toString(), '0');
+    });
 
-    // test that the vault's balances have been updated.
-    const vault = await oaUSDT.getVault(firstOwner);
-    assert.equal(vault[0].toString(), ether('1'));
-    assert.equal(vault[1].toString(), amountToIssue.toString());
-    assert.equal(vault[2].toString(), '0');
-  });
+    it('should not exercise without underlying allowance', async () => {
+      await oaUSDT.transfer(tokenHolder, '80000000', {from: firstOwner}); // transfer 80 oaUSDT
+      await oracle.updatePrice('4000000000000000'); // eth price 250, 1 usdt = 0.004 eth
 
-  it('should not exercise without underlying allowance', async () => {
-    await oaUSDT.transfer(tokenHolder, '80000000', {from: firstOwner}); // transfer 80 oaUSDT
-    await oracle.updatePrice('4000000000000000'); // eth price 250, 1 usdt = 0.004 eth
+      await expectRevert(
+        oaUSDT.exercise('40000000', [firstOwner], {
+          from: tokenHolder
+        }),
+        'transfer amount exceeds allowance.'
+      );
+    });
 
-    await expectRevert(
-      oaUSDT.exercise('40000000', [firstOwner], {
+    it('should be able to exercise', async () => {
+      const amountToExercise = '40000000';
+      const underlyingRequired = (
+        await oaUSDT.underlyingRequiredToExercise(amountToExercise)
+      ).toString();
+
+      await ausdt.approve(oaUSDT.address, underlyingRequired, {
         from: tokenHolder
-      }),
-      'transfer amount exceeds allowance.'
-    );
-  });
+      });
 
-  it('should be able to exercise', async () => {
-    const amountToExercise = '40000000';
-    const underlyingRequired = (
-      await oaUSDT.underlyingRequiredToExercise(amountToExercise)
-    ).toString();
+      const exerciseTx = await oaUSDT.exercise(amountToExercise, [firstOwner], {
+        from: tokenHolder
+      });
 
-    await ausdt.approve(oaUSDT.address, underlyingRequired, {
-      from: tokenHolder
+      expectEvent(exerciseTx, 'Exercise', {
+        amtUnderlyingToPay: underlyingRequired,
+        amtCollateralToPay: '152000000000000000'
+      });
+
+      // test that the vault's balances have been updated.
+      const vault = await oaUSDT.getVault(firstOwner);
+      assert.equal(vault[0].toString(), '848000000000000000');
+      assert.equal(vault[1].toString(), '124473684');
+      assert.equal(vault[2].toString(), underlyingRequired);
     });
-
-    const exerciseTx = await oaUSDT.exercise(amountToExercise, [firstOwner], {
-      from: tokenHolder
-    });
-
-    expectEvent(exerciseTx, 'Exercise', {
-      amtUnderlyingToPay: underlyingRequired,
-      amtCollateralToPay: '152000000000000000'
-    });
-
-    // test that the vault's balances have been updated.
-    const vault = await oaUSDT.getVault(firstOwner);
-    assert.equal(vault[0].toString(), '848000000000000000');
-    assert.equal(vault[1].toString(), '124473684');
-    assert.equal(vault[2].toString(), underlyingRequired);
   });
 });
 
