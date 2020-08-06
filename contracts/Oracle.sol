@@ -2,8 +2,8 @@ pragma solidity 0.5.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./lib/CompoundOracleInterface.sol";
-import "./lib/CTokenInterface.sol";
+import "./interfaces/CompoundOracleInterface.sol";
+import "./interfaces/CTokenInterface.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
