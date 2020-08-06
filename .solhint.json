@@ -13,6 +13,7 @@
     "max-states-count": "off",
     "not-rely-on-time": "off",
     "contract-name-camelcase": "off",
-    "no-empty-blocks": "off"
+    "no-empty-blocks": "off",
+    "reason-string": "off"
   }
 }
