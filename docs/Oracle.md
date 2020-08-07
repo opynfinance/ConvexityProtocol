@@ -8,13 +8,10 @@ View Source: [contracts/Oracle.sol](../contracts/Oracle.sol)
 **Constants & Variables**
 
 ```js
-//internal members
-mapping(address => bool) internal isCToken;
-mapping(address => address) internal assetToCTokens;
-address internal cETH;
-
-//public members
-contract CompoundOracleInterface public PriceOracle;
+mapping(address => bool) public isCToken;
+mapping(address => address) public assetToCTokens;
+address public cETH;
+contract CompoundOracleInterface public priceOracle;
 
 ```
 
@@ -86,7 +83,6 @@ returns(uint256)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)

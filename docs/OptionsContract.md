@@ -47,7 +47,7 @@ int32 public underlyingExp;
 contract IERC20 public collateral;
 contract IERC20 public underlying;
 contract IERC20 public strike;
-contract CompoundOracleInterface public COMPOUND_ORACLE;
+contract CompoundOracleInterface public compoundOracle;
 string public name;
 string public symbol;
 uint8 public decimals;
@@ -718,7 +718,6 @@ returns(uint256)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
