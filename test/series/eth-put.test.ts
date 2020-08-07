@@ -10,7 +10,6 @@ const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 import Reverter from '../utils/reverter';
 
 contract('OptionsContract: ETH put', accounts => {
