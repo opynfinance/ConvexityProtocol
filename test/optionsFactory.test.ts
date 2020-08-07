@@ -191,7 +191,7 @@ contract('OptionsFactory', accounts => {
           'ETH',
           expiredExpiry,
           expiredExpiry,
-          {from: creatorAddress, gas: '4000000'}
+          {from: creatorAddress}
         ),
         'Cannot create an expired option'
       );
@@ -212,7 +212,7 @@ contract('OptionsFactory', accounts => {
           'ETH',
           expiry,
           bigWindowSize,
-          {from: creatorAddress, gas: '4000000'}
+          {from: creatorAddress}
         ),
         'Invalid _windowSize'
       );
@@ -230,7 +230,7 @@ contract('OptionsFactory', accounts => {
         'ETH',
         expiry,
         windowSize,
-        {from: creatorAddress, gas: '4000000'}
+        {from: creatorAddress}
       );
 
       // Test that the Factory stores addresses of any new options contract added.
@@ -259,7 +259,7 @@ contract('OptionsFactory', accounts => {
         'ETH',
         expiry,
         windowSize,
-        {from: firstOwnerAddress, gas: '4000000'}
+        {from: firstOwnerAddress}
       );
 
       // Test that the Factory stores addresses of any new options contract added.

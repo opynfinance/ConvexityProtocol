@@ -75,7 +75,7 @@ contract('OptionsContract', accounts => {
       'USDC',
       expiry,
       windowSize,
-      {from: creatorAddress, gas: '4000000'}
+      {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -83,13 +83,11 @@ contract('OptionsContract', accounts => {
 
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     await optionsContracts[0].addETHCollateral(firstVaultOwnerAddress, {
       from: firstVaultOwnerAddress,
-      gas: '100000',
       value: vault1Collateral
     });
 
@@ -102,19 +100,17 @@ contract('OptionsContract', accounts => {
     );
 
     await optionsContracts[0].transfer(tokenHolder, '101010', {
-      from: firstVaultOwnerAddress,
-      gas: '100000'
+      from: firstVaultOwnerAddress
     });
 
     // Open vault2, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
-      from: secondVaultOwnerAddress,
-      gas: '100000'
+      from: secondVaultOwnerAddress
     });
 
     await optionsContracts[0].addETHCollateral(secondVaultOwnerAddress, {
       from: secondVaultOwnerAddress,
-      gas: '100000',
+
       value: vault2Collateral
     });
 
@@ -127,8 +123,7 @@ contract('OptionsContract', accounts => {
     );
 
     await optionsContracts[0].transfer(tokenHolder, '1000', {
-      from: secondVaultOwnerAddress,
-      gas: '100000'
+      from: secondVaultOwnerAddress
     });
   });
 
@@ -141,7 +136,7 @@ contract('OptionsContract', accounts => {
 
       await optionsContracts[0].addETHCollateral(secondVaultOwnerAddress, {
         from: creatorAddress,
-        gas: '100000',
+
         value: vault2Collateral
       });
 
@@ -157,8 +152,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 100;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -176,8 +170,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 200;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -193,8 +186,7 @@ contract('OptionsContract', accounts => {
       const txInfo = await optionsContracts[0].removeCollateral(
         vault2Collateral,
         {
-          from: secondVaultOwnerAddress,
-          gas: '100000'
+          from: secondVaultOwnerAddress
         }
       );
 
@@ -219,8 +211,7 @@ contract('OptionsContract', accounts => {
     it("firstVaultOwnerAddress shouldn't be able to remove collateral", async () => {
       await expectRevert(
         optionsContracts[0].removeCollateral(vault2Collateral, {
-          from: firstVaultOwnerAddress,
-          gas: '100000'
+          from: firstVaultOwnerAddress
         }),
         'Vault is unsafe'
       );
@@ -230,8 +221,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 100;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -277,8 +267,7 @@ contract('OptionsContract', accounts => {
       const newETHToUSDPrice = 150;
       const newPrice = Math.floor((1 / newETHToUSDPrice) * 10 ** 18).toString();
       await compoundOracle.updatePrice(newPrice, {
-        from: creatorAddress,
-        gas: '1000000'
+        from: creatorAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
@@ -329,8 +318,7 @@ contract('OptionsContract', accounts => {
 
     it('firstVaultOwner should be able to burn some put tokens to turn the vault safe', async () => {
       await optionsContracts[0].burnOTokens('100000', {
-        from: firstVaultOwnerAddress,
-        gas: '100000'
+        from: firstVaultOwnerAddress
       });
 
       const result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);

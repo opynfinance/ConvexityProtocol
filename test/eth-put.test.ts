@@ -22,14 +22,6 @@
 // const Oracle = artifacts.require('MockCompoundOracle');
 
 // // Egs. collateral = 200 * 10^-18, strikePrice = 9 * 10^-15.
-// // returns number of oTokens
-// function calculateMaxOptionsToCreate(
-//   collateral: number,
-//   strikePrice: number,
-//   collateralToStrikePrice: number
-// ): number {
-//   return Math.floor((collateral * collateralToStrikePrice) / (2 * strikePrice));
-// }
 
 // // Egs. oTokensSold = 200 * 10^15, strikePrice = 9 * 10^-15, apr = 2, strikeToCol = 0.01
 // // returns collateral to deposit (in wei).
@@ -128,7 +120,7 @@
 //         'DAI',
 //         windowSize,
 //         windowSize,
-//         {from: creatorAddress, gas: '4000000'}
+//         {from: creatorAddress}
 //       );
 
 //       let optionsContractAddr = optionsContractResult.logs[1].args[0];
@@ -179,7 +171,7 @@
 //           liquidationFactor,
 //           transactionFee,
 //           collateralizationRatio,
-//           {from: creatorAddress, gas: '100000'}
+//           {from: creatorAddress}
 //         );
 
 //         currentCollateralizationRatio = await optionsContracts[0].minCollateralizationRatio();

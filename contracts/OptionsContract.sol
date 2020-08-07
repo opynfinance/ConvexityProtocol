@@ -1,10 +1,9 @@
 pragma solidity 0.5.10;
 
-import "./lib/CompoundOracleInterface.sol";
+import "./interfaces/CompoundOracleInterface.sol";
+import "./interfaces/UniswapFactoryInterface.sol";
+import "./interfaces/UniswapExchangeInterface.sol";
 import "./OptionsExchange.sol";
-import "./OptionsUtils.sol";
-import "./lib/UniswapFactoryInterface.sol";
-import "./lib/UniswapExchangeInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
@@ -228,7 +227,7 @@ contract OptionsContract is Ownable, ERC20 {
     }
 
     /**
-     * @notice Can only be called by owner. Used to update the fees, minminCollateralizationRatio, etc
+     * @notice Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
      * @param _liquidationIncentive The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive.
      * @param _liquidationFactor Max amount that a Vault can be liquidated by. 500 is 0.5.
      * @param _transactionFee The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%.
@@ -463,7 +462,7 @@ contract OptionsContract is Ownable, ERC20 {
      * issue and immidiately sell the oTokens! (Either call the createAndSell function in the oToken contract
      * of batch the issueOTokens transaction with a sell transaction and ensure it happens atomically).
      * @dev The owner of a Vault should only be able to have a max of
-     * repo.collateral * collateralToStrike / (minminCollateralizationRatio * strikePrice) tokens issued.
+     * repo.collateral * collateralToStrike / (minCollateralizationRatio * strikePrice) tokens issued.
      * @param oTokensToIssue The number of o tokens to issue
      * @param receiver The address to send the oTokens to
      */
