@@ -1,6 +1,6 @@
 # CompoundOracleInterface.sol
 
-View Source: [contracts/lib/CompoundOracleInterface.sol](../contracts/lib/CompoundOracleInterface.sol)
+View Source: [contracts/interfaces/CompoundOracleInterface.sol](../contracts/interfaces/CompoundOracleInterface.sol)
 
 **CompoundOracleInterface**
 
@@ -63,7 +63,6 @@ returns(uint256)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)

@@ -1,6 +1,6 @@
 # UniswapExchangeInterface.sol
 
-View Source: [contracts/lib/UniswapExchangeInterface.sol](../contracts/lib/UniswapExchangeInterface.sol)
+View Source: [contracts/interfaces/UniswapExchangeInterface.sol](../contracts/interfaces/UniswapExchangeInterface.sol)
 
 **UniswapExchangeInterface**
 
@@ -519,7 +519,6 @@ function setup(address token_addr) external nonpayable
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)

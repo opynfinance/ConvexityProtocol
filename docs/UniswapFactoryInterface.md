@@ -1,6 +1,6 @@
 # UniswapFactoryInterface.sol
 
-View Source: [contracts/lib/UniswapFactoryInterface.sol](../contracts/lib/UniswapFactoryInterface.sol)
+View Source: [contracts/interfaces/UniswapFactoryInterface.sol](../contracts/interfaces/UniswapFactoryInterface.sol)
 
 **UniswapFactoryInterface**
 
@@ -95,7 +95,6 @@ function initializeFactory(address template) external nonpayable
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)

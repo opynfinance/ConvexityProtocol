@@ -36,7 +36,7 @@ function () public nonpayable
 ### createExchange
 
 ```js
-function createExchange(address token) external nonpayable
+function createExchange(address token) external pure
 returns(exchange address)
 ```
 
@@ -49,7 +49,7 @@ returns(exchange address)
 ### getExchange
 
 ```js
-function getExchange(address token) external view
+function getExchange(address token) external pure
 returns(exchange address)
 ```
 
@@ -62,7 +62,7 @@ returns(exchange address)
 ### getToken
 
 ```js
-function getToken(address exchange) external view
+function getToken(address exchange) external pure
 returns(token address)
 ```
 
@@ -75,7 +75,7 @@ returns(token address)
 ### getTokenWithId
 
 ```js
-function getTokenWithId(uint256 tokenId) external view
+function getTokenWithId(uint256 tokenId) external pure
 returns(token address)
 ```
 
@@ -107,7 +107,6 @@ function initializeFactory(address template) external nonpayable
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)

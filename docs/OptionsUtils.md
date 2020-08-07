@@ -8,8 +8,8 @@ View Source: [contracts/OptionsUtils.sol](../contracts/OptionsUtils.sol)
 **Constants & Variables**
 
 ```js
-contract UniswapFactoryInterface public UNISWAP_FACTORY;
-contract CompoundOracleInterface public COMPOUND_ORACLE;
+contract UniswapFactoryInterface public uniswapFactory;
+contract CompoundOracleInterface public compoundOracle;
 
 ```
 
@@ -68,7 +68,6 @@ returns(bool)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
 * [IERC20](IERC20.md)
-* [IOptionsExchange](IOptionsExchange.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
