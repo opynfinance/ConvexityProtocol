@@ -1,5 +1,5 @@
 import {
-  ERC20MintableInstance,
+  Erc20MintableInstance,
   OptionsContractInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
@@ -26,7 +26,7 @@ contract(
   ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let usdc: ERC20MintableInstance;
+    let usdc: Erc20MintableInstance;
 
     const _name = 'test call option $280';
     const _symbol = 'test oETH $280';

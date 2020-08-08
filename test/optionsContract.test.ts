@@ -1,8 +1,8 @@
 import {expect} from 'chai';
 import {
-  ERC20MintableInstance,
+  Erc20MintableInstance,
   OptionsFactoryInstance,
-  oTokenInstance
+  OTokenInstance
 } from '../build/types/truffle-types';
 
 const oToken = artifacts.require('oToken');
@@ -26,10 +26,10 @@ contract('OptionsContract', accounts => {
   const firstOwnerAddress = accounts[1];
   const nonOwnerAddress = accounts[2];
 
-  const optionsContracts: oTokenInstance[] = [];
+  const optionsContracts: OTokenInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
-  let dai: ERC20MintableInstance;
-  let usdc: ERC20MintableInstance;
+  let dai: Erc20MintableInstance;
+  let usdc: Erc20MintableInstance;
 
   const now = Date.now();
   const expiry = getUnixTime(addMonths(now, 3));

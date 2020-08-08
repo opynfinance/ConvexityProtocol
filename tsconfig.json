@@ -6,10 +6,12 @@
     "noImplicitReturns": true,
     "alwaysStrict": true,
     "typeRoots": [
+      "./node_modules/bn.js-types",
       "./node_modules/@types",
       "./build/types",
-      "./node_modules/truffle-typings"
-    ]
+      "./node_modules/truffle-typings",
+    ],
+    "types": ["node", "truffle-typings"]
   },
   "include": [
     "test/**/*.ts"
