@@ -7,12 +7,12 @@
     "avoid-low-level-calls": "off",
     "no-inline-assembly": "off",
     "multiple-sends": "off",
-    "bracket-align": "off",
     "no-complex-fallback": "off",
     "compiler-version": ["error", "0.5.10"],
     "max-states-count": "off",
     "not-rely-on-time": "off",
     "contract-name-camelcase": "off",
-    "no-empty-blocks": "off"
+    "no-empty-blocks": "off",
+    "reason-string": "off"
   }
 }
