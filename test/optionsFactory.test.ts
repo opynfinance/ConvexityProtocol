@@ -8,7 +8,7 @@ const truffleAssert = require('truffle-assertions');
 
 import {getUnixTime, addMonths, addSeconds, fromUnixTime} from 'date-fns';
 
-const {expectRevert} = require('@openzeppelin/test-helpers');
+const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
 contract('OptionsFactory', accounts => {
   const creatorAddress = accounts[0];
@@ -17,10 +17,13 @@ contract('OptionsFactory', accounts => {
   let optionsFactory: OptionsFactoryInstance;
 
   const now = Date.now();
-  const expiry = getUnixTime(addMonths(now, 3));
-  const windowSize = expiry;
+  let expiry: number;
+  let windowSize: number;
 
   before(async () => {
+    const now = (await time.latest()).toNumber();
+    expiry = now + time.duration.days(30).toNumber();
+    windowSize = expiry;
     optionsFactory = await OptionsFactory.deployed();
     // 1. Deploy our contracts
     // deploys the Options Exhange contract

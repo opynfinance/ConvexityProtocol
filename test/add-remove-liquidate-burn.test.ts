@@ -11,8 +11,8 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import {getUnixTime, addMonths} from 'date-fns';
 const {
+  time,
   BN,
   balance,
   expectEvent,
@@ -56,13 +56,12 @@ contract('OptionsContract', accounts => {
     optionsFactory = await OptionsFactory.deployed();
 
     await optionsFactory.addAsset('DAI', dai.address);
-    // TODO: deploy a mock USDC and get its address
     await optionsFactory.addAsset('USDC', usdc.address);
 
-    const now = Date.now();
-    const expiry = getUnixTime(addMonths(now, 3));
+    // const windowSize = expiry;
+    const now = (await time.latest()).toNumber();
+    const expiry = now + time.duration.days(30).toNumber();
     const windowSize = expiry;
-
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       'ETH',
