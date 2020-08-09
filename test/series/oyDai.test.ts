@@ -1,7 +1,7 @@
 // import {expect} from 'chai';
 // import {
-//   ERC20MintableInstance,
-//   oTokenInstance,
+//   Erc20MintableInstance,
+//   OTokenInstance,
 //   OptionsFactoryInstance,
 //   OptionsExchangeInstance,
 //   UniswapFactoryInterfaceInstance,
@@ -55,9 +55,9 @@
 //   let optionsContractAddresses: string[];
 //   let oracleAddress: string;
 
-//   const optionsContracts: oTokenInstance[] = [];
+//   const optionsContracts: OTokenInstance[] = [];
 //   let optionsFactory: OptionsFactoryInstance;
-//   let yDai: ERC20MintableInstance;
+//   let yDai: Erc20MintableInstance;
 //   let uniswapFactory: UniswapFactoryInterfaceInstance;
 //   let optionsExchange: OptionsExchangeInstance;
 //   let oracle: OracleInstance;

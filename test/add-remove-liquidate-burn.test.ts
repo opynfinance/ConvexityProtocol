@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import {
-  ERC20MintableInstance,
+  Erc20MintableInstance,
   MockCompoundOracleInstance,
   OptionsContractInstance,
   OptionsFactoryInstance
@@ -29,8 +29,8 @@ contract('OptionsContract', accounts => {
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
   let compoundOracle: MockCompoundOracleInstance;
-  let dai: ERC20MintableInstance;
-  let usdc: ERC20MintableInstance;
+  let dai: Erc20MintableInstance;
+  let usdc: Erc20MintableInstance;
 
   const vault1Collateral = '20000000';
   const vault1PutsOutstanding = '250000';

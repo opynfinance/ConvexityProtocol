@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
-  oTokenInstance,
-  ERC20MintableInstance
+  OTokenInstance,
+  Erc20MintableInstance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -21,9 +21,9 @@ contract('OptionsContract: BAL put', accounts => {
   const tokenHolder = accounts[2];
 
   let optionsFactory: OptionsFactoryInstance;
-  let oToken: oTokenInstance;
-  let bal: ERC20MintableInstance;
-  let usdc: ERC20MintableInstance;
+  let oToken: OTokenInstance;
+  let bal: Erc20MintableInstance;
+  let usdc: Erc20MintableInstance;
 
   const _name = 'Opyn BAL Put $7 08/28/20';
   const _symbol = 'oBALp $7';

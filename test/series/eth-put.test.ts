@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
-  oTokenInstance,
-  ERC20MintableInstance
+  OTokenInstance,
+  Erc20MintableInstance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -20,10 +20,10 @@ contract('OptionsContract: ETH put', accounts => {
   const tokenHolder = accounts[2];
 
   let optionsFactory: OptionsFactoryInstance;
-  let oETH: oTokenInstance;
+  let oETH: OTokenInstance;
   // let oracle: MockCompoundOracleInstance;
-  // let comp: ERC20MintableInstance;
-  let usdc: ERC20MintableInstance;
+  // let comp: Erc20MintableInstance;
+  let usdc: Erc20MintableInstance;
 
   const usdcAmount = '1000000000'; // 1000 USDC
 

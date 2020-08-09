@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
-  oTokenInstance,
-  ERC20MintableInstance,
+  OTokenInstance,
+  Erc20MintableInstance,
   MockCompoundOracleInstance
 } from '../../build/types/truffle-types';
 
@@ -28,10 +28,10 @@ contract('OptionsContract: Aave insurance', accounts => {
   const tokenHolder = accounts[2];
 
   let optionsFactory: OptionsFactoryInstance;
-  let oaUSDT: oTokenInstance;
+  let oaUSDT: OTokenInstance;
   let oracle: MockCompoundOracleInstance;
-  let ausdt: ERC20MintableInstance;
-  let usdt: ERC20MintableInstance;
+  let ausdt: Erc20MintableInstance;
+  let usdt: Erc20MintableInstance;
 
   const _name = 'Aave USDT insurance';
   const _symbol = 'oaUSDT';
@@ -202,7 +202,7 @@ contract('OptionsContract: Aave insurance', accounts => {
 // const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 
 // contract('Aave aUSDT:USDT insurance', async accounts => {
-//   let oaUSDTToken: oTokenInstance;
+//   let oaUSDTToken: OTokenInstance;
 //   let optionContract: OptionsContractInstance;
 //   let oracle: OracleInstance;
 
