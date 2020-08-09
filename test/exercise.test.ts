@@ -4,7 +4,6 @@ import {
   OTokenInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
-// import {BigNumber} from 'bignumber.js';
 import BN = require('bn.js');
 const oToken = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
@@ -97,7 +96,7 @@ contract(
 
       let txFeeInWei: BN;
 
-      before('move otokens and underlying for exerciser', async () => {
+      before('move otokens and underlying to the exerciser', async () => {
         // ensure the person has enough oTokens
         await otoken.transfer(exerciser, mintAmount, {
           from: owner1
@@ -126,7 +125,7 @@ contract(
         contractCollateralBefore = await balance.current(otoken.address);
       });
 
-      it('should be able to exercise half of 1 vault', async () => {
+      it('should be able to exercise half of vault 1', async () => {
         const totalSupplyBefore = new BN(
           (await otoken.totalSupply()).toString()
         );
@@ -241,10 +240,46 @@ contract(
       });
     });
 
-    describe('#redeem() after expiry window', () => {
-      it('owner1 should be able to collect their share of collateral', async () => {
-        await time.increaseTo(expiry);
+    describe('#removeUnderlying() before expiry window', () => {
+      let amountToExercise: BN;
 
+      before('let the exerciser exercise half of vault 2', async () => {
+        // exercise half of the second vault.
+        amountToExercise = mintAmount.div(new BN(2));
+        await otoken.exercise(amountToExercise, [owner2], {
+          from: exerciser
+        });
+      });
+
+      it('owner2 should be able to remove underlying before expiry', async () => {
+        const underlyingPaidByExerciser = await otoken.underlyingRequiredToExercise(
+          amountToExercise
+        );
+
+        const txInfo = await otoken.removeUnderlying({
+          from: owner2
+        });
+
+        expectEvent(txInfo, 'RemoveUnderlying', {
+          amountUnderlying: underlyingPaidByExerciser.toString(),
+          vaultOwner: owner2
+        });
+
+        // check the owner's underlying balance increased
+        const ownerusdcBal = await usdc.balanceOf(owner2);
+        assert.equal(
+          ownerusdcBal.toString(),
+          underlyingPaidByExerciser.toString()
+        );
+      });
+    });
+
+    describe('#redeem() after expiry window', () => {
+      before('increase time to expiry', async () => {
+        await time.increaseTo(expiry);
+      });
+
+      it('owner1 should be able to collect their share of collateral', async () => {
         const initialETH = await balance.current(owner1);
 
         const txInfo = await otoken.redeemVaultBalance({
@@ -314,19 +349,24 @@ contract(
       });
 
       it('Owner2 should be able to collect his collateral', async () => {
+        const owner2UnderlyginBefore = await usdc.balanceOf(owner2);
+
         const tx = await otoken.redeemVaultBalance({
           from: owner2
         });
 
         // check the calculations on amount of collateral paid out and underlying transferred is correct
         expectEvent(tx, 'RedeemVaultBalance', {
-          amtCollateralRedeemed: collateralEachVault.toString(),
+          amtCollateralRedeemed: collateralEachVault.div(new BN(2)).toString(),
           amtUnderlyingRedeemed: '0',
           vaultOwner: owner2
         });
 
-        const ownerusdcBal = await usdc.balanceOf(owner2);
-        expect(ownerusdcBal.toString()).to.equal('0');
+        const owner2UnderlyginAfter = await usdc.balanceOf(owner2);
+        assert.equal(
+          owner2UnderlyginBefore.toString(),
+          owner2UnderlyginAfter.toString()
+        );
       });
     });
   }
