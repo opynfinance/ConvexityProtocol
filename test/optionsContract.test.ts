@@ -2,15 +2,12 @@ import {expect} from 'chai';
 import {
   Erc20MintableInstance,
   OptionsFactoryInstance,
-  OTokenInstance,
-  OptionsExchangeInstance,
-  MockCompoundOracleInstance
+  MockCompoundOracleInstance,
+  OptionsContractInstance
 } from '../build/types/truffle-types';
 
-const oToken = artifacts.require('oToken');
 const OptionsCotract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
@@ -31,10 +28,11 @@ contract('OptionsContract', accounts => {
     creatorAddress,
     firstOwnerAddress,
     nonOwnerAddress,
-    fakeExchange
+    fakeExchange,
+    random
   ] = accounts;
 
-  const optionsContracts: OTokenInstance[] = [];
+  const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
   let oracle: MockCompoundOracleInstance;
   let dai: Erc20MintableInstance;
@@ -85,7 +83,7 @@ contract('OptionsContract', accounts => {
     );
 
     let optionsContractAddr = optionsContractResult.logs[1].args[0];
-    optionsContracts.push(await oToken.at(optionsContractAddr));
+    optionsContracts.push(await OptionsCotract.at(optionsContractAddr));
 
     optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
@@ -102,7 +100,9 @@ contract('OptionsContract', accounts => {
     );
 
     optionsContractAddr = optionsContractResult.logs[1].args[0];
-    const ERC20collateralOptContract = await oToken.at(optionsContractAddr);
+    const ERC20collateralOptContract = await OptionsCotract.at(
+      optionsContractAddr
+    );
     optionsContracts.push(ERC20collateralOptContract);
 
     await reverter.snapshot();
@@ -229,6 +229,117 @@ contract('OptionsContract', accounts => {
         'oToken exchange rate exponent not within expected range'
       );
     });
+
+    it('should create a option with eth as collateral, strike, underlying ', async () => {
+      await OptionsCotract.new(
+        ZERO_ADDRESS,
+        -'18',
+        ZERO_ADDRESS,
+        -'18',
+        -'18',
+        '90',
+        -'18',
+        ZERO_ADDRESS,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry
+      );
+    });
+  });
+
+  describe('#updateParameter()', () => {
+    let option: OptionsContractInstance;
+    before('Create a test option', async () => {
+      option = await OptionsCotract.new(
+        ZERO_ADDRESS,
+        -18,
+        usdc.address,
+        -6,
+        -6,
+        4, // strike price
+        -9, // strike price exp
+        ZERO_ADDRESS,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry,
+        {from: creatorAddress}
+      );
+    });
+
+    it('should revert when calling from other address', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 0, 10, {from: random}),
+        'Ownable: caller is not the owner'
+      );
+    });
+
+    it('should revert when trying to set liquidation incentive > 200%', async () => {
+      await expectRevert(
+        option.updateParameters(201, 500, 0, 10), //
+        "Can't have >20% liquidation incentive"
+      );
+    });
+
+    it('should revert when trying to set liquidation factor > 100%', async () => {
+      await expectRevert(
+        option.updateParameters(100, 1001, 0, 10), //
+        "Can't liquidate more than 100% of the vault"
+      );
+    });
+
+    it('should revert when trying to set collateral ratio < 1', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 0, 9), //
+        "Can't have minCollateralizationRatio < 1"
+      );
+    });
+
+    it('should emit UpdateParameters event ', async () => {
+      expectEvent(
+        await option.updateParameters(200, 500, 0, 10), //
+        'UpdateParameters',
+        {
+          liquidationIncentive: '200',
+          liquidationFactor: '500',
+          transactionFee: '0',
+          minCollateralizationRatio: '10'
+        }
+      );
+    });
+    // it('should open first vault correctly', async () => {
+    //   const result = await optionsContracts[0].openVault({
+    //     from: creatorAddress
+    //   });
+    //   // test getVault
+    //   const vault = await optionsContracts[0].getVault(creatorAddress);
+    //   expect(vault['0'].toString()).to.equal('0');
+    //   expect(vault['1'].toString()).to.equal('0');
+    //   expect(vault['2'].toString()).to.equal('0');
+    //   expect(vault['3']).to.equal(true);
+    //   // check proper events emitted
+    //   expect(result.logs[0].event).to.equal('VaultOpened');
+    // });
+    // it("shouldn't allow to open second vault correctly", async () => {
+    //   await expectRevert(
+    //     optionsContracts[0].openVault({
+    //       from: creatorAddress
+    //     }),
+    //     'Vault already created'
+    //   );
+    // });
+    // it('new person should be able to open third vault correctly', async () => {
+    //   await optionsContracts[0].openVault({
+    //     from: firstOwnerAddress
+    //   });
+    //   // test getVault
+    //   const vault = await optionsContracts[0].getVault(firstOwnerAddress);
+    //   expect(vault['0'].toString()).to.equal('0');
+    //   expect(vault['1'].toString()).to.equal('0');
+    //   expect(vault['2'].toString()).to.equal('0');
+    //   expect(vault['3']).to.equal(true);
+    // });
   });
 
   describe('#openVault()', () => {
@@ -584,76 +695,76 @@ contract('OptionsContract', accounts => {
     });
   });
 
-  describe('#createOptions()', () => {
-    it('should be able to create a new Vault, add ETH collateral and issue maxOTokensIssuable', async () => {
-      const collateral = '20000000';
-      const numOptions = (
-        await optionsContracts[0].maxOTokensIssuable(collateral)
-      ).toString();
+  // describe('Otoken tests', () => {
+  //   it('should be able to create a new Vault, add ETH collateral and issue maxOTokensIssuable', async () => {
+  //     const collateral = '20000000';
+  //     const numOptions = (
+  //       await optionsContracts[0].maxOTokensIssuable(collateral)
+  //     ).toString();
 
-      const result = await optionsContracts[0].createETHCollateralOption(
-        numOptions,
-        nonOwnerAddress,
-        {
-          from: nonOwnerAddress,
-          value: collateral
-        }
-      );
+  //     const result = await optionsContracts[0].createETHCollateralOption(
+  //       numOptions,
+  //       nonOwnerAddress,
+  //       {
+  //         from: nonOwnerAddress,
+  //         value: collateral
+  //       }
+  //     );
 
-      expectEvent(result, 'VaultOpened', {
-        vaultOwner: nonOwnerAddress
-      });
+  //     expectEvent(result, 'VaultOpened', {
+  //       vaultOwner: nonOwnerAddress
+  //     });
 
-      expectEvent(result, 'ETHCollateralAdded', {
-        vaultOwner: nonOwnerAddress,
-        amount: collateral,
-        payer: nonOwnerAddress
-      });
+  //     expectEvent(result, 'ETHCollateralAdded', {
+  //       vaultOwner: nonOwnerAddress,
+  //       amount: collateral,
+  //       payer: nonOwnerAddress
+  //     });
 
-      expectEvent(result, 'IssuedOTokens', {
-        issuedTo: nonOwnerAddress,
-        oTokensIssued: numOptions,
-        vaultOwner: nonOwnerAddress
-      });
-    });
+  //     expectEvent(result, 'IssuedOTokens', {
+  //       issuedTo: nonOwnerAddress,
+  //       oTokensIssued: numOptions,
+  //       vaultOwner: nonOwnerAddress
+  //     });
+  //   });
 
-    it('should be able to create a new Vault, add ERC20 collateral and issue oTokens', async () => {
-      const collateral = '20000000';
-      const numOptions = (
-        await optionsContracts[1].maxOTokensIssuable(collateral)
-      ).toString();
+  //   it('should be able to create a new Vault, add ERC20 collateral and issue oTokens', async () => {
+  //     const collateral = '20000000';
+  //     const numOptions = (
+  //       await optionsContracts[1].maxOTokensIssuable(collateral)
+  //     ).toString();
 
-      await usdc.mint(nonOwnerAddress, '20000000');
-      await usdc.approve(optionsContracts[1].address, '10000000000000000', {
-        from: nonOwnerAddress
-      });
+  //     await usdc.mint(nonOwnerAddress, '20000000');
+  //     await usdc.approve(optionsContracts[1].address, '10000000000000000', {
+  //       from: nonOwnerAddress
+  //     });
 
-      const result = await optionsContracts[1].createERC20CollateralOption(
-        numOptions,
-        collateral,
-        nonOwnerAddress,
-        {
-          from: nonOwnerAddress
-        }
-      );
+  //     const result = await optionsContracts[1].createERC20CollateralOption(
+  //       numOptions,
+  //       collateral,
+  //       nonOwnerAddress,
+  //       {
+  //         from: nonOwnerAddress
+  //       }
+  //     );
 
-      expectEvent(result, 'VaultOpened', {
-        vaultOwner: nonOwnerAddress
-      });
+  //     expectEvent(result, 'VaultOpened', {
+  //       vaultOwner: nonOwnerAddress
+  //     });
 
-      expectEvent(result, 'ERC20CollateralAdded', {
-        vaultOwner: nonOwnerAddress,
-        amount: collateral,
-        payer: nonOwnerAddress
-      });
+  //     expectEvent(result, 'ERC20CollateralAdded', {
+  //       vaultOwner: nonOwnerAddress,
+  //       amount: collateral,
+  //       payer: nonOwnerAddress
+  //     });
 
-      expectEvent(result, 'IssuedOTokens', {
-        issuedTo: nonOwnerAddress,
-        oTokensIssued: numOptions,
-        vaultOwner: nonOwnerAddress
-      });
-    });
-  });
+  //     expectEvent(result, 'IssuedOTokens', {
+  //       issuedTo: nonOwnerAddress,
+  //       oTokensIssued: numOptions,
+  //       vaultOwner: nonOwnerAddress
+  //     });
+  //   });
+  // });
 
   describe('expired OptionContract', () => {
     before(async () => {
