@@ -308,38 +308,6 @@ contract('OptionsContract', accounts => {
         }
       );
     });
-    // it('should open first vault correctly', async () => {
-    //   const result = await optionsContracts[0].openVault({
-    //     from: creatorAddress
-    //   });
-    //   // test getVault
-    //   const vault = await optionsContracts[0].getVault(creatorAddress);
-    //   expect(vault['0'].toString()).to.equal('0');
-    //   expect(vault['1'].toString()).to.equal('0');
-    //   expect(vault['2'].toString()).to.equal('0');
-    //   expect(vault['3']).to.equal(true);
-    //   // check proper events emitted
-    //   expect(result.logs[0].event).to.equal('VaultOpened');
-    // });
-    // it("shouldn't allow to open second vault correctly", async () => {
-    //   await expectRevert(
-    //     optionsContracts[0].openVault({
-    //       from: creatorAddress
-    //     }),
-    //     'Vault already created'
-    //   );
-    // });
-    // it('new person should be able to open third vault correctly', async () => {
-    //   await optionsContracts[0].openVault({
-    //     from: firstOwnerAddress
-    //   });
-    //   // test getVault
-    //   const vault = await optionsContracts[0].getVault(firstOwnerAddress);
-    //   expect(vault['0'].toString()).to.equal('0');
-    //   expect(vault['1'].toString()).to.equal('0');
-    //   expect(vault['2'].toString()).to.equal('0');
-    //   expect(vault['3']).to.equal(true);
-    // });
   });
 
   describe('#openVault()', () => {
