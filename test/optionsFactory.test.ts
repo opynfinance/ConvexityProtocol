@@ -6,7 +6,7 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const OptionsContract = artifacts.require('OptionsContract');
 const truffleAssert = require('truffle-assertions');
 
-import {getUnixTime, addMonths, addSeconds, fromUnixTime} from 'date-fns';
+import {getUnixTime, addSeconds, fromUnixTime} from 'date-fns';
 
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
@@ -16,7 +16,6 @@ contract('OptionsFactory', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
 
-  const now = Date.now();
   let expiry: number;
   let windowSize: number;
 

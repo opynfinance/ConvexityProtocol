@@ -12,7 +12,7 @@ const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
-import {getUnixTime, addMonths} from 'date-fns';
+
 const {
   BN,
   balance,
