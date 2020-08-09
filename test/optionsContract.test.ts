@@ -2,11 +2,15 @@ import {expect} from 'chai';
 import {
   Erc20MintableInstance,
   OptionsFactoryInstance,
-  OTokenInstance
+  OTokenInstance,
+  OptionsExchangeInstance,
+  MockCompoundOracleInstance
 } from '../build/types/truffle-types';
 
 const oToken = artifacts.require('oToken');
+const OptionsCotract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
+const OptionsExchange = artifacts.require('OptionsExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
@@ -17,16 +21,22 @@ import Reverter from './utils/reverter';
 import {checkVault} from './utils/helper';
 const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
 
-  const creatorAddress = accounts[0];
-  const firstOwnerAddress = accounts[1];
-  const nonOwnerAddress = accounts[2];
+  const [
+    creatorAddress,
+    firstOwnerAddress,
+    nonOwnerAddress,
+    fakeExchange
+  ] = accounts;
 
   const optionsContracts: OTokenInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
+  let oracle: MockCompoundOracleInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
@@ -39,7 +49,7 @@ contract('OptionsContract', accounts => {
     windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    await MockCompoundOracle.deployed();
+    oracle = await MockCompoundOracle.new();
 
     // 1.2 Mock Dai contract
     dai = await MintableToken.new();
@@ -96,6 +106,129 @@ contract('OptionsContract', accounts => {
     optionsContracts.push(ERC20collateralOptContract);
 
     await reverter.snapshot();
+  });
+
+  describe('#constructor', () => {
+    it('should revert when deploying expired options', async () => {
+      const expiry = (await time.latest()) - 100;
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          windowSize
+        ),
+        "Can't deploy an expired contract"
+      );
+    });
+
+    it('should revert with invalid window and expiry', async () => {
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry + 1
+        ),
+        "Exercise window can't be longer than the contract's lifespan"
+      );
+    });
+
+    it('should revert with invalid collateral exponent range', async () => {
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'31',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'collateral exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid underlying exponent range', async () => {
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'31',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'underlying exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid strike price exponent range', async () => {
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'31',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'strike price exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid oTokenExchangeExp range', async () => {
+      await expectRevert(
+        OptionsCotract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'31',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'oToken exchange rate exponent not within expected range'
+      );
+    });
   });
 
   describe('#openVault()', () => {
