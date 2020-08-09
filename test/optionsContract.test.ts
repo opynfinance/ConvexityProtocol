@@ -14,7 +14,6 @@ const truffleAssert = require('truffle-assertions');
 
 import Reverter from './utils/reverter';
 
-import {getUnixTime, addMonths} from 'date-fns';
 import {checkVault} from './utils/helper';
 const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 
@@ -31,11 +30,13 @@ contract('OptionsContract', accounts => {
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
-  const now = Date.now();
-  const expiry = getUnixTime(addMonths(now, 3));
-  const windowSize = expiry;
+  let expiry: number;
+  let windowSize: number;
 
   before('set up contracts', async () => {
+    const now = (await time.latest()).toNumber();
+    expiry = now + time.duration.days(30).toNumber();
+    windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
     await MockCompoundOracle.deployed();

@@ -12,7 +12,6 @@ const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
-import {getUnixTime, addMonths} from 'date-fns';
 
 const {BN, balance, time, expectEvent} = require('@openzeppelin/test-helpers');
 
@@ -38,11 +37,13 @@ contract('OptionsContract', accounts => {
   const vault2Collateral = '10000000';
   const vault2PutsOutstanding = '100000';
 
-  const now = Date.now();
-  const expiry = getUnixTime(addMonths(now, 3));
-  const windowSize = expiry;
+  let expiry: number;
+  let windowSize: number;
 
   before('set up contracts', async () => {
+    const now = (await time.latest()).toNumber();
+    expiry = now + time.duration.days(30).toNumber();
+    windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
     compoundOracle = await MockCompoundOracle.deployed();
