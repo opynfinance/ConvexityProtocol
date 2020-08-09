@@ -196,6 +196,63 @@ contract(
         );
       });
 
+      it('should not allow to create a new options with unsupported collateral', async () => {
+        await expectRevert(
+          optionsFactory.createOptionsContract(
+            'WRONG',
+            -'18',
+            'ETH',
+            -'18',
+            -'17',
+            '90',
+            -'18',
+            'ETH',
+            expiry,
+            expiry,
+            {from: creatorAddress}
+          ),
+          'Collateral type not supported'
+        );
+      });
+
+      it('should not allow to create a new options with unsupported underlying', async () => {
+        await expectRevert(
+          optionsFactory.createOptionsContract(
+            'ETH',
+            -'18',
+            'WRONG',
+            -'18',
+            -'17',
+            '90',
+            -'18',
+            'ETH',
+            expiry,
+            expiry,
+            {from: creatorAddress}
+          ),
+          'Underlying type not supported'
+        );
+      });
+
+      it('should not allow to create a new options with unsupported strike', async () => {
+        await expectRevert(
+          optionsFactory.createOptionsContract(
+            'ETH',
+            -'18',
+            'ETH',
+            -'18',
+            -'17',
+            '90',
+            -'18',
+            'WRONG',
+            expiry,
+            expiry,
+            {from: creatorAddress}
+          ),
+          'Strike asset type not supported'
+        );
+      });
+
       it('should create a new options contract correctly', async () => {
         const txInfo = await optionsFactory.createOptionsContract(
           'ETH',
