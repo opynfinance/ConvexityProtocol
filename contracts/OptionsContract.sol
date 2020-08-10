@@ -279,10 +279,6 @@ contract OptionsContract is Ownable, ERC20 {
         name = _name;
         symbol = _symbol;
         decimals = uint8(-1 * oTokenExchangeRate.exponent);
-        require(
-            decimals >= 0,
-            "1 oToken cannot protect less than the smallest unit of the asset"
-        );
     }
 
     /**
