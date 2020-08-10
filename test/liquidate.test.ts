@@ -23,15 +23,14 @@ const {
 
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
-
-  const creatorAddress = accounts[0];
-  const firstVaultOwnerAddress = accounts[1];
-  // const secondVaultOwnerAddress = accounts[2];
-
-  const firstExerciser = accounts[3];
-  const secondExerciser = accounts[4];
-
-  const tokenHolder = accounts[5];
+  const [
+    creatorAddress,
+    firstVaultOwnerAddress,
+    firstExerciser,
+    secondExerciser,
+    tokenHolder,
+    random
+  ] = accounts;
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
@@ -116,6 +115,13 @@ contract('OptionsContract', accounts => {
   });
 
   describe('#liquidate()', () => {
+    it('should revert when trying to liquidate someone with no vault', async () => {
+      await expectRevert(
+        optionsContracts[0].liquidate(random, 100),
+        'Vault does not exis'
+      );
+    });
+
     it('vault should be unsafe when the price drops', async () => {
       let result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
       expect(result).to.be.false;
@@ -128,6 +134,16 @@ contract('OptionsContract', accounts => {
 
       result = await optionsContracts[0].isUnsafe(firstVaultOwnerAddress);
       expect(result).to.be.true;
+    });
+
+    it('should revert when msg.sender = vault owner', async () => {
+      // Try to liquidate the vault
+      await expectRevert(
+        optionsContracts[0].liquidate(firstVaultOwnerAddress, '100', {
+          from: firstVaultOwnerAddress
+        }),
+        "Owner can't liquidate themselves"
+      );
     });
 
     it('should not be able to liquidate more than collateral factor when the price drops', async () => {
