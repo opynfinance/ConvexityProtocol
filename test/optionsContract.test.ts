@@ -530,19 +530,21 @@ contract('OptionsContract', accounts => {
 
     it('should only allow you to mint tokens if you have sufficient collateral', async () => {
       const numTokens = '2';
-      try {
-        await optionsContracts[0].issueOTokens(numTokens, creatorAddress, {
+      await expectRevert(
+        optionsContracts[0].issueOTokens(numTokens, creatorAddress, {
           from: creatorAddress
-        });
-      } catch (err) {
-        return;
-      }
-
-      truffleAssert.fails('should throw error');
+        }),
+        'unsafe to mint'
+      );
 
       // the balance of the contract caller should be 0. They should not have gotten tokens.
       const amtPTokens = await optionsContracts[0].balanceOf(creatorAddress);
       expect(amtPTokens.toString()).to.equal('138888');
+
+      const maxLiquidatable = await optionsContracts[0].maxOTokensLiquidatable(
+        creatorAddress
+      );
+      assert.equal(maxLiquidatable, '0');
     });
 
     it('should be able to issue options in the erc20 contract', async () => {
