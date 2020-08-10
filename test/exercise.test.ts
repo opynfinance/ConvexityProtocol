@@ -126,11 +126,11 @@ contract(
       });
 
       it('should revert when trying to exercise on address with no vault', async () => {
-        expectRevert(
+        await expectRevert(
           otoken.exercise('100', [nonOwnerAddress], {
-            from: exerciser
+            from: owner1
           }),
-          'Vault does not exist'
+          "Cannot exercise from a vault that doesn't exist."
         );
       });
 
