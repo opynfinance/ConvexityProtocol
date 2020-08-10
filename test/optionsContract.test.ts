@@ -2,10 +2,11 @@ import {expect} from 'chai';
 import {
   Erc20MintableInstance,
   OptionsFactoryInstance,
-  OTokenInstance
+  MockCompoundOracleInstance,
+  OptionsContractInstance
 } from '../build/types/truffle-types';
 
-const oToken = artifacts.require('oToken');
+const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
@@ -17,16 +18,23 @@ import Reverter from './utils/reverter';
 import {checkVault} from './utils/helper';
 const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
 
-  const creatorAddress = accounts[0];
-  const firstOwnerAddress = accounts[1];
-  const nonOwnerAddress = accounts[2];
+  const [
+    creatorAddress,
+    firstOwnerAddress,
+    nonOwnerAddress,
+    fakeExchange,
+    random
+  ] = accounts;
 
-  const optionsContracts: OTokenInstance[] = [];
+  const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
+  let oracle: MockCompoundOracleInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
@@ -39,7 +47,7 @@ contract('OptionsContract', accounts => {
     windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    await MockCompoundOracle.deployed();
+    oracle = await MockCompoundOracle.new();
 
     // 1.2 Mock Dai contract
     dai = await MintableToken.new();
@@ -75,7 +83,7 @@ contract('OptionsContract', accounts => {
     );
 
     let optionsContractAddr = optionsContractResult.logs[1].args[0];
-    optionsContracts.push(await oToken.at(optionsContractAddr));
+    optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
     optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
@@ -92,10 +100,265 @@ contract('OptionsContract', accounts => {
     );
 
     optionsContractAddr = optionsContractResult.logs[1].args[0];
-    const ERC20collateralOptContract = await oToken.at(optionsContractAddr);
+    const ERC20collateralOptContract = await OptionsContract.at(
+      optionsContractAddr
+    );
     optionsContracts.push(ERC20collateralOptContract);
 
     await reverter.snapshot();
+  });
+
+  describe('#constructor', () => {
+    it('should revert when deploying expired options', async () => {
+      const expiry = (await time.latest()) - 100;
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          windowSize
+        ),
+        "Can't deploy an expired contract"
+      );
+    });
+
+    it('should revert with invalid window and expiry', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry + 1
+        ),
+        "Exercise window can't be longer than the contract's lifespan"
+      );
+    });
+
+    it('should revert with invalid collateral exponent range', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'31',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'collateral exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid underlying exponent range', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'31',
+          -'17',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'underlying exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid strike price exponent range', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'17',
+          '90',
+          -'31',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'strike price exponent not within expected range'
+      );
+    });
+
+    it('should revert with invalid oTokenExchangeExp range', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          -'18',
+          dai.address,
+          -'18',
+          -'31',
+          '90',
+          -'18',
+          usdc.address,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        'oToken exchange rate exponent not within expected range'
+      );
+    });
+
+    it('should create a option with eth as collateral, strike, underlying ', async () => {
+      await OptionsContract.new(
+        ZERO_ADDRESS,
+        -'18',
+        ZERO_ADDRESS,
+        -'18',
+        -'17',
+        '90',
+        -'18',
+        ZERO_ADDRESS,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry
+      );
+    });
+  });
+
+  describe('#setDetails', () => {
+    it('should set detail for the valid otoken', async () => {
+      const validOtoken = await OptionsContract.new(
+        usdc.address,
+        -'18',
+        dai.address,
+        -'18',
+        1,
+        '90',
+        -'18',
+        usdc.address,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry
+      );
+      await validOtoken.setDetails('Valid Otoken', 'oDAI');
+      const name = await validOtoken.name();
+      assert.equal(name, 'Valid Otoken');
+    });
+
+    // it('should revert while setting detail for the invalid otoken', async () => {
+    // // This requirement statement will never be reached.
+    //   const invalidOtoken = await OptionsContract.new(
+    //     usdc.address,
+    //     -'18',
+    //     dai.address,
+    //     -'18',
+    //     10,
+    //     '90',
+    //     -'18',
+    //     usdc.address,
+    //     expiry,
+    //     fakeExchange,
+    //     oracle.address,
+    //     expiry
+    //   );
+    //   await expectRevert(
+    //     invalidOtoken.setDetails('Name', 'oDAI'),
+    //     '1 oToken cannot protect less than the smallest unit of the asset'
+    //   );
+    // });
+  });
+
+  describe('#updateParameter()', () => {
+    let option: OptionsContractInstance;
+    before('Create a test option', async () => {
+      option = await OptionsContract.new(
+        ZERO_ADDRESS,
+        -18,
+        usdc.address,
+        -6,
+        -6,
+        4, // strike price
+        -9, // strike price exp
+        ZERO_ADDRESS,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry,
+        {from: creatorAddress}
+      );
+    });
+
+    it('should revert when calling from other address', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 0, 10, {from: random}),
+        'Ownable: caller is not the owner'
+      );
+    });
+
+    it('should revert when trying to set liquidation incentive > 200%', async () => {
+      await expectRevert(
+        option.updateParameters(201, 500, 0, 10), //
+        "Can't have >20% liquidation incentive"
+      );
+    });
+
+    it('should revert when trying to set transaction fee > 10%', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 101, 10), //
+        "Can't have transaction fee > 10%"
+      );
+    });
+
+    it('should revert when trying to set liquidation factor > 100%', async () => {
+      await expectRevert(
+        option.updateParameters(100, 1001, 0, 10), //
+        "Can't liquidate more than 100% of the vault"
+      );
+    });
+
+    it('should revert when trying to set collateral ratio < 1', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 0, 9), //
+        "Can't have minCollateralizationRatio < 1"
+      );
+    });
+
+    it('should emit UpdateParameters event ', async () => {
+      expectEvent(
+        await option.updateParameters(200, 500, 0, 10), //
+        'UpdateParameters',
+        {
+          liquidationIncentive: '200',
+          liquidationFactor: '500',
+          transactionFee: '0',
+          minCollateralizationRatio: '10'
+        }
+      );
+    });
   });
 
   describe('#openVault()', () => {
@@ -318,19 +581,21 @@ contract('OptionsContract', accounts => {
 
     it('should only allow you to mint tokens if you have sufficient collateral', async () => {
       const numTokens = '2';
-      try {
-        await optionsContracts[0].issueOTokens(numTokens, creatorAddress, {
+      await expectRevert(
+        optionsContracts[0].issueOTokens(numTokens, creatorAddress, {
           from: creatorAddress
-        });
-      } catch (err) {
-        return;
-      }
-
-      truffleAssert.fails('should throw error');
+        }),
+        'unsafe to mint'
+      );
 
       // the balance of the contract caller should be 0. They should not have gotten tokens.
       const amtPTokens = await optionsContracts[0].balanceOf(creatorAddress);
       expect(amtPTokens.toString()).to.equal('138888');
+
+      const maxLiquidatable = await optionsContracts[0].maxOTokensLiquidatable(
+        creatorAddress
+      );
+      assert.equal(maxLiquidatable, '0');
     });
 
     it('should be able to issue options in the erc20 contract', async () => {
@@ -433,17 +698,14 @@ contract('OptionsContract', accounts => {
     });
 
     it('should not be able to remove collateral if not sufficient collateral', async () => {
-      const numTokens = '7000';
+      const numTokens = '20000000';
 
-      try {
-        await optionsContracts[0].removeCollateral(numTokens, {
+      await expectRevert(
+        optionsContracts[0].removeCollateral(numTokens, {
           from: creatorAddress
-        });
-      } catch (err) {
-        return;
-      }
-
-      truffleAssert.fails('should throw error');
+        }),
+        "Can't remove more collateral than owned"
+      );
 
       // check that the collateral in the vault remains the same
       const vault = await optionsContracts[0].getVault(creatorAddress);
@@ -451,76 +713,96 @@ contract('OptionsContract', accounts => {
     });
   });
 
-  describe('#createOptions()', () => {
-    it('should be able to create a new Vault, add ETH collateral and issue maxOTokensIssuable', async () => {
-      const collateral = '20000000';
-      const numOptions = (
-        await optionsContracts[0].maxOTokensIssuable(collateral)
-      ).toString();
-
-      const result = await optionsContracts[0].createETHCollateralOption(
-        numOptions,
-        nonOwnerAddress,
-        {
-          from: nonOwnerAddress,
-          value: collateral
-        }
+  describe('#removeUnderlying()', () => {
+    it('should revert when caller has no vault', async () => {
+      await expectRevert(
+        optionsContracts[0].removeUnderlying({
+          from: random
+        }),
+        'Vault does not exist'
       );
-
-      expectEvent(result, 'VaultOpened', {
-        vaultOwner: nonOwnerAddress
-      });
-
-      expectEvent(result, 'ETHCollateralAdded', {
-        vaultOwner: nonOwnerAddress,
-        amount: collateral,
-        payer: nonOwnerAddress
-      });
-
-      expectEvent(result, 'IssuedOTokens', {
-        issuedTo: nonOwnerAddress,
-        oTokensIssued: numOptions,
-        vaultOwner: nonOwnerAddress
-      });
     });
 
-    it('should be able to create a new Vault, add ERC20 collateral and issue oTokens', async () => {
-      const collateral = '20000000';
-      const numOptions = (
-        await optionsContracts[1].maxOTokensIssuable(collateral)
-      ).toString();
-
-      await usdc.mint(nonOwnerAddress, '20000000');
-      await usdc.approve(optionsContracts[1].address, '10000000000000000', {
-        from: nonOwnerAddress
-      });
-
-      const result = await optionsContracts[1].createERC20CollateralOption(
-        numOptions,
-        collateral,
-        nonOwnerAddress,
-        {
-          from: nonOwnerAddress
-        }
+    it('should be able to remove underlying if no one has exercised', async () => {
+      await expectRevert(
+        optionsContracts[0].removeUnderlying({
+          from: firstOwnerAddress
+        }),
+        'No underlying balance.'
       );
-
-      expectEvent(result, 'VaultOpened', {
-        vaultOwner: nonOwnerAddress
-      });
-
-      expectEvent(result, 'ERC20CollateralAdded', {
-        vaultOwner: nonOwnerAddress,
-        amount: collateral,
-        payer: nonOwnerAddress
-      });
-
-      expectEvent(result, 'IssuedOTokens', {
-        issuedTo: nonOwnerAddress,
-        oTokensIssued: numOptions,
-        vaultOwner: nonOwnerAddress
-      });
     });
   });
+
+  // describe('Otoken tests', () => {
+  //   it('should be able to create a new Vault, add ETH collateral and issue maxOTokensIssuable', async () => {
+  //     const collateral = '20000000';
+  //     const numOptions = (
+  //       await optionsContracts[0].maxOTokensIssuable(collateral)
+  //     ).toString();
+
+  //     const result = await optionsContracts[0].createETHCollateralOption(
+  //       numOptions,
+  //       nonOwnerAddress,
+  //       {
+  //         from: nonOwnerAddress,
+  //         value: collateral
+  //       }
+  //     );
+
+  //     expectEvent(result, 'VaultOpened', {
+  //       vaultOwner: nonOwnerAddress
+  //     });
+
+  //     expectEvent(result, 'ETHCollateralAdded', {
+  //       vaultOwner: nonOwnerAddress,
+  //       amount: collateral,
+  //       payer: nonOwnerAddress
+  //     });
+
+  //     expectEvent(result, 'IssuedOTokens', {
+  //       issuedTo: nonOwnerAddress,
+  //       oTokensIssued: numOptions,
+  //       vaultOwner: nonOwnerAddress
+  //     });
+  //   });
+
+  //   it('should be able to create a new Vault, add ERC20 collateral and issue oTokens', async () => {
+  //     const collateral = '20000000';
+  //     const numOptions = (
+  //       await optionsContracts[1].maxOTokensIssuable(collateral)
+  //     ).toString();
+
+  //     await usdc.mint(nonOwnerAddress, '20000000');
+  //     await usdc.approve(optionsContracts[1].address, '10000000000000000', {
+  //       from: nonOwnerAddress
+  //     });
+
+  //     const result = await optionsContracts[1].createERC20CollateralOption(
+  //       numOptions,
+  //       collateral,
+  //       nonOwnerAddress,
+  //       {
+  //         from: nonOwnerAddress
+  //       }
+  //     );
+
+  //     expectEvent(result, 'VaultOpened', {
+  //       vaultOwner: nonOwnerAddress
+  //     });
+
+  //     expectEvent(result, 'ERC20CollateralAdded', {
+  //       vaultOwner: nonOwnerAddress,
+  //       amount: collateral,
+  //       payer: nonOwnerAddress
+  //     });
+
+  //     expectEvent(result, 'IssuedOTokens', {
+  //       issuedTo: nonOwnerAddress,
+  //       oTokensIssued: numOptions,
+  //       vaultOwner: nonOwnerAddress
+  //     });
+  //   });
+  // });
 
   describe('expired OptionContract', () => {
     before(async () => {
