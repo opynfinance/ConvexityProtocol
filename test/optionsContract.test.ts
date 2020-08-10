@@ -6,7 +6,7 @@ import {
   OptionsContractInstance
 } from '../build/types/truffle-types';
 
-const OptionsCotract = artifacts.require('OptionsContract');
+const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
@@ -83,7 +83,7 @@ contract('OptionsContract', accounts => {
     );
 
     let optionsContractAddr = optionsContractResult.logs[1].args[0];
-    optionsContracts.push(await OptionsCotract.at(optionsContractAddr));
+    optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
     optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
@@ -100,7 +100,7 @@ contract('OptionsContract', accounts => {
     );
 
     optionsContractAddr = optionsContractResult.logs[1].args[0];
-    const ERC20collateralOptContract = await OptionsCotract.at(
+    const ERC20collateralOptContract = await OptionsContract.at(
       optionsContractAddr
     );
     optionsContracts.push(ERC20collateralOptContract);
@@ -112,7 +112,7 @@ contract('OptionsContract', accounts => {
     it('should revert when deploying expired options', async () => {
       const expiry = (await time.latest()) - 100;
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'18',
           dai.address,
@@ -132,7 +132,7 @@ contract('OptionsContract', accounts => {
 
     it('should revert with invalid window and expiry', async () => {
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'18',
           dai.address,
@@ -152,7 +152,7 @@ contract('OptionsContract', accounts => {
 
     it('should revert with invalid collateral exponent range', async () => {
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'31',
           dai.address,
@@ -172,7 +172,7 @@ contract('OptionsContract', accounts => {
 
     it('should revert with invalid underlying exponent range', async () => {
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'18',
           dai.address,
@@ -192,7 +192,7 @@ contract('OptionsContract', accounts => {
 
     it('should revert with invalid strike price exponent range', async () => {
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'18',
           dai.address,
@@ -212,7 +212,7 @@ contract('OptionsContract', accounts => {
 
     it('should revert with invalid oTokenExchangeExp range', async () => {
       await expectRevert(
-        OptionsCotract.new(
+        OptionsContract.new(
           usdc.address,
           -'18',
           dai.address,
@@ -231,12 +231,12 @@ contract('OptionsContract', accounts => {
     });
 
     it('should create a option with eth as collateral, strike, underlying ', async () => {
-      await OptionsCotract.new(
+      await OptionsContract.new(
         ZERO_ADDRESS,
         -'18',
         ZERO_ADDRESS,
         -'18',
-        -'18',
+        -'17',
         '90',
         -'18',
         ZERO_ADDRESS,
@@ -248,10 +248,54 @@ contract('OptionsContract', accounts => {
     });
   });
 
+  describe('#setDetails', () => {
+    it('should set detail for the valid otoken', async () => {
+      const validOtoken = await OptionsContract.new(
+        usdc.address,
+        -'18',
+        dai.address,
+        -'18',
+        1,
+        '90',
+        -'18',
+        usdc.address,
+        expiry,
+        fakeExchange,
+        oracle.address,
+        expiry
+      );
+      await validOtoken.setDetails('Valid Otoken', 'oDAI');
+      const name = await validOtoken.name();
+      assert.equal(name, 'Valid Otoken');
+    });
+
+    // it('should revert while setting detail for the invalid otoken', async () => {
+    // // This requirement statement will never be reached.
+    //   const invalidOtoken = await OptionsContract.new(
+    //     usdc.address,
+    //     -'18',
+    //     dai.address,
+    //     -'18',
+    //     10,
+    //     '90',
+    //     -'18',
+    //     usdc.address,
+    //     expiry,
+    //     fakeExchange,
+    //     oracle.address,
+    //     expiry
+    //   );
+    //   await expectRevert(
+    //     invalidOtoken.setDetails('Name', 'oDAI'),
+    //     '1 oToken cannot protect less than the smallest unit of the asset'
+    //   );
+    // });
+  });
+
   describe('#updateParameter()', () => {
     let option: OptionsContractInstance;
     before('Create a test option', async () => {
-      option = await OptionsCotract.new(
+      option = await OptionsContract.new(
         ZERO_ADDRESS,
         -18,
         usdc.address,
@@ -279,6 +323,13 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         option.updateParameters(201, 500, 0, 10), //
         "Can't have >20% liquidation incentive"
+      );
+    });
+
+    it('should revert when trying to set transaction fee > 10%', async () => {
+      await expectRevert(
+        option.updateParameters(100, 500, 101, 10), //
+        "Can't have transaction fee > 10%"
       );
     });
 
@@ -647,21 +698,38 @@ contract('OptionsContract', accounts => {
     });
 
     it('should not be able to remove collateral if not sufficient collateral', async () => {
-      const numTokens = '7000';
+      const numTokens = '20000000';
 
-      try {
-        await optionsContracts[0].removeCollateral(numTokens, {
+      await expectRevert(
+        optionsContracts[0].removeCollateral(numTokens, {
           from: creatorAddress
-        });
-      } catch (err) {
-        return;
-      }
-
-      truffleAssert.fails('should throw error');
+        }),
+        "Can't remove more collateral than owned"
+      );
 
       // check that the collateral in the vault remains the same
       const vault = await optionsContracts[0].getVault(creatorAddress);
       checkVault(vault, '19999500', '138878');
+    });
+  });
+
+  describe('#removeUnderlying()', () => {
+    it('should revert when caller has no vault', async () => {
+      await expectRevert(
+        optionsContracts[0].removeUnderlying({
+          from: random
+        }),
+        'Vault does not exist'
+      );
+    });
+
+    it('should be able to remove underlying if no one has exercised', async () => {
+      await expectRevert(
+        optionsContracts[0].removeUnderlying({
+          from: firstOwnerAddress
+        }),
+        'No underlying balance.'
+      );
     });
   });
 

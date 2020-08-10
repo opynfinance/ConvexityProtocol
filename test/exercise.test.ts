@@ -125,6 +125,15 @@ contract(
         contractCollateralBefore = await balance.current(otoken.address);
       });
 
+      it('should revert when trying to exercise on address with no vault', async () => {
+        expectRevert(
+          otoken.exercise('100', [nonOwnerAddress], {
+            from: exerciser
+          }),
+          'Vault does not exist'
+        );
+      });
+
       it('should be able to exercise half of vault 1', async () => {
         const totalSupplyBefore = new BN(
           (await otoken.totalSupply()).toString()
@@ -277,6 +286,15 @@ contract(
     describe('#redeem() after expiry window', () => {
       before('increase time to expiry', async () => {
         await time.increaseTo(expiry);
+      });
+
+      it('should revert when trying to exercise after expiry', async () => {
+        await expectRevert(
+          otoken.exercise('100', [owner1], {
+            from: exerciser
+          }),
+          "Can't exercise outside of the exercise window"
+        );
       });
 
       it('owner1 should be able to collect their share of collateral', async () => {

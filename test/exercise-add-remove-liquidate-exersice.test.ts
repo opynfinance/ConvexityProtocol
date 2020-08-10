@@ -502,6 +502,14 @@ contract('OptionsContract', accounts => {
         (await dai.balanceOf(secondVaultOwnerAddress)).toString()
       );
 
+      // should revert before expiry
+      await expectRevert(
+        optionsContracts[0].redeemVaultBalance({
+          from: secondVaultOwnerAddress
+        }),
+        "Can't collect collateral until expiry"
+      );
+
       await time.increaseTo(windowSize + 2);
 
       const txInfo = await optionsContracts[0].redeemVaultBalance({
