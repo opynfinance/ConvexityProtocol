@@ -7,11 +7,11 @@ contract MockCompoundOracle {
         price = 5 * (10 ** 15);
     }
 
-    function getPrice(address asset) public view returns (uint) {
+    function getPrice(address asset) external view returns (uint) {
         return price;
     }
 
-    function updatePrice(uint256 newPrice) public {
+    function updatePrice(uint256 newPrice) external {
         price = newPrice;
     }
 }

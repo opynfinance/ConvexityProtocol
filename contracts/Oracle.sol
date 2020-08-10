@@ -55,7 +55,7 @@ contract Oracle {
         return asset == cETH;
     }
 
-    function getPrice(address asset) public view returns (uint256) {
+    function getPrice(address asset) external view returns (uint256) {
         if (asset == address(0)) {
             return (10**18);
         } else {

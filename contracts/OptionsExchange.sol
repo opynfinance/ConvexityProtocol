@@ -46,7 +46,7 @@ contract OptionsExchange {
         address oTokenAddress,
         address payoutTokenAddress,
         uint256 oTokensToSell
-    ) public {
+    ) external {
         // @note: first need to bootstrap the uniswap exchange to get the address.
         IERC20 oToken = IERC20(oTokenAddress);
         IERC20 payoutToken = IERC20(payoutTokenAddress);
@@ -80,7 +80,7 @@ contract OptionsExchange {
         address oTokenAddress,
         address paymentTokenAddress,
         uint256 oTokensToBuy
-    ) public payable {
+    ) external payable {
         IERC20 oToken = IERC20(oTokenAddress);
         IERC20 paymentToken = IERC20(paymentTokenAddress);
         uniswapBuyOToken(paymentToken, oToken, oTokensToBuy, receiver);
@@ -97,7 +97,7 @@ contract OptionsExchange {
         address oTokenAddress,
         address payoutTokenAddress,
         uint256 oTokensToSell
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         // get the amount of ETH that will be paid out if oTokensToSell is sold.
         UniswapExchangeInterface oTokenExchange = getExchange(oTokenAddress);
         uint256 ethReceived = oTokenExchange.getTokenToEthInputPrice(
