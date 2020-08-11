@@ -413,6 +413,8 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 oTokensToExercise,
         address payable[] memory vaultsToExerciseFrom
     ) public payable {
+        uint256 ethValue = msg.value;
+
         for (uint256 i = 0; i < vaultsToExerciseFrom.length; i++) {
             address payable vaultOwner = vaultsToExerciseFrom[i];
             require(
@@ -423,11 +425,11 @@ contract OptionsContract is Ownable, ERC20 {
             if (oTokensToExercise == 0) {
                 return;
             } else if (vault.oTokensIssued >= oTokensToExercise) {
-                _exercise(oTokensToExercise, vaultOwner);
+                ethValue = _exercise(oTokensToExercise, vaultOwner, ethValue);
                 return;
             } else {
                 oTokensToExercise = oTokensToExercise.sub(vault.oTokensIssued);
-                _exercise(vault.oTokensIssued, vaultOwner);
+                ethValue = _exercise(vault.oTokensIssued, vaultOwner, ethValue);
             }
         }
         require(
@@ -740,8 +742,11 @@ contract OptionsContract is Ownable, ERC20 {
      */
     function _exercise(
         uint256 oTokensToExercise,
-        address payable vaultToExerciseFrom
-    ) internal {
+        address payable vaultToExerciseFrom,
+        uint256 ethValue
+    ) internal returns (uint256) {
+        uint256 value = ethValue;
+
         // 1. before exercise window: revert
         require(
             isExerciseWindow(),
@@ -797,7 +802,8 @@ contract OptionsContract is Ownable, ERC20 {
         // 4. Transfer in underlying, burn oTokens + pay out collateral
         // 4.1 Transfer in underlying
         if (isETH(underlying)) {
-            require(msg.value == amtUnderlyingToPay, "Incorrect msg.value");
+            require(value >= amtUnderlyingToPay, "Incorrect msg.value");
+            value = value.sub(amtUnderlyingToPay);
         } else {
             require(
                 underlying.transferFrom(
@@ -820,6 +826,8 @@ contract OptionsContract is Ownable, ERC20 {
             msg.sender,
             vaultToExerciseFrom
         );
+
+        return value;
     }
 
     /**
