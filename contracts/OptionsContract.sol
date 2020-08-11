@@ -298,8 +298,8 @@ contract OptionsContract is Ownable, ERC20 {
      * @param owner The address of the supposed owner
      * @return true or false
      */
-    function hasVault(address payable owner) public view returns (bool) {
-        return vaults[owner].owned;
+    function hasVault(address payable _owner) public view returns (bool) {
+        return vaults[_owner].owned;
     }
 
     /**
