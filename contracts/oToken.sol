@@ -116,7 +116,7 @@ contract oToken is OptionsContract {
     function addAndSellETHCollateralOption(
         uint256 amtToCreate,
         address payable receiver
-    ) public payable {
+    ) external payable {
         addETHCollateral(msg.sender);
         issueOTokens(amtToCreate, address(this));
         this.approve(address(optionsExchange), amtToCreate);
@@ -198,7 +198,7 @@ contract oToken is OptionsContract {
         uint256 amtToCreate,
         uint256 amtCollateral,
         address payable receiver
-    ) public {
+    ) external {
         addERC20Collateral(msg.sender, amtCollateral);
         issueOTokens(amtToCreate, address(this));
         this.approve(address(optionsExchange), amtToCreate);

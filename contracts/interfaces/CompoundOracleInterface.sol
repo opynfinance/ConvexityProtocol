@@ -14,9 +14,9 @@ contract CompoundOracleInterface {
      * @param asset Asset for which to get the price
      * @return uint mantissa of asset price (scaled by 1e18) or zero if unset or contract paused
      */
-    function getPrice(address asset) public view returns (uint256);
+    function getPrice(address asset) external view returns (uint256);
 
-    function getUnderlyingPrice(ERC20 cToken) public view returns (uint256);
+    function getUnderlyingPrice(ERC20 cToken) external view returns (uint256);
     // function getPrice(address asset) public view returns (uint) {
     //     return 527557000000000;
     // }

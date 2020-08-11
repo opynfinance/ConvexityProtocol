@@ -43,15 +43,18 @@ contract CTokenInterface {
 
     function borrowBalanceCurrent(address account) external returns (uint256);
 
-    function borrowBalanceStored(address account) public view returns (uint256);
+    function borrowBalanceStored(address account)
+        external
+        view
+        returns (uint256);
 
-    function exchangeRateCurrent() public returns (uint256);
+    function exchangeRateCurrent() external returns (uint256);
 
-    function exchangeRateStored() public view returns (uint256);
+    function exchangeRateStored() external view returns (uint256);
 
     function getCash() external view returns (uint256);
 
-    function accrueInterest() public returns (uint256);
+    function accrueInterest() external returns (uint256);
 
     function seize(
         address liquidator,

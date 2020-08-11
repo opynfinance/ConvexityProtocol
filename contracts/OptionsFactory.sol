@@ -47,17 +47,17 @@ contract OptionsFactory is Ownable {
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
      */
     function createOptionsContract(
-        string memory _collateralType,
+        string calldata _collateralType,
         int32 _collateralExp,
-        string memory _underlyingType,
+        string calldata _underlyingType,
         int32 _underlyingExp,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        string memory _strikeAsset,
+        string calldata _strikeAsset,
         uint256 _expiry,
         uint256 _windowSize
-    ) public returns (address) {
+    ) external returns (address) {
         require(_expiry > block.timestamp, "Cannot create an expired option");
         require(_windowSize <= _expiry, "Invalid _windowSize");
         require(
@@ -97,7 +97,7 @@ contract OptionsFactory is Ownable {
     /**
      * @notice The number of Option Contracts that the Factory contract has stored
      */
-    function getNumberOfOptionsContracts() public view returns (uint256) {
+    function getNumberOfOptionsContracts() external view returns (uint256) {
         return optionsContracts.length;
     }
 
@@ -107,7 +107,10 @@ contract OptionsFactory is Ownable {
      * @param _asset The ticker symbol for the asset
      * @param _addr The address of the asset
      */
-    function addAsset(string memory _asset, address _addr) public onlyOwner {
+    function addAsset(string calldata _asset, address _addr)
+        external
+        onlyOwner
+    {
         require(!supportsAsset(_asset), "Asset already added");
         require(_addr != address(0), "Cannot set to address(0)");
 
@@ -120,7 +123,10 @@ contract OptionsFactory is Ownable {
      * @param _asset The ticker symbol for the asset
      * @param _addr The address of the asset
      */
-    function changeAsset(string memory _asset, address _addr) public onlyOwner {
+    function changeAsset(string calldata _asset, address _addr)
+        external
+        onlyOwner
+    {
         require(
             tokens[_asset] != IERC20(0),
             "Trying to replace a non-existent asset"
@@ -135,7 +141,7 @@ contract OptionsFactory is Ownable {
      * @notice The owner of the Factory Contract can delete an existing asset's address
      * @param _asset The ticker symbol for the asset
      */
-    function deleteAsset(string memory _asset) public onlyOwner {
+    function deleteAsset(string calldata _asset) external onlyOwner {
         require(
             tokens[_asset] != IERC20(0),
             "Trying to delete a non-existent asset"

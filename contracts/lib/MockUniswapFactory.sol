@@ -26,11 +26,11 @@ contract MockUniswapFactory {
     function getTokenWithId(uint256 tokenId) external view returns (address token) {
         return idToToken[tokenId];
     }
-    function setTokenExchange(address token, address exchange) public {
+    function setTokenExchange(address token, address exchange) external {
         exchanges[token] = exchange;
         tokens[exchange] = token;
     }
-    function setTokenWithId(uint256 tokenId, address token) public {
+    function setTokenWithId(uint256 tokenId, address token) external {
         idToToken[tokenId] = token;
     }
     // Never use

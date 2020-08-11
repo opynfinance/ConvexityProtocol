@@ -222,7 +222,7 @@ contract OptionsContract is Ownable, ERC20 {
     /**
      * @notice This function gets the length of vaultOwners array
      */
-    function getVaultOwnersLength() public view returns (uint256) {
+    function getVaultOwnersLength() external view returns (uint256) {
         return vaultOwners.length;
     }
 
@@ -238,7 +238,7 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 _liquidationFactor,
         uint256 _transactionFee,
         uint256 _minCollateralizationRatio
-    ) public onlyOwner {
+    ) external onlyOwner {
         require(
             _liquidationIncentive <= 200,
             "Can't have >20% liquidation incentive"
@@ -272,8 +272,8 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _name The name of the contract
      * @param _symbol The symbol of the contract
      */
-    function setDetails(string memory _name, string memory _symbol)
-        public
+    function setDetails(string calldata _name, string calldata _symbol)
+        external
         onlyOwner
     {
         name = _name;
@@ -285,7 +285,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Can only be called by owner. Used to take out the protocol fees from the contract.
      * @param _address The address to send the fee to.
      */
-    function transferFee(address payable _address) public onlyOwner {
+    function transferFee(address payable _address) external onlyOwner {
         uint256 fees = totalFee;
         totalFee = 0;
         transferCollateral(_address, fees);
@@ -439,7 +439,7 @@ contract OptionsContract is Ownable, ERC20 {
     /**
      * @notice This function allows the vault owner to remove their share of underlying after an exercise
      */
-    function removeUnderlying() public {
+    function removeUnderlying() external {
         require(hasVault(msg.sender), "Vault does not exist");
         Vault storage vault = vaults[msg.sender];
 
@@ -488,7 +488,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @param vaultOwner the owner of the Vault to return
      */
     function getVault(address payable vaultOwner)
-        public
+        external
         view
         returns (
             uint256,
@@ -520,7 +520,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @param amtToBurn number of oTokens to burn
      * @dev only want to call this function before expiry. After expiry, no benefit to calling it.
      */
-    function burnOTokens(uint256 amtToBurn) public notExpired {
+    function burnOTokens(uint256 amtToBurn) external notExpired {
         require(hasVault(msg.sender), "Vault does not exist");
 
         Vault storage vault = vaults[msg.sender];
@@ -536,7 +536,7 @@ contract OptionsContract is Ownable, ERC20 {
      * the collateralization ratio of the vault.
      * @param amtToRemove Amount of collateral to remove in 10^-18.
      */
-    function removeCollateral(uint256 amtToRemove) public notExpired {
+    function removeCollateral(uint256 amtToRemove) external notExpired {
         require(amtToRemove > 0, "Cannot remove 0 collateral");
         require(hasVault(msg.sender), "Vault does not exist");
 
@@ -566,7 +566,7 @@ contract OptionsContract is Ownable, ERC20 {
      * from vaults that they own.
      * @dev The owner gets all of their collateral back if no exercise event took their collateral.
      */
-    function redeemVaultBalance() public {
+    function redeemVaultBalance() external {
         require(hasExpired(), "Can't collect collateral until expiry");
         require(hasVault(msg.sender), "Vault does not exist");
 
@@ -596,7 +596,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @param vaultOwner The index of the vault to be liquidated
      */
     function maxOTokensLiquidatable(address payable vaultOwner)
-        public
+        external
         view
         returns (uint256)
     {
@@ -628,7 +628,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @param oTokensToLiquidate The number of oTokens being taken out of circulation
      */
     function liquidate(address payable vaultOwner, uint256 oTokensToLiquidate)
-        public
+        external
         notExpired
     {
         require(hasVault(vaultOwner), "Vault does not exist");
@@ -889,7 +889,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @param collateralAmt The amount of collateral against which oTokens will be issued.
      */
     function maxOTokensIssuable(uint256 collateralAmt)
-        public
+        external
         view
         returns (uint256)
     {
