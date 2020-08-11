@@ -361,7 +361,7 @@ contract OptionsContract is Ownable, ERC20 {
     {
         require(
             collateral.transferFrom(msg.sender, address(this), amt),
-            "Could not transfer in collateral tokens"
+            "OptionsContract: transfer collateral failed."
         );
         require(hasVault(vaultOwner), "Vault does not exist");
 
@@ -805,7 +805,7 @@ contract OptionsContract is Ownable, ERC20 {
                     address(this),
                     amtUnderlyingToPay
                 ),
-                "Could not transfer in tokens"
+                "OptionsContract: Could not transfer in tokens"
             );
         }
         // 4.2 burn oTokens
@@ -997,7 +997,10 @@ contract OptionsContract is Ownable, ERC20 {
         if (isETH(collateral)) {
             _addr.transfer(_amt);
         } else {
-            collateral.transfer(_addr, _amt);
+            require(
+                collateral.transfer(_addr, _amt),
+                "OptionsContract: transfer collateral failed."
+            );
         }
     }
 
@@ -1010,7 +1013,10 @@ contract OptionsContract is Ownable, ERC20 {
         if (isETH(underlying)) {
             _addr.transfer(_amt);
         } else {
-            underlying.transfer(_addr, _amt);
+            require(
+                underlying.transfer(_addr, _amt),
+                "OptionsContract: transfer underlying failed"
+            );
         }
     }
 

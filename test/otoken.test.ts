@@ -12,12 +12,7 @@ const MockOtokensExchange = artifacts.require('MockOtokensExchange');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-const {
-  time,
-  expectEvent,
-  expectRevert,
-  send
-} = require('@openzeppelin/test-helpers');
+const {time, expectRevert, send} = require('@openzeppelin/test-helpers');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const MAX_UINT256 =
