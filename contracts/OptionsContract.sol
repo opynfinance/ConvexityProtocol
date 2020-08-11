@@ -5,6 +5,7 @@ import "./OptionsExchange.sol";
 import "./OptionsUtils.sol";
 import "./lib/UniswapFactoryInterface.sol";
 import "./lib/UniswapExchangeInterface.sol";
+import "./FixedPointUint256.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
@@ -17,14 +18,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
  * @author Opyn
  */
 contract OptionsContract is Ownable, ERC20 {
-    using SafeMath for uint256;
-
-    /* represents floting point numbers, where number = value * 10 ** exponent
-    i.e 0.1 = 10 * 10 ** -3 */
-    struct Number {
-        uint256 value;
-        int32 exponent;
-    }
+    using FixedPointUint256 for uint256;
 
     // Keeps track of the weighted collateral and weighted debt for each vault.
     struct Vault {
@@ -40,26 +34,24 @@ contract OptionsContract is Ownable, ERC20 {
 
     address payable[] public vaultOwners;
 
-    // 10 is 0.01 i.e. 1% incentive.
-    Number public liquidationIncentive = Number(10, -3);
+    // The amount of reward paid out to the liquidatiors scaled by 1e18. Set at 1%.
+    uint256 public liquidationIncentive = 1e16;
 
-    // 100 is egs. 0.1 i.e. 10%.
-    Number public transactionFee = Number(0, -3);
+    // The fee taken on every exercise action.
+    uint256 public transactionFee = 0;
 
-    /* 500 is 0.5. Max amount that a Vault can be liquidated by i.e.
-    max collateral that can be taken in one function call */
-    Number public liquidationFactor = Number(500, -3);
+    /* Max amount that a Vault can be liquidated by i.e.
+    max collateral that can be taken in one function call. 
+    Scaled by 1e18. Set to 0.5 i.e half th vault */
+    uint256 public liquidationFactor = 5 * 1e17;
 
-    /* 16 means 1.6. The minimum ratio of a Vault's collateral to insurance promised.
+    /* The minimum ratio of a Vault's collateral to insurance promised. Set at 100%
     The ratio is calculated as below:
     vault.collateral / (Vault.oTokensIssued * strikePrice) */
-    Number public minCollateralizationRatio = Number(16, -1);
+    uint256 public minCollateralizationRatio = 1e18;
 
     // The amount of insurance promised per oToken
-    Number public strikePrice;
-
-    // The amount of underlying that 1 oToken protects.
-    Number public oTokenExchangeRate;
+    uint256 public strikePrice;
 
     /* UNIX time.
     Exercise period starts at `(expiry - windowSize)` and ends at `expiry` */
@@ -70,12 +62,6 @@ contract OptionsContract is Ownable, ERC20 {
 
     // The time of expiry of the options contract
     uint256 public expiry;
-
-    // The precision of the collateral
-    int32 public collateralExp = -18;
-
-    // The precision of the underlying
-    int32 public underlyingExp = -18;
 
     // The collateral asset
     IERC20 public collateral;
@@ -95,17 +81,13 @@ contract OptionsContract is Ownable, ERC20 {
     // The symbol of  the contract
     string public symbol;
 
-    // The number of decimals of the contract
-    uint8 public decimals;
+    // The uint256 of decimals of the contract
+    uint8 public decimals = 18;
 
     /**
      * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
      * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
-     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
      * @param _strikePrice The amount of strike asset that will be paid out per oToken
-     * @param _strikeExp The precision of the strike price.
      * @param _strike The asset in which the insurance is calculated
      * @param _expiry The time at which the insurance expires
      * @param _optionsExchange The contract which interfaces with the exchange + oracle
@@ -114,12 +96,8 @@ contract OptionsContract is Ownable, ERC20 {
      */
     constructor(
         IERC20 _collateral,
-        int32 _collExp,
         IERC20 _underlying,
-        int32 _underlyingExp,
-        int32 _oTokenExchangeExp,
         uint256 _strikePrice,
-        int32 _strikeExp,
         IERC20 _strike,
         uint256 _expiry,
         OptionsExchange _optionsExchange,
@@ -131,31 +109,11 @@ contract OptionsContract is Ownable, ERC20 {
             _windowSize <= _expiry,
             "Exercise window can't be longer than the contract's lifespan"
         );
-        require(
-            isWithinExponentRange(_collExp),
-            "collateral exponent not within expected range"
-        );
-        require(
-            isWithinExponentRange(_underlyingExp),
-            "underlying exponent not within expected range"
-        );
-        require(
-            isWithinExponentRange(_strikeExp),
-            "strike price exponent not within expected range"
-        );
-        require(
-            isWithinExponentRange(_oTokenExchangeExp),
-            "oToken exchange rate exponent not within expected range"
-        );
 
         collateral = _collateral;
-        collateralExp = _collExp;
-
         underlying = _underlying;
-        underlyingExp = _underlyingExp;
-        oTokenExchangeRate = Number(1, _oTokenExchangeExp);
 
-        strikePrice = Number(_strikePrice, _strikeExp);
+        strikePrice = _strikePrice;
         strike = _strike;
 
         expiry = _expiry;
@@ -241,16 +199,16 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
         require(
-            _liquidationIncentive <= 200,
+            _liquidationIncentive <= 2 * 1e17,
             "Can't have >20% liquidation incentive"
         );
         require(
-            _liquidationFactor <= 1000,
+            _liquidationFactor <= 1e18,
             "Can't liquidate more than 100% of the vault"
         );
-        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
+        require(_transactionFee <= 1e17, "Can't have transaction fee > 10%");
         require(
-            _minCollateralizationRatio >= 10,
+            _minCollateralizationRatio >= 1e18,
             "Can't have minCollateralizationRatio < 1"
         );
 
@@ -279,11 +237,6 @@ contract OptionsContract is Ownable, ERC20 {
     {
         name = _name;
         symbol = _symbol;
-        decimals = uint8(-1 * oTokenExchangeRate.exponent);
-        require(
-            decimals >= 0,
-            "1 oToken cannot protect less than the smallest unit of the asset"
-        );
     }
 
     /**
@@ -370,6 +323,8 @@ contract OptionsContract is Ownable, ERC20 {
         );
         require(hasVault(vaultOwner), "Vault does not exist");
 
+        uint8 collateralDecimals = getDecimals(address(collatera));
+
         emit ERC20CollateralAdded(vaultOwner, amt, msg.sender);
         return _addCollateral(vaultOwner, amt);
     }
@@ -411,7 +366,7 @@ contract OptionsContract is Ownable, ERC20 {
      * the each vault owner starting with the first and iterating until the oTokens to exercise
      * are found.
      * NOTE: This uses a for loop and hence could run out of gas if the array passed in is too big!
-     * @param oTokensToExercise the number of oTokens being exercised.
+     * @param oTokensToExercise the uint256 of oTokens being exercised.
      * @param vaultsToExerciseFrom the array of vaults to exercise from.
      */
     function exercise(
@@ -464,14 +419,14 @@ contract OptionsContract is Ownable, ERC20 {
      * of batch the issueOTokens transaction with a sell transaction and ensure it happens atomically).
      * @dev The owner of a Vault should only be able to have a max of
      * repo.collateral * collateralToStrike / (minminCollateralizationRatio * strikePrice) tokens issued.
-     * @param oTokensToIssue The number of o tokens to issue
+     * @param oTokensToIssue The uint256 of o tokens to issue
      * @param receiver The address to send the oTokens to
      */
     function issueOTokens(uint256 oTokensToIssue, address receiver)
         public
         notExpired
     {
-        //check that we're properly collateralized to mint this number, then call _mint(address account, uint256 amount)
+        //check that we're properly collateralized to mint this uint256, then call _mint(address account, uint256 amount)
         require(hasVault(msg.sender), "Vault does not exist");
 
         Vault storage vault = vaults[msg.sender];
@@ -522,7 +477,7 @@ contract OptionsContract is Ownable, ERC20 {
     /**
      * @notice allows the owner to burn their oTokens to increase the collateralization ratio of
      * their vault.
-     * @param amtToBurn number of oTokens to burn
+     * @param amtToBurn uint256 of oTokens to burn
      * @dev only want to call this function before expiry. After expiry, no benefit to calling it.
      */
     function burnOTokens(uint256 amtToBurn) public notExpired {
@@ -613,7 +568,7 @@ contract OptionsContract is Ownable, ERC20 {
                 .div(10**uint256(-liquidationFactor.exponent));
 
             uint256 one = 10**uint256(-liquidationIncentive.exponent);
-            Number memory liqIncentive = Number(
+            uint256 memory liqIncentive = uint256(
                 liquidationIncentive.value.add(one),
                 liquidationIncentive.exponent
             );
@@ -630,7 +585,7 @@ contract OptionsContract is Ownable, ERC20 {
      * amount of collateral out. They can liquidate a max of liquidationFactor * vault.collateral out
      * in one function call i.e. partial liquidations.
      * @param vaultOwner The index of the vault to be liquidated
-     * @param oTokensToLiquidate The number of oTokens being taken out of circulation
+     * @param oTokensToLiquidate The uint256 of oTokens being taken out of circulation
      */
     function liquidate(address payable vaultOwner, uint256 oTokensToLiquidate)
         public
@@ -648,7 +603,7 @@ contract OptionsContract is Ownable, ERC20 {
 
         uint256 amtCollateral = calculateCollateralToPay(
             oTokensToLiquidate,
-            Number(1, 0)
+            uint256(1, 0)
         );
         uint256 amtIncentive = calculateCollateralToPay(
             oTokensToLiquidate,
@@ -689,7 +644,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @notice checks if a vault is unsafe. If so, it can be liquidated
-     * @param vaultOwner The number of the vault to check
+     * @param vaultOwner The uint256 of the vault to check
      * @return true or false
      */
     function isUnsafe(address payable vaultOwner) public view returns (bool) {
@@ -739,9 +694,9 @@ contract OptionsContract is Ownable, ERC20 {
      * the specified vault holder. At the end of the expiry window, the vault holder can redeem their balance
      * of collateral. The vault owner can withdraw their underlying at any time.
      * The user has to allow the contract to handle their oTokens and underlying on his behalf before these functions are called.
-     * @param oTokensToExercise the number of oTokens being exercised.
+     * @param oTokensToExercise the uint256 of oTokens being exercised.
      * @param vaultToExerciseFrom the address of the vaultOwner to take collateral from.
-     * @dev oTokenExchangeRate is the number of underlying tokens that 1 oToken protects.
+     * @dev oTokenExchangeRate is the uint256 of underlying tokens that 1 oToken protects.
      */
     function _exercise(
         uint256 oTokensToExercise,
@@ -779,7 +734,7 @@ contract OptionsContract is Ownable, ERC20 {
         // 2.1 Payout enough collateral to get (strikePrice * oTokens) amount of collateral
         uint256 amtCollateralToPay = calculateCollateralToPay(
             oTokensToExercise,
-            Number(1, 0)
+            uint256(1, 0)
         );
 
         // 2.2 Take a small fee on every exercise
@@ -907,10 +862,10 @@ contract OptionsContract is Ownable, ERC20 {
      * oTokensIssued  <= collateralAmt * collateralToStrikePrice / (proportion * strikePrice)
      * @param collateralAmt The amount of collateral
      * @param proportion The proportion of the collateral to pay out. If 100% of collateral
-     * should be paid out, pass in Number(1, 0). The proportion might be less than 100% if
+     * should be paid out, pass in uint256(1, 0). The proportion might be less than 100% if
      * you are calculating fees.
      */
-    function calculateOTokens(uint256 collateralAmt, Number memory proportion)
+    function calculateOTokens(uint256 collateralAmt, uint256 memory proportion)
         internal
         view
         returns (uint256)
@@ -951,14 +906,14 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice This function calculates the amount of collateral to be paid out.
      * @dev The amount of collateral to paid out is determined by:
      * (proportion * strikePrice * strikeToCollateralPrice * oTokens) amount of collateral.
-     * @param _oTokens The number of oTokens.
+     * @param _oTokens The uint256 of oTokens.
      * @param proportion The proportion of the collateral to pay out. If 100% of collateral
-     * should be paid out, pass in Number(1, 0). The proportion might be less than 100% if
+     * should be paid out, pass in uint256(1, 0). The proportion might be less than 100% if
      * you are calculating fees.
      */
     function calculateCollateralToPay(
         uint256 _oTokens,
-        Number memory proportion
+        uint256 memory proportion
     ) internal view returns (uint256) {
         // Get price from oracle
         uint256 collateralToEthPrice = 1;
@@ -1029,5 +984,10 @@ contract OptionsContract is Ownable, ERC20 {
         } else {
             return compoundOracle.getPrice(asset);
         }
+    }
+
+    function getDecimals(address _asset) internal view returns (uint8) {
+        ERC20Detailed asset = ERC20Detailed(_asset);
+        return asset.decimals();
     }
 }
