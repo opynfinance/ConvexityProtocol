@@ -50,7 +50,10 @@ contract OptionsExchange {
         // @note: first need to bootstrap the uniswap exchange to get the address.
         IERC20 oToken = IERC20(oTokenAddress);
         IERC20 payoutToken = IERC20(payoutTokenAddress);
-        oToken.transferFrom(msg.sender, address(this), oTokensToSell);
+        require(
+            oToken.transferFrom(msg.sender, address(this), oTokensToSell),
+            "OptionsExchange: pull otoken from user failed."
+        );
         uint256 payoutTokensReceived = uniswapSellOToken(
             oToken,
             payoutToken,
@@ -152,9 +155,13 @@ contract OptionsExchange {
         require(!isETH(oToken), "Can only sell oTokens");
         UniswapExchangeInterface exchange = getExchange(address(oToken));
 
+        require(
+            oToken.approve(address(exchange), _amt),
+            "OptionsExchange: approve failed"
+        );
+
         if (isETH(payoutToken)) {
             //Token to ETH
-            oToken.approve(address(exchange), _amt);
             return
                 exchange.tokenToEthTransferInput(
                     _amt,
@@ -164,7 +171,6 @@ contract OptionsExchange {
                 );
         } else {
             //Token to Token
-            oToken.approve(address(exchange), _amt);
             return
                 exchange.tokenToTokenTransferInput(
                     _amt,
@@ -195,14 +201,21 @@ contract OptionsExchange {
                 address(paymentToken),
                 _amt
             );
-            paymentToken.transferFrom(
-                msg.sender,
-                address(this),
-                paymentTokensToTransfer
+
+            require(
+                paymentToken.transferFrom(
+                    msg.sender,
+                    address(this),
+                    paymentTokensToTransfer
+                ),
+                "OptionsExchange: Pull token from sender failed"
             );
 
             // Token to Token
-            paymentToken.approve(address(exchange), LARGE_APPROVAL_NUMBER);
+            require(
+                paymentToken.approve(address(exchange), LARGE_APPROVAL_NUMBER),
+                "OptionsExchange: Approve failed"
+            );
 
             emit BuyOTokens(
                 msg.sender,
