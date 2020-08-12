@@ -36,9 +36,6 @@ contract OptionsContract is Ownable, ERC20 {
     // The amount of reward paid out to the liquidatiors scaled by 1e18. Set at 1%.
     uint256 public liquidationIncentive = 1e16;
 
-    // The fee taken on every exercise action.
-    uint256 public transactionFee = 0;
-
     /* Max amount that a Vault can be liquidated by i.e.
     max collateral that can be taken in one function call. 
     Scaled by 1e18. Set to 0.5 i.e half th vault */
@@ -55,9 +52,6 @@ contract OptionsContract is Ownable, ERC20 {
     /* UNIX time.
     Exercise period starts at `(expiry - windowSize)` and ends at `expiry` */
     uint256 internal windowSize;
-
-    /* The total fees accumulated in the contract any time liquidate or exercise is called */
-    uint256 internal totalFee;
 
     // The time of expiry of the options contract
     uint256 public expiry;
@@ -159,11 +153,9 @@ contract OptionsContract is Ownable, ERC20 {
     event UpdateParameters(
         uint256 liquidationIncentive,
         uint256 liquidationFactor,
-        uint256 transactionFee,
         uint256 minCollateralizationRatio,
         address owner
     );
-    event TransferFee(address payable to, uint256 fees);
     event RemoveUnderlying(
         uint256 amountUnderlying,
         address payable vaultOwner
@@ -188,13 +180,11 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Can only be called by owner. Used to update the fees, minminCollateralizationRatio, etc
      * @param _liquidationIncentive The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive.
      * @param _liquidationFactor Max amount that a Vault can be liquidated by. 500 is 0.5.
-     * @param _transactionFee The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%.
      * @param _minCollateralizationRatio The minimum ratio of a Vault's collateral to insurance promised. 16 means 1.6.
      */
     function updateParameters(
         uint256 _liquidationIncentive,
         uint256 _liquidationFactor,
-        uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) public onlyOwner {
         require(
@@ -205,7 +195,6 @@ contract OptionsContract is Ownable, ERC20 {
             _liquidationFactor <= 1e18,
             "Can't liquidate more than 100% of the vault"
         );
-        require(_transactionFee <= 1e17, "Can't have transaction fee > 10%");
         require(
             _minCollateralizationRatio >= 1e18,
             "Can't have minCollateralizationRatio < 1"
@@ -213,13 +202,11 @@ contract OptionsContract is Ownable, ERC20 {
 
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
-        transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
 
         emit UpdateParameters(
             _liquidationIncentive,
             _liquidationFactor,
-            _transactionFee,
             _minCollateralizationRatio,
             owner()
         );
@@ -236,18 +223,6 @@ contract OptionsContract is Ownable, ERC20 {
     {
         name = _name;
         symbol = _symbol;
-    }
-
-    /**
-     * @notice Can only be called by owner. Used to take out the protocol fees from the contract.
-     * @param _address The address to send the fee to.
-     */
-    function transferFee(address payable _address) public onlyOwner {
-        uint256 fees = totalFee;
-        totalFee = 0;
-        transferCollateral(_address, fees);
-
-        emit TransferFee(_address, fees);
     }
 
     /**
@@ -738,14 +713,7 @@ contract OptionsContract is Ownable, ERC20 {
             uint256(1, 0)
         );
 
-        // 2.2 Take a small fee on every exercise
-        uint256 amtFee = calculateCollateralToPay(
-            oTokensToExercise,
-            transactionFee
-        );
-        totalFee = totalFee.add(amtFee);
-
-        uint256 totalCollateralToPay = amtCollateralToPay.add(amtFee);
+        uint256 totalCollateralToPay = amtCollateralToPay;
         require(
             totalCollateralToPay <= vault.collateral,
             "Vault underwater, can't exercise"
