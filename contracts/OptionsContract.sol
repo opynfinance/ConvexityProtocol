@@ -576,7 +576,7 @@ contract OptionsContract is Ownable, ERC20 {
                 .div(10**uint256(-liquidationFactor.exponent));
 
             uint256 one = 10**uint256(-liquidationIncentive.exponent);
-            uint256 memory liqIncentive = uint256(
+            uint256 liqIncentive = uint256(
                 liquidationIncentive.value.add(one),
                 liquidationIncentive.exponent
             );
@@ -661,13 +661,6 @@ contract OptionsContract is Ownable, ERC20 {
             getOTokensIssued(vaultOwner)
         );
         return stillUnsafe;
-    }
-
-    /**
-     * @notice This function returns if an -30 <= exponent <= 30
-     */
-    function isWithinExponentRange(int32 val) internal pure returns (bool) {
-        return ((val <= 30) && (val >= -30));
     }
 
     /**
@@ -827,44 +820,23 @@ contract OptionsContract is Ownable, ERC20 {
         }
 
         // check `oTokensIssued * minCollateralizationRatio * strikePrice <= collAmt * collateralToStrikePrice`
-        uint256 leftSide = oTokensIssued.mul(minCollateralizationRatio).mul(
+        uint256 liabilities = oTokensIssued.mul(minCollateralizationRatio).mul(
             strikePrice
         );
 
-        uint256 collateralDecimals = getDecimals(collAmt);
+        uint256 collateralDecimals = getDecimals(address(collateral));
         require(
             collateralDecimals <= 18,
             "Can't support collateral with more than 18 decimal digits"
         );
 
         uint256 scalingFactor = 18.sub(collateralDecimals);
-        uint256 rightSide = collateralAmt.mul(collateralToEthPrice).div(
-            strikeToEthPrice
-        );
+        uint256 assets = collateralAmt
+            .mul(10**scalingFactor)
+            .mul(collateralToEthPrice)
+            .div(strikeToEthPrice);
 
-        uint256 leftSideVal = oTokensIssued
-            .mul(minCollateralizationRatio.value)
-            .mul(strikePrice.value);
-        int32 leftSideExp = minCollateralizationRatio.exponent +
-            strikePrice.exponent;
-
-        uint256 rightSideVal = (collateralAmt.mul(collateralToEthPrice)).div(
-            strikeToEthPrice
-        );
-        int32 rightSideExp = collateralExp;
-
-        uint256 exp = 0;
-        bool stillSafe = false;
-
-        if (rightSideExp < leftSideExp) {
-            exp = uint256(leftSideExp - rightSideExp);
-            stillSafe = leftSideVal.mul(10**exp) <= rightSideVal;
-        } else {
-            exp = uint256(rightSideExp - leftSideExp);
-            stillSafe = leftSideVal <= rightSideVal.mul(10**exp);
-        }
-
-        return stillSafe;
+        return liabilities <= assets;
     }
 
     function maxOTokensIssuable(uint256 collateralAmt)
@@ -888,32 +860,28 @@ contract OptionsContract is Ownable, ERC20 {
             strikeToEthPrice = getPrice(address(strike));
         }
 
-        uint256 denomVal = proportion.value.mul(strikePrice.value);
-        int32 denomExp = proportion.exponent + strikePrice.exponent;
-
-        uint256 numeratorVal = (collateralAmt.mul(collateralToEthPrice)).div(
-            strikeToEthPrice
+        uint256 collateralDecimals = getDecimals(address(collateral));
+        require(
+            collateralDecimals <= 18,
+            "Can't support collateral with more than 18 decimal digits"
         );
-        int32 numeratorExp = collateralExp;
 
-        uint256 exp = 0;
-        uint256 numOptions = 0;
+        uint256 scalingFactor = 18.sub(collateralDecimals);
 
-        if (numeratorExp < denomExp) {
-            exp = uint256(denomExp - numeratorExp);
-            numOptions = numeratorVal.div(denomVal.mul(10**exp));
-        } else {
-            exp = uint256(numeratorExp - denomExp);
-            numOptions = numeratorVal.mul(10**exp).div(denomVal);
-        }
-
-        return numOptions;
+        return
+            collateralAmt
+                .mul(10**scalingFactor)
+                .mul(collateralToEthPrice)
+                .div(strikeToEthPrice)
+                .div(strikePrice)
+                .div(proportion);
     }
 
-    function calculateCollateralToPay(
-        uint256 _oTokens,
-        uint256 memory proportion
-    ) internal view returns (uint256) {
+    function calculateCollateralToPay(uint256 _oTokens, uint256 proportion)
+        internal
+        view
+        returns (uint256)
+    {
         uint256 collateralToEthPrice = 1;
         uint256 strikeToEthPrice = 1;
 
@@ -922,27 +890,21 @@ contract OptionsContract is Ownable, ERC20 {
             strikeToEthPrice = getPrice(address(strike));
         }
 
-        uint256 amtCollateralToPayInEthNum = _oTokens
-            .mul(strikePrice.value)
-            .mul(proportion.value)
-            .mul(strikeToEthPrice);
-        int32 amtCollateralToPayExp = strikePrice.exponent +
-            proportion.exponent -
-            collateralExp;
-        uint256 amtCollateralToPay = 0;
-        if (amtCollateralToPayExp > 0) {
-            uint32 exp = uint32(amtCollateralToPayExp);
-            amtCollateralToPay = amtCollateralToPayInEthNum.mul(10**exp).div(
-                collateralToEthPrice
-            );
-        } else {
-            uint32 exp = uint32(-1 * amtCollateralToPayExp);
-            amtCollateralToPay = (amtCollateralToPayInEthNum.div(10**exp)).div(
-                collateralToEthPrice
-            );
-        }
+        uint256 collateralDecimals = getDecimals(address(collateral));
+        require(
+            collateralDecimals <= 18,
+            "Can't support collateral with more than 18 decimal digits"
+        );
 
-        return amtCollateralToPay;
+        uint256 scalingFactor = 18.sub(collateralDecimals);
+
+        return
+            _oTokens
+                .mul(proportion)
+                .mul(strikePrice)
+                .mul(strikeToEthPrice)
+                .div(collateralToEthPrice)
+                .div(10**scalingFactor);
     }
 
     function transferCollateral(address payable _addr, uint256 _amt) internal {
@@ -970,6 +932,9 @@ contract OptionsContract is Ownable, ERC20 {
     }
 
     function getDecimals(address _asset) internal view returns (uint256) {
+        if (_asset == address(0)) {
+            return 18;
+        }
         ERC20Detailed asset = ERC20Detailed(_asset);
         return uint256(asset.decimals());
     }
