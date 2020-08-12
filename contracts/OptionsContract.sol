@@ -1,5 +1,4 @@
 pragma solidity 0.5.10;
-
 import "./lib/CompoundOracleInterface.sol";
 import "./OptionsExchange.sol";
 import "./OptionsUtils.sol";
@@ -323,8 +322,6 @@ contract OptionsContract is Ownable, ERC20 {
         );
         require(hasVault(vaultOwner), "Vault does not exist");
 
-        uint8 collateralDecimals = getDecimals(address(collatera));
-
         emit ERC20CollateralAdded(vaultOwner, amt, msg.sender);
         return _addCollateral(vaultOwner, amt);
     }
@@ -337,10 +334,21 @@ contract OptionsContract is Ownable, ERC20 {
         view
         returns (uint256)
     {
-        uint64 underlyingPerOTokenExp = uint64(
-            oTokenExchangeRate.exponent - underlyingExp
+        uint256 underlyingDecimals = getDecimals(address(underlying));
+        require(
+            underlyingDecimals <= 18,
+            "Can't support underling assets with more than 18 decimals"
         );
-        return oTokensToExercise.mul(10**underlyingPerOTokenExp);
+
+        uint256 underlyingToExercise = oTokensToExercise.mul(
+            10**underlyingDecimals
+        );
+        require(
+            underlyingToExercise > 0,
+            "Can't exercise by paying 0 underlying tokens"
+        );
+
+        return underlyingToExercise;
     }
 
     /**
@@ -819,6 +827,21 @@ contract OptionsContract is Ownable, ERC20 {
         }
 
         // check `oTokensIssued * minCollateralizationRatio * strikePrice <= collAmt * collateralToStrikePrice`
+        uint256 leftSide = oTokensIssued.mul(minCollateralizationRatio).mul(
+            strikePrice
+        );
+
+        uint256 collateralDecimals = getDecimals(collAmt);
+        require(
+            collateralDecimals <= 18,
+            "Can't support collateral with more than 18 decimal digits"
+        );
+
+        uint256 scalingFactor = 18.sub(collateralDecimals);
+        uint256 rightSide = collateralAmt.mul(collateralToEthPrice).div(
+            strikeToEthPrice
+        );
+
         uint256 leftSideVal = oTokensIssued
             .mul(minCollateralizationRatio.value)
             .mul(strikePrice.value);
@@ -844,10 +867,6 @@ contract OptionsContract is Ownable, ERC20 {
         return stillSafe;
     }
 
-    /**
-     * This function returns the maximum amount of oTokens that can safely be issued against the specified amount of collateral.
-     * @param collateralAmt The amount of collateral against which oTokens will be issued.
-     */
     function maxOTokensIssuable(uint256 collateralAmt)
         public
         view
@@ -856,21 +875,11 @@ contract OptionsContract is Ownable, ERC20 {
         return calculateOTokens(collateralAmt, minCollateralizationRatio);
     }
 
-    /**
-     * @notice This function is used to calculate the amount of tokens that can be issued.
-     * @dev The amount of oTokens is determined by:
-     * oTokensIssued  <= collateralAmt * collateralToStrikePrice / (proportion * strikePrice)
-     * @param collateralAmt The amount of collateral
-     * @param proportion The proportion of the collateral to pay out. If 100% of collateral
-     * should be paid out, pass in uint256(1, 0). The proportion might be less than 100% if
-     * you are calculating fees.
-     */
-    function calculateOTokens(uint256 collateralAmt, uint256 memory proportion)
+    function calculateOTokens(uint256 collateralAmt, uint256 proportion)
         internal
         view
         returns (uint256)
     {
-        // get price from Oracle
         uint256 collateralToEthPrice = 1;
         uint256 strikeToEthPrice = 1;
 
@@ -879,7 +888,6 @@ contract OptionsContract is Ownable, ERC20 {
             strikeToEthPrice = getPrice(address(strike));
         }
 
-        // oTokensIssued  <= collAmt * collateralToStrikePrice / (proportion * strikePrice)
         uint256 denomVal = proportion.value.mul(strikePrice.value);
         int32 denomExp = proportion.exponent + strikePrice.exponent;
 
@@ -902,20 +910,10 @@ contract OptionsContract is Ownable, ERC20 {
         return numOptions;
     }
 
-    /**
-     * @notice This function calculates the amount of collateral to be paid out.
-     * @dev The amount of collateral to paid out is determined by:
-     * (proportion * strikePrice * strikeToCollateralPrice * oTokens) amount of collateral.
-     * @param _oTokens The uint256 of oTokens.
-     * @param proportion The proportion of the collateral to pay out. If 100% of collateral
-     * should be paid out, pass in uint256(1, 0). The proportion might be less than 100% if
-     * you are calculating fees.
-     */
     function calculateCollateralToPay(
         uint256 _oTokens,
         uint256 memory proportion
     ) internal view returns (uint256) {
-        // Get price from oracle
         uint256 collateralToEthPrice = 1;
         uint256 strikeToEthPrice = 1;
 
@@ -924,7 +922,6 @@ contract OptionsContract is Ownable, ERC20 {
             strikeToEthPrice = getPrice(address(strike));
         }
 
-        // calculate how much should be paid out
         uint256 amtCollateralToPayInEthNum = _oTokens
             .mul(strikePrice.value)
             .mul(proportion.value)
@@ -948,11 +945,6 @@ contract OptionsContract is Ownable, ERC20 {
         return amtCollateralToPay;
     }
 
-    /**
-     * @notice This function transfers `amt` collateral to `_addr`
-     * @param _addr The address to send the collateral to
-     * @param _amt The amount of the collateral to pay out.
-     */
     function transferCollateral(address payable _addr, uint256 _amt) internal {
         if (isETH(collateral)) {
             _addr.transfer(_amt);
@@ -961,11 +953,6 @@ contract OptionsContract is Ownable, ERC20 {
         }
     }
 
-    /**
-     * @notice This function transfers `amt` underlying to `_addr`
-     * @param _addr The address to send the underlying to
-     * @param _amt The amount of the underlying to pay out.
-     */
     function transferUnderlying(address payable _addr, uint256 _amt) internal {
         if (isETH(underlying)) {
             _addr.transfer(_amt);
@@ -974,10 +961,6 @@ contract OptionsContract is Ownable, ERC20 {
         }
     }
 
-    /**
-     * @notice This function gets the price ETH (wei) to asset price.
-     * @param asset The address of the asset to get the price of
-     */
     function getPrice(address asset) internal view returns (uint256) {
         if (asset == address(0)) {
             return (10**18);
@@ -986,8 +969,8 @@ contract OptionsContract is Ownable, ERC20 {
         }
     }
 
-    function getDecimals(address _asset) internal view returns (uint8) {
+    function getDecimals(address _asset) internal view returns (uint256) {
         ERC20Detailed asset = ERC20Detailed(_asset);
-        return asset.decimals();
+        return uint256(asset.decimals());
     }
 }
