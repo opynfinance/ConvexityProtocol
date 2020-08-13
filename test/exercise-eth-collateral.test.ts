@@ -19,7 +19,7 @@ const {
 
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract(
-  'OptionsContract',
+  'OptionsContract: ETH collateral',
   ([creatorAddress, owner1, owner2, exerciser, nonOwnerAddress]) => {
     let otoken: OTokenInstance;
     let optionsFactory: OptionsFactoryInstance;
@@ -179,7 +179,7 @@ contract(
         );
 
         /* ----------------------------
-          |  Check Exerciser Blanaces  |
+          |  Check Exerciser Balances  |
            ---------------------------- */
 
         // check exerciser oToken balance decreased
