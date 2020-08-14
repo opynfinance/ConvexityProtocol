@@ -19,7 +19,7 @@ const {
 
 // Initialize the Options Factory, Options Exchange and other mock contracts
 contract(
-  'OptionsContract',
+  'OptionsContract: ETH collateral',
   ([creatorAddress, owner1, owner2, exerciser, nonOwnerAddress]) => {
     let otoken: OTokenInstance;
     let optionsFactory: OptionsFactoryInstance;
@@ -142,8 +142,8 @@ contract(
         // exercise half of the first vault.
         const amountOtokenToExercise = mintAmount.div(new BN(2));
         const amountCollateralToGetBack = collateralEachVault.div(new BN(2));
-        const amountUnderlyingToPay = await otoken.maxOTokensIssuable(
-          amountCollateralToGetBack
+        const amountUnderlyingToPay = await otoken.underlyingRequiredToExercise(
+          amountOtokenToExercise
         );
 
         const txInfo = await otoken.exercise(amountOtokenToExercise, [owner1], {
@@ -179,7 +179,7 @@ contract(
         );
 
         /* ----------------------------
-          |  Check Exerciser Blanaces  |
+          |  Check Exerciser Balances  |
            ---------------------------- */
 
         // check exerciser oToken balance decreased
@@ -233,9 +233,12 @@ contract(
 
       // Two more tests to cover old exercise implementation.
       it('should be able to exercise 0 amount', async () => {
-        await otoken.exercise('0', [owner1], {
-          from: exerciser
-        });
+        await expectRevert(
+          otoken.exercise('0', [owner1], {
+            from: exerciser
+          }),
+          "Can't exercise 0 oTokens."
+        );
       });
 
       it('should revert when amount to exercise is higher than amount in specified vault.', async () => {
