@@ -413,7 +413,7 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 oTokensToExercise,
         address payable[] memory vaultsToExerciseFrom
     ) public payable {
-        require(oTokensToExercise > 0, "Can't exercise 0 otoken");
+        require(oTokensToExercise > 0, "Can't exercise 0 oTokens");
         for (uint256 i = 0; i < vaultsToExerciseFrom.length; i++) {
             address payable vaultOwner = vaultsToExerciseFrom[i];
             require(
@@ -752,6 +752,7 @@ contract OptionsContract is Ownable, ERC20 {
         require(hasVault(vaultToExerciseFrom), "Vault does not exist");
 
         Vault storage vault = vaults[vaultToExerciseFrom];
+        require(oTokensToExercise > 0, "Can't exercise 0 oTokens");
         // Check correct amount of oTokens passed in)
         require(
             oTokensToExercise <= vault.oTokensIssued,
