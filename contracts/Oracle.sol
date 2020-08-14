@@ -98,7 +98,10 @@ contract Oracle is Ownable {
         emit CtokenUpdated(_ctoken, _isCtoken);
     }
 
-    function setAssetToCtoken(address _asset, bool _ctoken) external onlyOwner {
+    function setAssetToCtoken(address _asset, address _ctoken)
+        external
+        onlyOwner
+    {
         assetToCTokens[_asset] = _ctoken;
 
         emit AssetToCtokenUpdated(_asset, _ctoken);
