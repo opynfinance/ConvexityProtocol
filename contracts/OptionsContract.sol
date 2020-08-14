@@ -147,6 +147,11 @@ contract OptionsContract is Ownable, ERC20 {
             "oToken exchange rate exponent not within expected range"
         );
 
+        require(
+            address(_underlying) != address(0),
+            "OptionsContract: Can't use ETH as underlying."
+        );
+
         collateral = _collateral;
         collateralExp = _collExp;
 
@@ -758,11 +763,6 @@ contract OptionsContract is Ownable, ERC20 {
             oTokensToExercise <= vault.oTokensIssued,
             "Can't exercise more oTokens than the owner has"
         );
-        // Ensure person calling has enough oTokens
-        require(
-            balanceOf(msg.sender) >= oTokensToExercise,
-            "Not enough oTokens"
-        );
 
         // 1. Check sufficient underlying
         // 1.1 update underlying balances
@@ -778,37 +778,26 @@ contract OptionsContract is Ownable, ERC20 {
             Number(1, 0)
         );
 
-        // 2.2 Take a small fee on every exercise
-        uint256 amtFee = calculateCollateralToPay(
-            oTokensToExercise,
-            transactionFee
-        );
-        totalFee = totalFee.add(amtFee);
-
-        uint256 totalCollateralToPay = amtCollateralToPay.add(amtFee);
         require(
-            totalCollateralToPay <= vault.collateral,
+            amtCollateralToPay <= vault.collateral,
             "Vault underwater, can't exercise"
         );
 
         // 3. Update collateral + oToken balances
-        vault.collateral = vault.collateral.sub(totalCollateralToPay);
+        vault.collateral = vault.collateral.sub(amtCollateralToPay);
         vault.oTokensIssued = vault.oTokensIssued.sub(oTokensToExercise);
 
         // 4. Transfer in underlying, burn oTokens + pay out collateral
         // 4.1 Transfer in underlying
-        if (isETH(underlying)) {
-            require(msg.value == amtUnderlyingToPay, "Incorrect msg.value");
-        } else {
-            require(
-                underlying.transferFrom(
-                    msg.sender,
-                    address(this),
-                    amtUnderlyingToPay
-                ),
-                "OptionsContract: Could not transfer in tokens"
-            );
-        }
+        require(
+            underlying.transferFrom(
+                msg.sender,
+                address(this),
+                amtUnderlyingToPay
+            ),
+            "OptionsContract: Could not transfer in tokens"
+        );
+
         // 4.2 burn oTokens
         _burn(msg.sender, oTokensToExercise);
 
@@ -1011,14 +1000,10 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _amt The amount of the underlying to pay out.
      */
     function transferUnderlying(address payable _addr, uint256 _amt) internal {
-        if (isETH(underlying)) {
-            _addr.transfer(_amt);
-        } else {
-            require(
-                underlying.transfer(_addr, _amt),
-                "OptionsContract: transfer underlying failed"
-            );
-        }
+        require(
+            underlying.transfer(_addr, _amt),
+            "OptionsContract: transfer underlying failed"
+        );
     }
 
     /**

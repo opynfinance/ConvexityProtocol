@@ -494,7 +494,7 @@ contract(
               from: buyer1
             }
           ),
-          'Not enough oTokens'
+          'ERC20: transfer amount exceeds balance'
         );
       });
 
