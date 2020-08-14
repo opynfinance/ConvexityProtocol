@@ -86,21 +86,68 @@ contract(
           "Cannot exercise from a vault that doesn't exist."
         );
       });
-      // Two more tests to cover old exercise implementation.
+
       it('should be able to exercise 0 amount', async () => {
         await expectRevert(
           otoken.exercise('0', [owner0], {
             from: exerciser
           }),
-          "Can't exercise 0 otoken"
+          "Can't exercise 0 oTokens"
         );
       });
 
-      // Two more tests to cover old exercise implementation.
       it('should revert when exercising on empty vault', async () => {
         await otoken.openVault({from: owner0});
         await expectRevert(
           otoken.exercise('10', [owner0], {
+            from: exerciser
+          }),
+          "Can't exercise 0 oTokens"
+        );
+      });
+
+      it('should revert when specified vaults have insufficient balance', async () => {
+        // mint token from owner 0 and owner 4 to exerciser
+        const collateralAmount = new BN(250).mul(new BN(1e6)); // 2500 USDC
+        await usdc.mint(owner0, collateralAmount);
+        await usdc.mint(owner4, collateralAmount);
+        await usdc.approve(otoken.address, collateralAmount, {
+          from: owner0
+        });
+        await usdc.approve(otoken.address, collateralAmount, {
+          from: owner4
+        });
+
+        const otokenAmount = await otoken.maxOTokensIssuable(collateralAmount);
+        // Open a vault, mint otokens to exerciser
+        await otoken.addERC20CollateralOption(
+          otokenAmount,
+          collateralAmount,
+          exerciser,
+          {
+            from: owner0
+          }
+        );
+        // Open a vault, mint otokens to exerciser
+        await otoken.createERC20CollateralOption(
+          otokenAmount,
+          collateralAmount,
+          exerciser,
+          {
+            from: owner4
+          }
+        );
+
+        const totalOtoken = await otoken.balanceOf(exerciser);
+        const underlyingNeeded = await otoken.underlyingRequiredToExercise(
+          totalOtoken
+        );
+
+        await weth.mint(exerciser, underlyingNeeded);
+        await weth.approve(otoken.address, underlyingNeeded, {from: exerciser});
+
+        await expectRevert(
+          otoken.exercise(totalOtoken, [owner0], {
             from: exerciser
           }),
           'Specified vaults have insufficient collateral'
