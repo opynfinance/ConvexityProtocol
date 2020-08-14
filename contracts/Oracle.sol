@@ -1,13 +1,14 @@
 pragma solidity 0.5.10;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/CompoundOracleInterface.sol";
 import "./interfaces/CTokenInterface.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
-contract Oracle {
+contract Oracle is Ownable {
     using SafeMath for uint256;
 
     mapping(address => bool) public isCToken;
@@ -51,6 +52,9 @@ contract Oracle {
         assetToCTokens[zrx] = cZRX;
     }
 
+    event CtokenUpdated(address indexed ctoken, bool isCtoken);
+    event AssetToCtokenUpdated(address indexed asset, address ctoken);
+
     function isCETH(address asset) public view returns (bool) {
         return asset == cETH;
     }
@@ -86,6 +90,18 @@ contract Oracle {
             }
             return 0;
         }
+    }
+
+    function setIsCtoken(address _ctoken, bool _isCtoken) external onlyOwner {
+        isCToken[_ctoken] = _isCtoken;
+
+        emit CtokenUpdated(_ctoken, _isCtoken);
+    }
+
+    function setAssetToCtoken(address _asset, bool _ctoken) external onlyOwner {
+        assetToCTokens[_asset] = _ctoken;
+
+        emit AssetToCtokenUpdated(_asset, _ctoken);
     }
 
     function getPriceUnderlying(address asset) internal view returns (uint256) {
