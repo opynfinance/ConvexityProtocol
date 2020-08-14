@@ -233,9 +233,12 @@ contract(
 
       // Two more tests to cover old exercise implementation.
       it('should be able to exercise 0 amount', async () => {
-        await otoken.exercise('0', [owner1], {
-          from: exerciser
-        });
+        await expectRevert(
+          otoken.exercise('0', [owner1], {
+            from: exerciser
+          }),
+          "Can't exercise 0 oTokens."
+        );
       });
 
       it('should revert when amount to exercise is higher than amount in specified vault.', async () => {
