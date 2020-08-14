@@ -10,6 +10,10 @@ View Source: [contracts/lib/MockUniswapFactory.sol](../contracts/lib/MockUniswap
 ```js
 address public exchangeTemplate;
 uint256 public tokenCount;
+mapping(uint256 => address) public idToToken;
+mapping(address => address) public exchanges;
+mapping(address => address) public tokens;
+address public _exchange;
 
 ```
 
@@ -20,6 +24,8 @@ uint256 public tokenCount;
 - [getExchange(address token)](#getexchange)
 - [getToken(address exchange)](#gettoken)
 - [getTokenWithId(uint256 tokenId)](#gettokenwithid)
+- [setTokenExchange(address token, address exchange)](#settokenexchange)
+- [setTokenWithId(uint256 tokenId, address token)](#settokenwithid)
 - [initializeFactory(address template)](#initializefactory)
 
 ### 
@@ -49,7 +55,7 @@ returns(exchange address)
 ### getExchange
 
 ```js
-function getExchange(address token) external pure
+function getExchange(address token) external view
 returns(exchange address)
 ```
 
@@ -62,7 +68,7 @@ returns(exchange address)
 ### getToken
 
 ```js
-function getToken(address exchange) external pure
+function getToken(address exchange) external view
 returns(token address)
 ```
 
@@ -75,7 +81,7 @@ returns(token address)
 ### getTokenWithId
 
 ```js
-function getTokenWithId(uint256 tokenId) external pure
+function getTokenWithId(uint256 tokenId) external view
 returns(token address)
 ```
 
@@ -84,6 +90,32 @@ returns(token address)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | tokenId | uint256 |  | 
+
+### setTokenExchange
+
+```js
+function setTokenExchange(address token, address exchange) external nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| token | address |  | 
+| exchange | address |  | 
+
+### setTokenWithId
+
+```js
+function setTokenWithId(uint256 tokenId, address token) external nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| tokenId | uint256 |  | 
+| token | address |  | 
 
 ### initializeFactory
 
@@ -106,11 +138,13 @@ function initializeFactory(address template) external nonpayable
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)

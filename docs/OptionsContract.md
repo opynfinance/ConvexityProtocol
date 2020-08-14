@@ -100,7 +100,7 @@ modifier notExpired() internal
 - [updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio)](#updateparameters)
 - [setDetails(string _name, string _symbol)](#setdetails)
 - [transferFee(address payable _address)](#transferfee)
-- [hasVault(address payable owner)](#hasvault)
+- [hasVault(address payable _owner)](#hasvault)
 - [openVault()](#openvault)
 - [addETHCollateral(address payable vaultOwner)](#addethcollateral)
 - [addERC20Collateral(address payable vaultOwner, uint256 amt)](#adderc20collateral)
@@ -159,7 +159,7 @@ function (IERC20 _collateral, int32 _collExp, IERC20 _underlying, int32 _underly
 This function gets the length of vaultOwners array
 
 ```js
-function getVaultOwnersLength() public view
+function getVaultOwnersLength() external view
 returns(uint256)
 ```
 
@@ -173,7 +173,7 @@ returns(uint256)
 Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
 
 ```js
-function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio) public nonpayable onlyOwner 
+function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -190,7 +190,7 @@ function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFac
 Can only be called by owner. Used to set the name, symbol and decimals of the contract
 
 ```js
-function setDetails(string _name, string _symbol) public nonpayable onlyOwner 
+function setDetails(string _name, string _symbol) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -205,7 +205,7 @@ function setDetails(string _name, string _symbol) public nonpayable onlyOwner
 Can only be called by owner. Used to take out the protocol fees from the contract.
 
 ```js
-function transferFee(address payable _address) public nonpayable onlyOwner 
+function transferFee(address payable _address) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -219,7 +219,7 @@ function transferFee(address payable _address) public nonpayable onlyOwner
 Checks if a `owner` has already created a Vault
 
 ```js
-function hasVault(address payable owner) public view
+function hasVault(address payable _owner) public view
 returns(bool)
 ```
 
@@ -231,7 +231,7 @@ true or false
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| owner | address payable | The address of the supposed owner | 
+| _owner | address payable | The address of the supposed owner | 
 
 ### openVault
 
@@ -364,7 +364,7 @@ function exercise(uint256 oTokensToExercise, address payable[] vaultsToExerciseF
 This function allows the vault owner to remove their share of underlying after an exercise
 
 ```js
-function removeUnderlying() public nonpayable
+function removeUnderlying() external nonpayable
 ```
 
 **Arguments**
@@ -395,7 +395,7 @@ function issueOTokens(uint256 oTokensToIssue, address receiver) public nonpayabl
 Returns the vault for a given address
 
 ```js
-function getVault(address payable vaultOwner) public view
+function getVault(address payable vaultOwner) external view
 returns(uint256, uint256, uint256, bool)
 ```
 
@@ -426,7 +426,7 @@ allows the owner to burn their oTokens to increase the collateralization ratio o
 their vault.
 
 ```js
-function burnOTokens(uint256 amtToBurn) public nonpayable notExpired 
+function burnOTokens(uint256 amtToBurn) external nonpayable notExpired 
 ```
 
 **Arguments**
@@ -441,7 +441,7 @@ allows the owner to remove excess collateral from the vault before expiry. Remov
 the collateralization ratio of the vault.
 
 ```js
-function removeCollateral(uint256 amtToRemove) public nonpayable notExpired 
+function removeCollateral(uint256 amtToRemove) external nonpayable notExpired 
 ```
 
 **Arguments**
@@ -456,7 +456,7 @@ after expiry, each vault holder can get back their proportional share of collate
 from vaults that they own.
 
 ```js
-function redeemVaultBalance() public nonpayable
+function redeemVaultBalance() external nonpayable
 ```
 
 **Arguments**
@@ -467,7 +467,7 @@ function redeemVaultBalance() public nonpayable
 ### maxOTokensLiquidatable
 
 ```js
-function maxOTokensLiquidatable(address payable vaultOwner) public view
+function maxOTokensLiquidatable(address payable vaultOwner) external view
 returns(uint256)
 ```
 
@@ -483,7 +483,7 @@ This function can be called by anyone who notices a vault is undercollateralized
 The caller gets a reward for reducing the amount of oTokens in circulation.
 
 ```js
-function liquidate(address payable vaultOwner, uint256 oTokensToLiquidate) public nonpayable notExpired 
+function liquidate(address payable vaultOwner, uint256 oTokensToLiquidate) external nonpayable notExpired 
 ```
 
 **Arguments**
@@ -617,7 +617,7 @@ true or false
 ### maxOTokensIssuable
 
 ```js
-function maxOTokensIssuable(uint256 collateralAmt) public view
+function maxOTokensIssuable(uint256 collateralAmt) external view
 returns(uint256)
 ```
 
@@ -717,11 +717,13 @@ returns(uint256)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)

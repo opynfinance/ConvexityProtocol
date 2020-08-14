@@ -50,7 +50,7 @@ returns(bool)
 ### getPrice
 
 ```js
-function getPrice(address asset) public view
+function getPrice(address asset) external view
 returns(uint256)
 ```
 
@@ -82,11 +82,13 @@ returns(uint256)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)

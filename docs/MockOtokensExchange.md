@@ -1,121 +1,106 @@
-# MinterRole.sol
+# MockOtokensExchange.sol
 
-View Source: [@openzeppelin/contracts/access/roles/MinterRole.sol](../@openzeppelin/contracts/access/roles/MinterRole.sol)
+View Source: [contracts/lib/MockOtokensExchange.sol](../contracts/lib/MockOtokensExchange.sol)
 
-**↗ Extends: [Context](Context.md)**
-**↘ Derived Contracts: [ERC20Mintable](ERC20Mintable.md)**
-
-**MinterRole**
+**MockOtokensExchange**
 
 ## Contract Members
 **Constants & Variables**
 
 ```js
-struct Roles.Role private _minters;
+uint256 public price;
 
 ```
 
-**Events**
+## Functions
+
+- [sellOTokens(address payable receiver, address tokenIn, address tokenOut, uint256 inAmount)](#sellotokens)
+- [premiumReceived(address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell)](#premiumreceived)
+- [setPrice(uint256 _price)](#setprice)
+- [pullToken(address _from, address _token, uint256 _amount)](#pulltoken)
+- [pushToken(address payable _to, address _token, uint256 _amount)](#pushtoken)
+- [()](#)
+
+### sellOTokens
 
 ```js
-event MinterAdded(address indexed account);
-event MinterRemoved(address indexed account);
-```
-
-## Modifiers
-
-- [onlyMinter](#onlyminter)
-
-### onlyMinter
-
-```js
-modifier onlyMinter() internal
+function sellOTokens(address payable receiver, address tokenIn, address tokenOut, uint256 inAmount) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
+| receiver | address payable |  | 
+| tokenIn | address |  | 
+| tokenOut | address |  | 
+| inAmount | uint256 |  | 
 
-## Functions
+### premiumReceived
 
-- [()](#)
-- [isMinter(address account)](#isminter)
-- [addMinter(address account)](#addminter)
-- [renounceMinter()](#renounceminter)
-- [_addMinter(address account)](#_addminter)
-- [_removeMinter(address account)](#_removeminter)
+```js
+function premiumReceived(address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| oTokenAddress | address |  | 
+| payoutTokenAddress | address |  | 
+| oTokensToSell | uint256 |  | 
+
+### setPrice
+
+```js
+function setPrice(uint256 _price) external nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _price | uint256 |  | 
+
+### pullToken
+
+```js
+function pullToken(address _from, address _token, uint256 _amount) internal nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _from | address |  | 
+| _token | address |  | 
+| _amount | uint256 |  | 
+
+### pushToken
+
+```js
+function pushToken(address payable _to, address _token, uint256 _amount) internal nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _to | address payable |  | 
+| _token | address |  | 
+| _amount | uint256 |  | 
 
 ### 
 
 ```js
-function () internal nonpayable
+function () external payable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-
-### isMinter
-
-```js
-function isMinter(address account) public view
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| account | address |  | 
-
-### addMinter
-
-```js
-function addMinter(address account) public nonpayable onlyMinter 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| account | address |  | 
-
-### renounceMinter
-
-```js
-function renounceMinter() public nonpayable
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _addMinter
-
-```js
-function _addMinter(address account) internal nonpayable
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| account | address |  | 
-
-### _removeMinter
-
-```js
-function _removeMinter(address account) internal nonpayable
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| account | address |  | 
 
 ## Contracts
 

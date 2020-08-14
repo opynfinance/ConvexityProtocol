@@ -181,7 +181,7 @@ returns(uint256)
 ### borrowBalanceStored
 
 ```js
-function borrowBalanceStored(address account) public view
+function borrowBalanceStored(address account) external view
 returns(uint256)
 ```
 
@@ -194,7 +194,7 @@ returns(uint256)
 ### exchangeRateCurrent
 
 ```js
-function exchangeRateCurrent() public nonpayable
+function exchangeRateCurrent() external nonpayable
 returns(uint256)
 ```
 
@@ -206,7 +206,7 @@ returns(uint256)
 ### exchangeRateStored
 
 ```js
-function exchangeRateStored() public view
+function exchangeRateStored() external view
 returns(uint256)
 ```
 
@@ -230,7 +230,7 @@ returns(uint256)
 ### accrueInterest
 
 ```js
-function accrueInterest() public nonpayable
+function accrueInterest() external nonpayable
 returns(uint256)
 ```
 
@@ -263,11 +263,13 @@ returns(uint256)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)
