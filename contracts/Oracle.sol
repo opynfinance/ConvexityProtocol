@@ -65,8 +65,8 @@ contract Oracle {
                 uint256 exchangeRate = cToken.exchangeRateStored();
 
                 if (isCETH(asset)) {
-                    uint256 numerator = 10**46;
-                    return numerator.div(exchangeRate);
+                    uint256 decimalsDiff = 10;
+                    return exchangeRate.div(10**decimalsDiff);
                 }
 
                 address underlyingAddress = cToken.underlying();
