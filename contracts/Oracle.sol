@@ -68,6 +68,9 @@ contract Oracle is Ownable {
         assetToCtokens[zrx] = cZrx;
     }
 
+    event CtokenUpdated(address indexed ctoken, bool isCtoken);
+    event AssetToCtokenUpdated(address indexed asset, address ctoken);
+
     function iscEth(address asset) public view returns (bool) {
         return asset == cEth;
     }
@@ -210,7 +213,7 @@ contract Oracle is Ownable {
     }
 
     function setIsCtoken(address _ctoken, bool _isCtoken) external onlyOwner {
-        isCToken[_ctoken] = _isCtoken;
+        isCtoken[_ctoken] = _isCtoken;
 
         emit CtokenUpdated(_ctoken, _isCtoken);
     }
@@ -219,7 +222,7 @@ contract Oracle is Ownable {
         external
         onlyOwner
     {
-        assetToCTokens[_asset] = _ctoken;
+        assetToCtokens[_asset] = _ctoken;
 
         emit AssetToCtokenUpdated(_asset, _ctoken);
     }
