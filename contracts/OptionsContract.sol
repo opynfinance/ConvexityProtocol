@@ -318,7 +318,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Get option contract state. If option is paused should return true, else false.
      * @return option contract state
      */
-    function getState() public view returns (bool) {
+    function isSystemPaused() public view returns (bool) {
         return isPaused;
     }
 
@@ -335,7 +335,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Creates a new empty Vault and sets the owner of the vault to be the msg.sender.
      */
     function openVault() public notExpired returns (bool) {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         require(!hasVault(msg.sender), "Vault already created");
 
         vaults[msg.sender] = Vault(0, 0, 0, true);
@@ -363,7 +363,7 @@ contract OptionsContract is Ownable, ERC20 {
         notExpired
         returns (uint256)
     {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         require(isETH(collateral), "ETH is not the specified collateral type");
         require(hasVault(vaultOwner), "Vault does not exist");
 
@@ -390,7 +390,7 @@ contract OptionsContract is Ownable, ERC20 {
         notExpired
         returns (uint256)
     {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         require(
             collateral.transferFrom(msg.sender, address(this), amt),
             "OptionsContract: transfer collateral failed."
@@ -445,7 +445,7 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 oTokensToExercise,
         address payable[] memory vaultsToExerciseFrom
     ) public payable {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
 
         for (uint256 i = 0; i < vaultsToExerciseFrom.length; i++) {
             address payable vaultOwner = vaultsToExerciseFrom[i];
@@ -500,7 +500,7 @@ contract OptionsContract is Ownable, ERC20 {
         public
         notExpired
     {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         //check that we're properly collateralized to mint this number, then call _mint(address account, uint256 amount)
         require(hasVault(msg.sender), "Vault does not exist");
 
@@ -556,7 +556,7 @@ contract OptionsContract is Ownable, ERC20 {
      * @dev only want to call this function before expiry. After expiry, no benefit to calling it.
      */
     function burnOTokens(uint256 amtToBurn) external notExpired {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         require(hasVault(msg.sender), "Vault does not exist");
 
         Vault storage vault = vaults[msg.sender];
@@ -667,7 +667,7 @@ contract OptionsContract is Ownable, ERC20 {
         external
         notExpired
     {
-        require(!getState(), "Option contract is paused");
+        require(!isSystemPaused(), "Option contract is paused");
         require(hasVault(vaultOwner), "Vault does not exist");
 
         Vault storage vault = vaults[vaultOwner];
