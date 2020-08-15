@@ -35,6 +35,7 @@ contract('OptionsContract', accounts => {
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
   let oracle: MockCompoundOracleInstance;
+  let weth: Erc20MintableInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
@@ -49,6 +50,7 @@ contract('OptionsContract', accounts => {
     // 1.1 Compound Oracle
     oracle = await MockCompoundOracle.new();
 
+    weth = await MintableToken.new();
     // 1.2 Mock Dai contract
     dai = await MintableToken.new();
     await dai.mint(creatorAddress, '10000000');
@@ -64,6 +66,7 @@ contract('OptionsContract', accounts => {
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
+    await optionsFactory.addAsset('WETH', weth.address);
     await optionsFactory.addAsset('DAI', dai.address);
     await optionsFactory.addAsset('USDC', usdc.address);
 
@@ -230,11 +233,31 @@ contract('OptionsContract', accounts => {
       );
     });
 
-    it('should create a option with eth as collateral, strike, underlying ', async () => {
+    it('should revert when creating an option with eth as underlying ', async () => {
+      await expectRevert(
+        OptionsContract.new(
+          ZERO_ADDRESS,
+          -'18',
+          ZERO_ADDRESS,
+          -'18',
+          -'17',
+          '90',
+          -'18',
+          ZERO_ADDRESS,
+          expiry,
+          fakeExchange,
+          oracle.address,
+          expiry
+        ),
+        "OptionsContract: Can't use ETH as underlying"
+      );
+    });
+
+    it('should create a option with eth as collateral, strike, DAI as underlying ', async () => {
       await OptionsContract.new(
         ZERO_ADDRESS,
         -'18',
-        ZERO_ADDRESS,
+        dai.address,
         -'18',
         -'17',
         '90',
@@ -268,28 +291,6 @@ contract('OptionsContract', accounts => {
       const name = await validOtoken.name();
       assert.equal(name, 'Valid Otoken');
     });
-
-    // it('should revert while setting detail for the invalid otoken', async () => {
-    // // This requirement statement will never be reached.
-    //   const invalidOtoken = await OptionsContract.new(
-    //     usdc.address,
-    //     -'18',
-    //     dai.address,
-    //     -'18',
-    //     10,
-    //     '90',
-    //     -'18',
-    //     usdc.address,
-    //     expiry,
-    //     fakeExchange,
-    //     oracle.address,
-    //     expiry
-    //   );
-    //   await expectRevert(
-    //     invalidOtoken.setDetails('Name', 'oDAI'),
-    //     '1 oToken cannot protect less than the smallest unit of the asset'
-    //   );
-    // });
   });
 
   describe('#updateParameter()', () => {
@@ -409,7 +410,6 @@ contract('OptionsContract', accounts => {
           '0x0000000000000000000000000000000000000000',
           {
             from: creatorAddress,
-
             value: msgValue
           }
         ),
@@ -732,77 +732,6 @@ contract('OptionsContract', accounts => {
       );
     });
   });
-
-  // describe('Otoken tests', () => {
-  //   it('should be able to create a new Vault, add ETH collateral and issue maxOTokensIssuable', async () => {
-  //     const collateral = '20000000';
-  //     const numOptions = (
-  //       await optionsContracts[0].maxOTokensIssuable(collateral)
-  //     ).toString();
-
-  //     const result = await optionsContracts[0].createETHCollateralOption(
-  //       numOptions,
-  //       nonOwnerAddress,
-  //       {
-  //         from: nonOwnerAddress,
-  //         value: collateral
-  //       }
-  //     );
-
-  //     expectEvent(result, 'VaultOpened', {
-  //       vaultOwner: nonOwnerAddress
-  //     });
-
-  //     expectEvent(result, 'ETHCollateralAdded', {
-  //       vaultOwner: nonOwnerAddress,
-  //       amount: collateral,
-  //       payer: nonOwnerAddress
-  //     });
-
-  //     expectEvent(result, 'IssuedOTokens', {
-  //       issuedTo: nonOwnerAddress,
-  //       oTokensIssued: numOptions,
-  //       vaultOwner: nonOwnerAddress
-  //     });
-  //   });
-
-  //   it('should be able to create a new Vault, add ERC20 collateral and issue oTokens', async () => {
-  //     const collateral = '20000000';
-  //     const numOptions = (
-  //       await optionsContracts[1].maxOTokensIssuable(collateral)
-  //     ).toString();
-
-  //     await usdc.mint(nonOwnerAddress, '20000000');
-  //     await usdc.approve(optionsContracts[1].address, '10000000000000000', {
-  //       from: nonOwnerAddress
-  //     });
-
-  //     const result = await optionsContracts[1].createERC20CollateralOption(
-  //       numOptions,
-  //       collateral,
-  //       nonOwnerAddress,
-  //       {
-  //         from: nonOwnerAddress
-  //       }
-  //     );
-
-  //     expectEvent(result, 'VaultOpened', {
-  //       vaultOwner: nonOwnerAddress
-  //     });
-
-  //     expectEvent(result, 'ERC20CollateralAdded', {
-  //       vaultOwner: nonOwnerAddress,
-  //       amount: collateral,
-  //       payer: nonOwnerAddress
-  //     });
-
-  //     expectEvent(result, 'IssuedOTokens', {
-  //       issuedTo: nonOwnerAddress,
-  //       oTokensIssued: numOptions,
-  //       vaultOwner: nonOwnerAddress
-  //     });
-  //   });
-  // });
 
   describe('expired OptionContract', () => {
     before(async () => {
