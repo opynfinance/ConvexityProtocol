@@ -12,7 +12,14 @@ contract MockOtokensExchange {
 
         uint256 outAmount = price * inAmount;
         // transfer token out
-        pushToken(receiver, tokenOut, outAmount);
+        if(tokenOut == address(0)) {
+            receiver.transfer(outAmount);
+        } else {
+            require (
+                IERC20(tokenOut).transfer(receiver, outAmount),
+                "MockOtokenExchange: Push token failed"
+            );
+        }
     }
 
     function premiumReceived (address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell)
@@ -33,17 +40,6 @@ contract MockOtokensExchange {
                 IERC20(_token).transferFrom(_from, address(this), _amount),
                 "MockOtokenExchange: Pull token failed"
             );
-    }
-
-    function pushToken(address payable _to, address _token, uint256 _amount) internal {
-        if(_token == address(0)) {
-            _to.transfer(_amount);
-        } else {
-            require (
-                IERC20(_token).transfer(_to, _amount),
-                "MockOtokenExchange: Push token failed"
-            );
-        }
     }
 
     function () external payable {}
