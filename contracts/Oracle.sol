@@ -81,7 +81,7 @@ contract Oracle is Ownable {
                 CTokenInterface cToken = CTokenInterface(asset);
                 uint256 exchangeRate = cToken.exchangeRateStored();
 
-                if (isCETH(asset)) {
+                if (iscEth(asset)) {
                     uint256 decimalsDiff = 10;
                     return exchangeRate.div(10**decimalsDiff);
                 }
