@@ -68,6 +68,9 @@ contract Oracle is Ownable {
         assetToCtokens[zrx] = cZrx;
     }
 
+    event CtokenUpdated(address indexed ctoken, bool isCtoken);
+    event AssetToCtokenUpdated(address indexed asset, address ctoken);
+
     function iscEth(address asset) public view returns (bool) {
         return asset == cEth;
     }
@@ -207,6 +210,21 @@ contract Oracle is Ownable {
 
     function setZrx(address _zrx) external onlyOwner {
         zrx = _zrx;
+    }
+
+    function setIsCtoken(address _ctoken, bool _isCtoken) external onlyOwner {
+        isCtoken[_ctoken] = _isCtoken;
+
+        emit CtokenUpdated(_ctoken, _isCtoken);
+    }
+
+    function setAssetToCtoken(address _asset, address _ctoken)
+        external
+        onlyOwner
+    {
+        assetToCtokens[_asset] = _ctoken;
+
+        emit AssetToCtokenUpdated(_asset, _ctoken);
     }
 
     function getPriceUnderlying(address asset) internal view returns (uint256) {
