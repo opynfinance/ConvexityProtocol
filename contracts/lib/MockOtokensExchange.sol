@@ -1,6 +1,6 @@
 pragma solidity 0.5.10;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../packages/IERC20.sol";
 
 contract MockOtokensExchange {
 
