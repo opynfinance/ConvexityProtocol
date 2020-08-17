@@ -4,6 +4,7 @@
     "solc": "0.5.10", 
     "use_yarn": false, 
     "echidna": {
-        "contract": "EchidnaOptionsContract"
+        "contract": "EchidnaOptionsContract",
+        "config": "EchidnaOptionsContract.yaml"
     }
 }
