@@ -12,10 +12,12 @@ module.exports = {
     copyPackages: ['openzeppelin'],
     skipFiles: [
       'Migrations.sol',
-      'lib/MockOracle.sol',
-      'lib/MockCompoundOracle.sol',
-      'lib/MockUniswapFactory.sol',
-      'lib/MockOtokensExchange.sol'
+      'mocks/MockOracle.sol',
+      'mocks/MockERC20.sol',
+      'mocks/MockCtoken.sol',
+      'mocks/MockCompoundOracle.sol',
+      'mocks/MockUniswapFactory.sol',
+      'mocks/MockOtokensExchange.sol'
     ]
   };
   
