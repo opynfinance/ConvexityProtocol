@@ -8,6 +8,9 @@ contract MockOracle {
     }
 
     function getPrice(address asset) external view returns (uint) {
+        if (asset == address(0)) {
+            return (10**18);
+        }
         return price;
     }
 

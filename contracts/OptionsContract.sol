@@ -1,6 +1,6 @@
 pragma solidity ^0.5.10;
 
-import "./interfaces/CompoundOracleInterface.sol";
+import "./interfaces/OracleInterface.sol";
 import "./interfaces/UniswapFactoryInterface.sol";
 import "./interfaces/UniswapExchangeInterface.sol";
 import "./OptionsExchange.sol";
@@ -86,7 +86,7 @@ contract OptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public compoundOracle;
+    OracleInterface public compoundOracle;
 
     // The name of  the contract
     string public name;
@@ -163,7 +163,7 @@ contract OptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        compoundOracle = CompoundOracleInterface(_oracleAddress);
+        compoundOracle = OracleInterface(_oracleAddress);
         optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
