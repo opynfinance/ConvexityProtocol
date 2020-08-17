@@ -24,13 +24,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 contract('OptionsContract', accounts => {
   const reverter = new Reverter(web3);
 
-  const [
-    creatorAddress,
-    firstOwnerAddress,
-    nonOwnerAddress,
-    fakeExchange,
-    random
-  ] = accounts;
+  const [creatorAddress, firstOwnerAddress, nonOwnerAddress, random] = accounts;
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
@@ -125,7 +119,6 @@ contract('OptionsContract', accounts => {
           -'18',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           windowSize
         ),
@@ -145,7 +138,6 @@ contract('OptionsContract', accounts => {
           -'18',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry + 1
         ),
@@ -165,7 +157,6 @@ contract('OptionsContract', accounts => {
           -'18',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry
         ),
@@ -185,7 +176,6 @@ contract('OptionsContract', accounts => {
           -'18',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry
         ),
@@ -205,7 +195,6 @@ contract('OptionsContract', accounts => {
           -'31',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry
         ),
@@ -225,7 +214,6 @@ contract('OptionsContract', accounts => {
           -'18',
           usdc.address,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry
         ),
@@ -245,7 +233,6 @@ contract('OptionsContract', accounts => {
           -'18',
           ZERO_ADDRESS,
           expiry,
-          fakeExchange,
           oracle.address,
           expiry
         ),
@@ -264,7 +251,6 @@ contract('OptionsContract', accounts => {
         -'18',
         ZERO_ADDRESS,
         expiry,
-        fakeExchange,
         oracle.address,
         expiry
       );
@@ -283,7 +269,6 @@ contract('OptionsContract', accounts => {
         -'18',
         usdc.address,
         expiry,
-        fakeExchange,
         oracle.address,
         expiry
       );
@@ -306,7 +291,6 @@ contract('OptionsContract', accounts => {
         -9, // strike price exp
         ZERO_ADDRESS,
         expiry,
-        fakeExchange,
         oracle.address,
         expiry,
         {from: creatorAddress}

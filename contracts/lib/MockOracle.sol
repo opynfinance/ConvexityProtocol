@@ -1,6 +1,8 @@
 pragma solidity 0.5.10;
 
-contract MockOracle {
+import "../interfaces/OracleInterface.sol";
+
+contract MockOracle is OracleInterface{
     uint256 public price;
 
     constructor() public {
