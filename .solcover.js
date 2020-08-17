@@ -13,6 +13,7 @@ module.exports = {
     skipFiles: [
       'Migrations.sol',
       'lib/MockOracle.sol',
+      'lib/MockCompoundOracle.sol',
       'lib/MockUniswapFactory.sol',
       'lib/MockOtokensExchange.sol'
     ]

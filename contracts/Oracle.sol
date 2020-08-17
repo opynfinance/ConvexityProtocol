@@ -71,6 +71,10 @@ contract Oracle is Ownable {
     event CtokenUpdated(address indexed ctoken, bool isCtoken);
     event AssetToCtokenUpdated(address indexed asset, address ctoken);
 
+    /**
+     * Asset Getters
+     */
+
     function iscEth(address asset) public view returns (bool) {
         return asset == cEth;
     }
@@ -136,10 +140,6 @@ contract Oracle is Ownable {
         return cZrx;
     }
 
-    function setCzrx(address _cZrx) external onlyOwner {
-        cZrx = _cZrx;
-    }
-
     function getBat() external view returns (address) {
         return bat;
     }
@@ -163,6 +163,10 @@ contract Oracle is Ownable {
     function getZrx() external view returns (address) {
         return zrx;
     }
+
+    /**
+     * Asset Setters
+     */
 
     function setPriceOracle(address _oracle) external onlyOwner {
         priceOracle = CompoundOracleInterface(_oracle);
@@ -190,6 +194,10 @@ contract Oracle is Ownable {
 
     function setCwbtc(address _cWbtc) external onlyOwner {
         cWbtc = _cWbtc;
+    }
+
+    function setCzrx(address _cZrx) external onlyOwner {
+        cZrx = _cZrx;
     }
 
     function setBat(address _bat) external onlyOwner {
