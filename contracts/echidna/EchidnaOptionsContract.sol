@@ -76,4 +76,8 @@ contract EchidnaOptionsContract is TestOptionsContract {
     {
         return minCollateralizationRatio.value >= 10;
     }
+
+    function echidna_vault_balances_sum() public view returns (bool) {
+        return minCollateralizationRatio.value >= 10;
+    }
 }

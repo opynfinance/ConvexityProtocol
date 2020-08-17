@@ -362,6 +362,10 @@ contract('OptionsContract', accounts => {
   });
 
   describe('#openVault()', () => {
+    it('there should be no vault owners before opening any vaults', async () => {
+      const vaultOwners = await optionsContracts[0].getVaultOwners();
+      expect(vaultOwners.toString()).to.equal('');
+    });
     it('should open first vault correctly', async () => {
       const result = await optionsContracts[0].openVault({
         from: creatorAddress
@@ -398,6 +402,11 @@ contract('OptionsContract', accounts => {
       expect(vault['1'].toString()).to.equal('0');
       expect(vault['2'].toString()).to.equal('0');
       expect(vault['3']).to.equal(true);
+
+      // test getVaultOwners
+      const vaultOwners = await optionsContracts[0].getVaultOwners();
+      expect(vaultOwners[0].toString()).to.equal(creatorAddress);
+      expect(vaultOwners[1].toString()).to.equal(firstOwnerAddress);
     });
   });
 
