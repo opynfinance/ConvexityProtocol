@@ -5,7 +5,7 @@
     "use_yarn": false, 
     "echidna": {
         "target": "contracts/echidna/",
-        "contract": "EchidnaOptionsContract.sol",
+        "contract": "EchidnaOptionsContract",
         "config": "EchidnaOptionsContract.yaml"
     }
 }
