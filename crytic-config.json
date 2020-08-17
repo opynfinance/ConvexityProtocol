@@ -1,10 +1,11 @@
 {
+    "cwd": ".",
     "node_version": "10.18.0", 
     "solc": "0.5.10", 
     "use_yarn": false, 
     "echidna": {
-        "target": "",
-        "contract": "/contracts/echidna/EchidnaOptionsContract.sol",
-        "config": "/contracts/echidna/EchidnaOptionsContract.yaml"
+        "target": "contracts/echidna/",
+        "contract": "EchidnaOptionsContract.sol",
+        "config": "EchidnaOptionsContract.yaml"
     }
 }
