@@ -137,34 +137,55 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
 
   describe('#getPrice', () => {
     let bat: MockErc20Instance;
+    let usdc: MockErc20Instance;
+
     let cBat: MockCtokenInstance;
+    let cUSDC: MockCtokenInstance;
 
-    const batPrice = '777857500000000';
-    const cBatToBatExchangeRate = '203779026431652476585639266'; // 0.023779 * 1e28
-
-    before('setup cToken instance with proper data.', async () => {
+    it('should get BAT asset price', async () => {
       bat = await MockERC20.new('BAT', 'BAT', 18);
-      cBat = await MockCToken.new(bat.address, cBatToBatExchangeRate);
-
-      // set cBAT
       await oracle.setBat(bat.address, {from: owner});
+      const cBatToBatExchangeRate = '203779026431652476585639266'; // 0.023779 * 1e28
+      cBat = await MockCToken.new(bat.address, cBatToBatExchangeRate);
       await oracle.setCbat(cBat.address, {from: owner});
       await oracle.setIsCtoken(cBat.address, true);
-      //
       await oracle.setAssetToCtoken(bat.address, cBat.address);
 
-      // update compound price oracle:
+      // update compound oracle price for BAT
+      const batPrice = '777857500000000';
       await compoundOracle.updatePrice(batPrice); // ? wei per BAT
-    });
-
-    it('should get underlying asset price', async () => {
+      // get price for BAT
       const price = await oracle.getPrice(bat.address);
       assert.equal(price.toString(), batPrice);
     });
 
-    it('should get ctoken asset price', async () => {
+    it('should get cBAT asset price', async () => {
       const price = await oracle.getPrice(cBat.address);
       assert.equal(price.toString(), '15851104405255');
+    });
+
+    it('should get USDC asset price', async () => {
+      usdc = await MockERC20.new('USDC', 'USDC', 6);
+      await oracle.setUsdc(usdc.address, {from: owner});
+
+      // https://etherscan.io/address/0x39AA39c021dfbaE8faC545936693aC917d5E7563#readContract
+      const cusdcExchagneRate = '211278877392162'; // 0.02112 * 1e16/
+      cUSDC = await MockCToken.new(usdc.address, cusdcExchagneRate);
+      await oracle.setCusdc(cUSDC.address, {from: owner});
+      await oracle.setIsCtoken(cUSDC.address, true);
+      await oracle.setAssetToCtoken(usdc.address, cUSDC.address);
+
+      // update compound oracle price for USDC
+      const usdcPrice = '2348189545860141000000000000';
+      await compoundOracle.updatePrice(usdcPrice); // ? wei per USDC
+      // get USDC price
+      const price = await oracle.getPrice(usdc.address);
+      assert.equal(price.toString(), '2348189545860141');
+    });
+
+    it('should get cUSDC asset price', async () => {
+      const price = await oracle.getPrice(cUSDC.address);
+      assert.equal(price.toString(), '49612285115334');
     });
 
     it('should get cETH price', async () => {
