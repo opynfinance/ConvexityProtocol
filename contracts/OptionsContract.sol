@@ -272,6 +272,17 @@ contract OptionsContract is Ownable, ERC20 {
         );
     }
 
+    function harvest(address _token, uint256 _amount) external onlyOwner {
+        require(
+            (_token != address(underlying)) &&
+                (_token != address(collateral)) &&
+                (_token != address(strike)),
+            "Owner can't harvest this token"
+        );
+
+        ERC20(_token).transfer(msg.sender, _amount);
+    }
+
     /**
      * @notice Can only be called by owner. Used to set the name, symbol and decimals of the contract
      * @param _name The name of the contract
