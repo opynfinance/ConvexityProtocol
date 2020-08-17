@@ -20,6 +20,8 @@ contract MockOtokensExchange {
         external 
         returns (uint256)
     {
+        require(oTokenAddress != address(0), "MockOtokenExchange: Wrong otoken address");
+        require(payoutTokenAddress != oTokenAddress, "MockOtokenExchange: Wrong payout token");
         return price * oTokensToSell;
     }
 

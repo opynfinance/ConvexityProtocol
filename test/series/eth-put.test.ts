@@ -21,7 +21,7 @@ contract('OptionsContract: ETH put', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oETH: OTokenInstance;
-  // let oracle: MockCompoundOracleInstance;
+  // let oracle: MockOracleInstance;
   // let comp: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
   let weth: Erc20MintableInstance;

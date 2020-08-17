@@ -1,7 +1,7 @@
 pragma solidity 0.5.10;
 
-contract MockCompoundOracle {
-    uint256 price;
+contract MockOracle {
+    uint256 public price;
 
     constructor() public {
         price = 5 * (10 ** 15);

@@ -7,7 +7,7 @@ import {
 import BN = require('bn.js');
 const oToken = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockOracle = artifacts.require('MockOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const {
@@ -35,7 +35,7 @@ contract(
 
       // 1. Deploy mock contracts
       // 1.1 Compound Oracle
-      await MockCompoundOracle.deployed();
+      await MockOracle.deployed();
 
       // 1.2 Mock usdc contract
       usdc = await MintableToken.new();

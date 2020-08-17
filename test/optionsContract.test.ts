@@ -2,13 +2,13 @@ import {expect} from 'chai';
 import {
   Erc20MintableInstance,
   OptionsFactoryInstance,
-  MockCompoundOracleInstance,
+  MockOracleInstance,
   OptionsContractInstance
 } from '../build/types/truffle-types';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockOracle = artifacts.require('MockOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const truffleAssert = require('truffle-assertions');
@@ -34,7 +34,7 @@ contract('OptionsContract', accounts => {
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
-  let oracle: MockCompoundOracleInstance;
+  let oracle: MockOracleInstance;
   let weth: Erc20MintableInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
@@ -48,7 +48,7 @@ contract('OptionsContract', accounts => {
     windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    oracle = await MockCompoundOracle.new();
+    oracle = await MockOracle.new();
 
     weth = await MintableToken.new();
     // 1.2 Mock Dai contract

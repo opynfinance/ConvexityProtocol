@@ -164,6 +164,10 @@ contract Oracle is Ownable {
         return zrx;
     }
 
+    function setPriceOracle(address _oracle) external onlyOwner {
+        priceOracle = CompoundOracleInterface(_oracle);
+    }
+
     function setCeth(address _cEth) external onlyOwner {
         cEth = _cEth;
     }

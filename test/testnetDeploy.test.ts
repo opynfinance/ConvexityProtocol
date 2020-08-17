@@ -7,7 +7,7 @@
 //   UniswapFactoryInterfaceInstance,
 //   UniswapExchangeInterfaceInstance,
 //   CompoundOracleInterfaceInstance,
-//   MockCompoundOracleInstance,
+//   MockOracleInstance,
 //   OracleInstance
 // } from '../build/types/truffle-types';
 // import {Address} from 'cluster';
@@ -19,7 +19,7 @@
 // const OptionsExchange = artifacts.require('OptionsExchange.sol');
 // const oToken = artifacts.require('oToken');
 // const Oracle = artifacts.require('Oracle.sol');
-// // const Oracle = artifacts.require('MockCompoundOracle');
+// // const Oracle = artifacts.require('MockOracle');
 
 // // Egs. collateral = 200 * 10^-18, strikePrice = 9 * 10^-15.
 // // returns number of oTokens

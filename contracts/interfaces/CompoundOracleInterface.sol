@@ -17,7 +17,4 @@ contract CompoundOracleInterface {
     function getPrice(address asset) external view returns (uint256);
 
     function getUnderlyingPrice(ERC20 cToken) external view returns (uint256);
-    // function getPrice(address asset) public view returns (uint) {
-    //     return 527557000000000;
-    // }
 }

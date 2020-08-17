@@ -99,7 +99,7 @@ function initializeFactory(address template) external nonpayable
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
-* [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOracle](MockCompoundOracle.md)
 * [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
