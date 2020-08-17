@@ -1,0 +1,9 @@
+{
+    "cwd": "optionsprotocol", 
+    "node_version": "10.18.0", 
+    "solc": "0.5.10", 
+    "use_yarn": false, 
+    "echidna": {
+        "contract": "EchidnaOptionsContract"
+    }
+}
