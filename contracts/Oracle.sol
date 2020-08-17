@@ -200,6 +200,8 @@ contract Oracle is Ownable {
         cZrx = _cZrx;
     }
 
+    // Setters for non-cTokens
+
     function setBat(address _bat) external onlyOwner {
         bat = _bat;
     }
