@@ -1,10 +1,13 @@
 import {
   OracleInstance,
-  MockCompoundOracleInstance
+  MockCompoundOracleInstance,
+  MockCtokenInstance,
+  MockErc20Instance
 } from '../build/types/truffle-types';
 
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockCToken = artifacts.require('MockCtoken');
 const Oracle = artifacts.require('Oracle');
+const MockERC20 = artifacts.require('MockERC20');
 const CompoundOracle = artifacts.require('MockCompoundOracle');
 
 const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
@@ -124,9 +127,37 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
 
   describe('#setAssetToCtoken', () => {
     it('should set setAssetToCtoken mapping', async () => {
-      await oracle.setAssetToCtoken(tokens[0], tokens[1], {from: owner});
-      const cToken = await oracle.assetToCtokens(tokens[0]);
-      assert.equal(tokens[1], cToken);
+      await oracle.setAssetToCtoken(tokens[7], tokens[6], {from: owner});
+      const cToken = await oracle.assetToCtokens(tokens[7]);
+      assert.equal(tokens[6], cToken);
+    });
+  });
+
+  describe('#getPrice', () => {
+    let bat: MockErc20Instance;
+    let cBat: MockCtokenInstance;
+
+    const batPrice = '777857500000000';
+    const cBatToBatExchangeRate = '203779026431652476585639266';
+
+    before('setup cToken instance with proper data.', async () => {
+      bat = await MockERC20.new('BAT', 'BAT', 18);
+      cBat = await MockCToken.new(bat.address, cBatToBatExchangeRate);
+
+      await oracle.setBat(bat.address, {from: owner});
+      await oracle.setCbat(cBat.address, {from: owner});
+      await oracle.setIsCtoken(bat.address, false);
+      await oracle.setIsCtoken(cBat.address, true);
+      //
+      await oracle.setAssetToCtoken(bat.address, cBat.address);
+
+      // update compound price oracle:
+      await compoundOracle.updatePrice(batPrice); // ? wei per BAT
+    });
+
+    it('should get underlying asset price', async () => {
+      const price = await oracle.getPrice(bat.address);
+      assert.equal(price.toString(), batPrice);
     });
   });
 });
