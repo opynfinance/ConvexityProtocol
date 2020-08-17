@@ -1,16 +1,17 @@
 import {
   OracleInstance,
   MockCompoundOracleInstance,
-  MockCtokenInstance,
-  MockErc20Instance
+  MockErc20Instance,
+  MockCtokenInstance
 } from '../build/types/truffle-types';
-
+import BigNumber from 'bignumber.js';
+import {assert} from 'chai';
 const MockCToken = artifacts.require('MockCtoken');
 const Oracle = artifacts.require('Oracle');
 const MockERC20 = artifacts.require('MockERC20');
 const CompoundOracle = artifacts.require('MockCompoundOracle');
 
-const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
+const {expectRevert} = require('@openzeppelin/test-helpers');
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 contract('Oracle.sol', ([owner, random, ...tokens]) => {
@@ -139,15 +140,15 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     let cBat: MockCtokenInstance;
 
     const batPrice = '777857500000000';
-    const cBatToBatExchangeRate = '203779026431652476585639266';
+    const cBatToBatExchangeRate = '203779026431652476585639266'; // 0.023779 * 1e28
 
     before('setup cToken instance with proper data.', async () => {
       bat = await MockERC20.new('BAT', 'BAT', 18);
       cBat = await MockCToken.new(bat.address, cBatToBatExchangeRate);
 
+      // set cBAT
       await oracle.setBat(bat.address, {from: owner});
       await oracle.setCbat(cBat.address, {from: owner});
-      await oracle.setIsCtoken(bat.address, false);
       await oracle.setIsCtoken(cBat.address, true);
       //
       await oracle.setAssetToCtoken(bat.address, cBat.address);
@@ -166,8 +167,26 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
       assert.equal(price.toString(), '15851104405255');
     });
 
+    it('should get cETH price', async () => {
+      // setting up cETH
+      const cETHtoETHExchangeRate = '200178102566185484146669091'; // 0.020017 * 1e28
+      const cETH = await MockCToken.new(ZERO_ADDRESS, cETHtoETHExchangeRate);
+      await oracle.setCeth(cETH.address, {from: owner});
+      await oracle.setIsCtoken(cETH.address, true);
+
+      assert.equal(await oracle.iscEth(cETH.address), true);
+
+      // calculating price of cETH
+      const cETHPrice = await oracle.getPrice(cETH.address);
+      const priceInWei = new BigNumber(cETHtoETHExchangeRate)
+        .div(new BigNumber(10).pow(10))
+        .integerValue();
+      assert.equal(cETHPrice.toString(), priceInWei.toString());
+    });
+
     it('should return 1e18 for ETH (address 0)', async () => {
       const price = await oracle.getPrice(ZERO_ADDRESS);
+      // 1 ETH = 1e18 wei
       assert.equal(price.toString(), '1000000000000000000');
     });
 
