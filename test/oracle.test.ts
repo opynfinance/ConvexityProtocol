@@ -11,6 +11,7 @@ const MockERC20 = artifacts.require('MockERC20');
 const CompoundOracle = artifacts.require('MockCompoundOracle');
 
 const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 contract('Oracle.sol', ([owner, random, ...tokens]) => {
   let compoundOracle: MockCompoundOracleInstance;
@@ -158,6 +159,21 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     it('should get underlying asset price', async () => {
       const price = await oracle.getPrice(bat.address);
       assert.equal(price.toString(), batPrice);
+    });
+
+    it('should get ctoken asset price', async () => {
+      const price = await oracle.getPrice(cBat.address);
+      assert.equal(price.toString(), '15851104405255');
+    });
+
+    it('should return 1e18 for ETH (address 0)', async () => {
+      const price = await oracle.getPrice(ZERO_ADDRESS);
+      assert.equal(price.toString(), '1000000000000000000');
+    });
+
+    it('should return 0 for random tokens', async () => {
+      const price = await oracle.getPrice(random);
+      assert.equal(price.toString(), '0');
     });
   });
 });
