@@ -4,7 +4,7 @@
     "solc": "0.5.10", 
     "use_yarn": false, 
     "echidna": {
-        "contract": "echidna/EchidnaOptionsContract.sol",
+        "contract": "/home/worker/opynfinance/OptionsProtocol/contracts/echidna/EchidnaOptionsContract.sol",
         "config": "echidna/EchidnaOptionsContract.yaml"
     }
 }
