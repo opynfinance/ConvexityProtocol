@@ -1,7 +1,7 @@
 pragma solidity ^0.5.10;
 
-import "../../lib/MockCompoundOracle.sol";
-import "../../interfaces/CompoundOracleInterface.sol";
+import "../../mocks/MockOracle.sol";
+import "../../interfaces/OracleInterface.sol";
 import "../../packages/ERC20.sol";
 import "../../packages/IERC20.sol";
 import "../../packages/ERC20Detailed.sol";
@@ -87,7 +87,7 @@ contract TestOptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public compoundOracle;
+    OracleInterface public oracle;
 
     // The name of  the contract
     string public name;
@@ -122,7 +122,7 @@ contract TestOptionsContract is Ownable, ERC20 {
         );*/
 
         address usdc = address(new ERC20());
-        address compoundOracleMock = address(new MockCompoundOracle());
+        address oracleMock = address(new MockOracle());
         //address uniswapFactoryMock = address(new MockUniswapFactory());
 
         IERC20 _collateral = IERC20(usdc);
@@ -135,8 +135,8 @@ contract TestOptionsContract is Ownable, ERC20 {
         IERC20 _strike = IERC20(usdc);
         uint256 _expiry = now + 30 days;
         TestOptionsExchange _optionsExchange = new TestOptionsExchange();
-        //address _oracleAddress = address(new Oracle(compoundOracleMock));
-        address _oracleAddress = compoundOracleMock;
+        //address _oracleAddress = address(new Oracle(oracleMock));
+        address _oracleAddress = oracleMock;
         uint256 _windowSize = _expiry;
 
         collateral = _collateral;
@@ -150,7 +150,7 @@ contract TestOptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        compoundOracle = CompoundOracleInterface(_oracleAddress);
+        oracle = OracleInterface(_oracleAddress);
         optionsExchange = _optionsExchange;
         windowSize = _windowSize;
     }
@@ -1025,7 +1025,7 @@ contract TestOptionsContract is Ownable, ERC20 {
         if (asset == address(0)) {
             return (10**18);
         } else {
-            return compoundOracle.getPrice(asset);
+            return oracle.getPrice(asset);
         }
     }
 }

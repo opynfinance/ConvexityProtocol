@@ -1,14 +1,14 @@
 import {expect} from 'chai';
 import {
   Erc20MintableInstance,
-  MockCompoundOracleInstance,
+  MockOracleInstance,
   OptionsContractInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockOracle = artifacts.require('MockOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from './utils/reverter';
@@ -34,7 +34,7 @@ contract('OptionsContract', accounts => {
 
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
-  let compoundOracle: MockCompoundOracleInstance;
+  let compoundOracle: MockOracleInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
@@ -50,7 +50,7 @@ contract('OptionsContract', accounts => {
     windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    compoundOracle = await MockCompoundOracle.deployed();
+    compoundOracle = await MockOracle.deployed();
 
     // 1.2 Mock Dai contract
     dai = await MintableToken.new();

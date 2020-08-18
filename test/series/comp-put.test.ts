@@ -22,7 +22,7 @@ contract('OptionsContract: COMP put', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oComp: OTokenInstance;
-  // let oracle: MockCompoundOracleInstance;
+  // let oracle: MockOracleInstance;
   let comp: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 

@@ -3,7 +3,7 @@ pragma solidity 0.5.10;
 import "../../interfaces/CompoundOracleInterface.sol";
 import "../../interfaces/UniswapFactoryInterface.sol";
 import "../../interfaces/UniswapExchangeInterface.sol";
-import "../../lib/MockUniswapFactory.sol";
+import "../../mocks/MockUniswapFactory.sol";
 import "../../packages/IERC20.sol";
 
 

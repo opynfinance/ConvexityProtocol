@@ -40,8 +40,8 @@ contract('OptionsContract: BAL put', accounts => {
 
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    // oracle = await MockCompoundOracle.deployed();
-    // oracle = MockCompoundOracle.at()
+    // oracle = await MockOracle.deployed();
+    // oracle = MockOracle.at()
 
     // 1.2 Mock BAL contract
     bal = await MintableToken.new();

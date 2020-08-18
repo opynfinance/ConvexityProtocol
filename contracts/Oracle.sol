@@ -71,10 +71,20 @@ contract Oracle is Ownable {
     event CtokenUpdated(address indexed ctoken, bool isCtoken);
     event AssetToCtokenUpdated(address indexed asset, address ctoken);
 
+    /**
+     * Asset Getters
+     */
     function iscEth(address asset) public view returns (bool) {
         return asset == cEth;
     }
 
+    /**
+     * @dev get an asset's price in wei
+     * For ETH: return 1e18 because 1 eth = 1e18 wei
+     * For other assets: ex: USDC: return 2349016936412111
+     *  => 1 USDC = 2349016936412111 wei
+     *  => 1 ETH = 1e18 / 2349016936412111 USDC = 425.71 USDC
+     */
     function getPrice(address asset) external view returns (uint256) {
         if (asset == address(0)) {
             return (10**18);
@@ -136,10 +146,6 @@ contract Oracle is Ownable {
         return cZrx;
     }
 
-    function setCzrx(address _cZrx) external onlyOwner {
-        cZrx = _cZrx;
-    }
-
     function getBat() external view returns (address) {
         return bat;
     }
@@ -162,6 +168,14 @@ contract Oracle is Ownable {
 
     function getZrx() external view returns (address) {
         return zrx;
+    }
+
+    /**
+     * Asset Setters
+     */
+
+    function setPriceOracle(address _oracle) external onlyOwner {
+        priceOracle = CompoundOracleInterface(_oracle);
     }
 
     function setCeth(address _cEth) external onlyOwner {
@@ -187,6 +201,12 @@ contract Oracle is Ownable {
     function setCwbtc(address _cWbtc) external onlyOwner {
         cWbtc = _cWbtc;
     }
+
+    function setCzrx(address _cZrx) external onlyOwner {
+        cZrx = _cZrx;
+    }
+
+    // Setters for non-cTokens
 
     function setBat(address _bat) external onlyOwner {
         bat = _bat;
@@ -227,13 +247,16 @@ contract Oracle is Ownable {
         emit AssetToCtokenUpdated(_asset, _ctoken);
     }
 
+    /**
+     * @notice get asset price from Compound's oracle.
+     */
     function getPriceUnderlying(address asset) internal view returns (uint256) {
-        uint256 ethToAssetPrice = priceOracle.getUnderlyingPrice(
+        uint256 priceInWei = priceOracle.getUnderlyingPrice(
             ERC20(assetToCtokens[asset])
         );
         uint256 decimalsOfAsset = ERC20Detailed(asset).decimals();
         uint256 maxExponent = 18;
         uint256 exponent = maxExponent.sub(decimalsOfAsset);
-        return ethToAssetPrice.div(10**exponent);
+        return priceInWei.div(10**exponent);
     }
 }

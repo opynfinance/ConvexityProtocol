@@ -2,7 +2,7 @@ import {
   OptionsFactoryInstance,
   OTokenInstance,
   Erc20MintableInstance,
-  MockCompoundOracleInstance
+  MockOracleInstance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -15,7 +15,7 @@ const {
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockOracle = artifacts.require('MockOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 import Reverter from '../utils/reverter';
@@ -29,7 +29,7 @@ contract('OptionsContract: Aave insurance', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oaUSDT: OTokenInstance;
-  let oracle: MockCompoundOracleInstance;
+  let oracle: MockOracleInstance;
   let ausdt: Erc20MintableInstance;
   let usdt: Erc20MintableInstance;
 
@@ -43,8 +43,8 @@ contract('OptionsContract: Aave insurance', accounts => {
 
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    oracle = await MockCompoundOracle.deployed();
-    // oracle = MockCompoundOracle.at()
+    oracle = await MockOracle.deployed();
+    // oracle = MockOracle.at()
 
     // 1.2 Mock aUSDT contract
     ausdt = await MintableToken.new();

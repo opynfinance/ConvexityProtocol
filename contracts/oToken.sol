@@ -1,6 +1,7 @@
 pragma solidity 0.5.10;
 
 import "./OptionsContract.sol";
+import "./OptionsExchange.sol";
 
 
 /**
@@ -9,6 +10,8 @@ import "./OptionsContract.sol";
  */
 
 contract oToken is OptionsContract {
+    OptionsExchange public optionsExchange;
+
     /**
      * @param _collateral The collateral asset
      * @param _collExp The precision of the collateral (-18 if ETH)
@@ -48,11 +51,12 @@ contract oToken is OptionsContract {
             _strikeExp,
             _strike,
             _expiry,
-            _optionsExchange,
             _oracleAddress,
             _windowSize
         )
-    {}
+    {
+        optionsExchange = _optionsExchange;
+    }
 
     /**
      * @notice opens a Vault, adds ETH collateral, and mints new oTokens in one step

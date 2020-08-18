@@ -1,9 +1,8 @@
 pragma solidity ^0.5.10;
 
-import "./interfaces/CompoundOracleInterface.sol";
+import "./interfaces/OracleInterface.sol";
 import "./interfaces/UniswapFactoryInterface.sol";
 import "./interfaces/UniswapExchangeInterface.sol";
-import "./OptionsExchange.sol";
 import "./packages/ERC20.sol";
 import "./packages/IERC20.sol";
 import "./packages/ERC20Detailed.sol";
@@ -32,8 +31,6 @@ contract OptionsContract is Ownable, ERC20 {
         uint256 underlying;
         bool owned;
     }
-
-    OptionsExchange public optionsExchange;
 
     mapping(address => Vault) internal vaults;
 
@@ -86,7 +83,7 @@ contract OptionsContract is Ownable, ERC20 {
     IERC20 public strike;
 
     // The Oracle used for the contract
-    CompoundOracleInterface public compoundOracle;
+    OracleInterface public oracle;
 
     // The name of  the contract
     string public name;
@@ -107,7 +104,6 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _strikeExp The precision of the strike price.
      * @param _strike The asset in which the insurance is calculated
      * @param _expiry The time at which the insurance expires
-     * @param _optionsExchange The contract which interfaces with the exchange + oracle
      * @param _oracleAddress The address of the oracle
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
      */
@@ -121,7 +117,6 @@ contract OptionsContract is Ownable, ERC20 {
         int32 _strikeExp,
         IERC20 _strike,
         uint256 _expiry,
-        OptionsExchange _optionsExchange,
         address _oracleAddress,
         uint256 _windowSize
     ) public {
@@ -163,8 +158,7 @@ contract OptionsContract is Ownable, ERC20 {
         strike = _strike;
 
         expiry = _expiry;
-        compoundOracle = CompoundOracleInterface(_oracleAddress);
-        optionsExchange = _optionsExchange;
+        oracle = OracleInterface(_oracleAddress);
         windowSize = _windowSize;
     }
 
@@ -1029,7 +1023,7 @@ contract OptionsContract is Ownable, ERC20 {
         if (asset == address(0)) {
             return (10**18);
         } else {
-            return compoundOracle.getPrice(asset);
+            return oracle.getPrice(asset);
         }
     }
 }

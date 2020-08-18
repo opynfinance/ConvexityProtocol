@@ -1,6 +1,6 @@
 import {
   Erc20MintableInstance,
-  MockCompoundOracleInstance,
+  MockOracleInstance,
   OTokenInstance,
   MockOtokensExchangeInstance
 } from '../build/types/truffle-types';
@@ -9,7 +9,7 @@ import BN = require('bn.js');
 
 const OToken = artifacts.require('oToken');
 const MockOtokensExchange = artifacts.require('MockOtokensExchange');
-const MockCompoundOracle = artifacts.require('MockCompoundOracle');
+const MockOracle = artifacts.require('MockOracle');
 const MintableToken = artifacts.require('ERC20Mintable');
 
 const {time, expectRevert, send} = require('@openzeppelin/test-helpers');
@@ -28,7 +28,7 @@ contract('OToken', accounts => {
   ] = accounts;
 
   let exchange: MockOtokensExchangeInstance;
-  let oracle: MockCompoundOracleInstance;
+  let oracle: MockOracleInstance;
   let dai: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
@@ -44,7 +44,7 @@ contract('OToken', accounts => {
     windowSize = expiry;
     // 1. Deploy mock contracts
     // 1.1 Compound Oracle
-    oracle = await MockCompoundOracle.new();
+    oracle = await MockOracle.new();
 
     // 1.2 Mock Dai contract
     dai = await MintableToken.new();
