@@ -16,7 +16,12 @@ const truffleAssert = require('truffle-assertions');
 import Reverter from './utils/reverter';
 
 import {checkVault} from './utils/helper';
-const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
+const {
+  time,
+  expectEvent,
+  expectRevert,
+  BN
+} = require('@openzeppelin/test-helpers');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -754,6 +759,85 @@ contract('OptionsContract', accounts => {
           value: '10000000'
         }),
         'Options contract expired'
+      );
+    });
+  });
+
+  describe('#harvest', () => {
+    const amount = '100000000';
+    let otoken: OptionsContractInstance;
+    let bonusToken: Erc20MintableInstance;
+    before('contract setup', async () => {
+      const now = (await time.latest()).toNumber();
+      expiry = now + time.duration.days(30).toNumber();
+      windowSize = expiry;
+      otoken = await OptionsContract.new(
+        usdc.address,
+        -'18',
+        dai.address,
+        -'18',
+        -'17',
+        '90',
+        -'18',
+        usdc.address,
+        expiry,
+        oracle.address,
+        windowSize,
+        {from: creatorAddress}
+      );
+      bonusToken = await MintableToken.new();
+
+      await bonusToken.mint(otoken.address, amount);
+    });
+
+    it('should revert trying to harvest collateral token', async () => {
+      usdc.mint(otoken.address, amount);
+      await expectRevert(
+        otoken.harvest(usdc.address, amount, {
+          from: creatorAddress
+        }),
+        "Owner can't harvest this token"
+      );
+    });
+
+    it('should revert trying to harvest underlying token', async () => {
+      usdc.mint(otoken.address, amount);
+      await expectRevert(
+        otoken.harvest(dai.address, amount, {
+          from: creatorAddress
+        }),
+        "Owner can't harvest this token"
+      );
+    });
+
+    it('should revert when someone esle than owner call harvest', async () => {
+      await expectRevert(
+        otoken.harvest(bonusToken.address, amount, {
+          from: firstOwnerAddress
+        }),
+        'Ownable: caller is not the owner.'
+      );
+    });
+
+    it('should remove bonus token from the contract', async () => {
+      const contractBalanceBefore = await bonusToken.balanceOf(otoken.address);
+      const ownerBalanceBefore = await bonusToken.balanceOf(creatorAddress);
+
+      await otoken.harvest(bonusToken.address, amount, {
+        from: creatorAddress
+      });
+
+      const contractBalanceAfter = await bonusToken.balanceOf(otoken.address);
+      const ownerBalanceAfter = await bonusToken.balanceOf(creatorAddress);
+
+      assert.equal(
+        contractBalanceBefore.toString(),
+        contractBalanceAfter.add(new BN(amount)).toString()
+      );
+
+      assert.equal(
+        ownerBalanceAfter.toString(),
+        ownerBalanceBefore.add(new BN(amount)).toString()
       );
     });
   });
