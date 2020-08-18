@@ -66,9 +66,9 @@ contract('OptionsContract', accounts => {
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('WETH', weth.address);
-    await optionsFactory.addAsset('DAI', dai.address);
-    await optionsFactory.addAsset('USDC', usdc.address);
+    await optionsFactory.updateAsset('WETH', weth.address);
+    await optionsFactory.updateAsset('DAI', dai.address);
+    await optionsFactory.updateAsset('USDC', usdc.address);
 
     // Create the unexpired options contract
     let optionsContractResult = await optionsFactory.createOptionsContract(

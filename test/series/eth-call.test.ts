@@ -64,7 +64,9 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
 
       // add assets to the factory
-      await optionsFactory.addAsset('USDC', usdc.address, {from: opynDeployer});
+      await optionsFactory.updateAsset('USDC', usdc.address, {
+        from: opynDeployer
+      });
 
       // create ETH call option
       const optionsContractResult = await optionsFactory.createOptionsContract(

@@ -48,8 +48,8 @@ contract('OptionsContract: ETH put', accounts => {
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('USDC', usdc.address);
-    await optionsFactory.addAsset('WETH', weth.address);
+    await optionsFactory.updateAsset('USDC', usdc.address);
+    await optionsFactory.updateAsset('WETH', weth.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
