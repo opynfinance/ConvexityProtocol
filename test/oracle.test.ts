@@ -146,7 +146,12 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
       bat = await MockERC20.new('BAT', 'BAT', 18);
       await oracle.setBat(bat.address, {from: owner});
       const cBatToBatExchangeRate = '203779026431652476585639266'; // 0.023779 * 1e28
-      cBat = await MockCToken.new(bat.address, cBatToBatExchangeRate);
+      cBat = await MockCToken.new(
+        'cBAT',
+        'cBAT',
+        bat.address,
+        cBatToBatExchangeRate
+      );
       await oracle.setCbat(cBat.address, {from: owner});
       await oracle.setIsCtoken(cBat.address, true);
       await oracle.setAssetToCtoken(bat.address, cBat.address);
@@ -170,7 +175,12 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
 
       // https://etherscan.io/address/0x39AA39c021dfbaE8faC545936693aC917d5E7563#readContract
       const cusdcExchagneRate = '211278877392162'; // 0.02112 * 1e16/
-      cUSDC = await MockCToken.new(usdc.address, cusdcExchagneRate);
+      cUSDC = await MockCToken.new(
+        'cUSDC',
+        'cUSDC',
+        usdc.address,
+        cusdcExchagneRate
+      );
       await oracle.setCusdc(cUSDC.address, {from: owner});
       await oracle.setIsCtoken(cUSDC.address, true);
       await oracle.setAssetToCtoken(usdc.address, cUSDC.address);
@@ -191,7 +201,12 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     it('should get cETH price', async () => {
       // setting up cETH
       const cETHtoETHExchangeRate = '200178102566185484146669091'; // 0.020017 * 1e28
-      const cETH = await MockCToken.new(ZERO_ADDRESS, cETHtoETHExchangeRate);
+      const cETH = await MockCToken.new(
+        'cETH',
+        'cETH',
+        ZERO_ADDRESS,
+        cETHtoETHExchangeRate
+      );
       await oracle.setCeth(cETH.address, {from: owner});
       await oracle.setIsCtoken(cETH.address, true);
 
