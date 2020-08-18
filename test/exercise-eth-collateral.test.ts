@@ -44,7 +44,7 @@ contract(
       // Deploy the Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
 
-      await optionsFactory.addAsset('USDC', usdc.address);
+      await optionsFactory.updateAsset('USDC', usdc.address);
 
       // Create the unexpired options contract
       const optionsContractResult = await optionsFactory.createOptionsContract(

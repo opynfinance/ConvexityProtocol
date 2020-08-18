@@ -90,7 +90,7 @@
 //       // Deploy the Options Factory contract and add assets to it
 //       optionsFactory = await OptionsFactory.at(optionsFactoryAddress);
 
-//       await optionsFactory.addAsset('curve-yDAI', yDai.address);
+//       await optionsFactory.updateAsset('curve-yDAI', yDai.address);
 
 //       // Create the unexpired options contract
 //       let optionsContractResult = await optionsFactory.createOptionsContract(

@@ -40,12 +40,12 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
     });
 
-    describe('#addAsset()', () => {
+    describe('#updateAsset()', () => {
       it('should add an asset correctly', async () => {
-        const txInfo = await optionsFactory.addAsset('DAI', DAIAddress);
-        expectEvent(txInfo, 'AssetAdded', {
+        const txInfo = await optionsFactory.updateAsset('DAI', DAIAddress);
+        expectEvent(txInfo, 'AssetUpdated', {
           asset: Web3Utils.keccak256('DAI'),
-          addr: DAIAddress
+          newAddr: DAIAddress
         });
         const supported = await optionsFactory.supportsAsset('DAI');
 
@@ -53,36 +53,19 @@ contract(
       });
 
       it('should add a second asset', async () => {
-        const txInfo = await optionsFactory.addAsset('BAT', BATAddress);
-        expectEvent(txInfo, 'AssetAdded', {
+        const txInfo = await optionsFactory.updateAsset('BAT', BATAddress);
+        expectEvent(txInfo, 'AssetUpdated', {
           asset: Web3Utils.keccak256('BAT'),
-          addr: BATAddress
+          newAddr: BATAddress
         });
         const supported = await optionsFactory.supportsAsset('BAT');
 
         expect(supported).to.be.true;
       });
 
-      it('should revert when trying to add ETH address', async () => {
-        await expectRevert(
-          optionsFactory.addAsset(
-            'ETH',
-            '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
-          ),
-          'Asset already added'
-        );
-      });
-
-      it('should revert when trying to add address(0)', async () => {
-        await expectRevert(
-          optionsFactory.addAsset('NEW', ZERO_ADDRESS),
-          'Cannot set to address(0)'
-        );
-      });
-
       it('should fails if anyone but owner tries to add asset', async () => {
         await expectRevert(
-          optionsFactory.addAsset(
+          optionsFactory.updateAsset(
             'ETH',
             '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
             {from: random}
@@ -90,66 +73,22 @@ contract(
           'Ownable: caller is not the owner'
         );
       });
-
-      it('should revert if an asset is added twice', async () => {
-        await optionsFactory.addAsset('WEIRDToken', random);
-        await expectRevert(
-          optionsFactory.addAsset('WEIRDToken', WEIRDToken),
-          'Asset already added'
-        );
-      });
     });
 
-    describe('#changeAsset()', () => {
+    describe('#updateAsset()', () => {
       it('should change an asset that exists correctly', async () => {
-        const txInfo = await optionsFactory.changeAsset('BAT', BATAddress2);
-        expectEvent(txInfo, 'AssetChanged', {
+        const txInfo = await optionsFactory.updateAsset('BAT', BATAddress2);
+        expectEvent(txInfo, 'AssetUpdated', {
           asset: Web3Utils.keccak256('BAT'),
-          addr: BATAddress2
+          newAddr: BATAddress2
         });
-      });
-
-      it('should revert when changing asset to address(0)', async () => {
-        await expectRevert(
-          optionsFactory.changeAsset('BAT', ZERO_ADDRESS),
-          'Cannot set to address(0)'
-        );
-      });
-
-      it("should revert if asset didn't exist", async () => {
-        await expectRevert(
-          optionsFactory.changeAsset('USDC', USDCAddress),
-          'Trying to replace a non-existent asset'
-        );
       });
 
       it('should revert if anyone but owner tries to change asset', async () => {
         await expectRevert(
-          optionsFactory.changeAsset('BAT', BATAddress, {from: random}), // try change it back to BATAddr
+          optionsFactory.updateAsset('BAT', BATAddress, {from: random}), // try change it back to BATAddr
           'Ownable: caller is not the owner'
         );
-      });
-    });
-
-    describe('#deleteAsset()', () => {
-      it("should revert if asset doesn't exist", async () => {
-        await expectRevert(
-          optionsFactory.deleteAsset('ZRX'), // try change it back to BATAddr
-          'Trying to delete a non-existent asset'
-        );
-      });
-
-      it('should revert caller is not owner', async () => {
-        await expectRevert(
-          optionsFactory.deleteAsset('BAT', {from: random}), // try change it back to BATAddr
-          'Ownable: caller is not the owner'
-        );
-      });
-
-      it('should delete an asset that exists correctly', async () => {
-        expectEvent(await optionsFactory.deleteAsset('BAT'), 'AssetDeleted', {
-          asset: Web3Utils.keccak256('BAT')
-        });
       });
     });
 

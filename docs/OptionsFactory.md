@@ -31,9 +31,9 @@ event AssetDeleted(string indexed asset);
 - [(OptionsExchange _optionsExchangeAddr, address _oracleAddress)](#)
 - [createOptionsContract(string _collateralType, int32 _collateralExp, string _underlyingType, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, string _strikeAsset, uint256 _expiry, uint256 _windowSize)](#createoptionscontract)
 - [getNumberOfOptionsContracts()](#getnumberofoptionscontracts)
-- [addAsset(string _asset, address _addr)](#addasset)
-- [changeAsset(string _asset, address _addr)](#changeasset)
-- [deleteAsset(string _asset)](#deleteasset)
+- [updateAsset(string _asset, address _addr)](#updateAsset)
+- [updateAsset(string _asset, address _addr)](#updateAsset)
+- [updateAsset(string _asset)](#updateAsset)
 - [supportsAsset(string _asset)](#supportsasset)
 
 ### 
@@ -87,12 +87,12 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 
-### addAsset
+### updateAsset
 
 The owner of the Factory Contract can add a new asset to be supported
 
 ```js
-function addAsset(string _asset, address _addr) external nonpayable onlyOwner 
+function updateAsset(string _asset, address _addr) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -102,12 +102,12 @@ function addAsset(string _asset, address _addr) external nonpayable onlyOwner
 | _asset | string | The ticker symbol for the asset | 
 | _addr | address | The address of the asset | 
 
-### changeAsset
+### updateAsset
 
 The owner of the Factory Contract can change an existing asset's address
 
 ```js
-function changeAsset(string _asset, address _addr) external nonpayable onlyOwner 
+function updateAsset(string _asset, address _addr) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -117,12 +117,12 @@ function changeAsset(string _asset, address _addr) external nonpayable onlyOwner
 | _asset | string | The ticker symbol for the asset | 
 | _addr | address | The address of the asset | 
 
-### deleteAsset
+### updateAsset
 
 The owner of the Factory Contract can delete an existing asset's address
 
 ```js
-function deleteAsset(string _asset) external nonpayable onlyOwner 
+function updateAsset(string _asset) external nonpayable onlyOwner 
 ```
 
 **Arguments**

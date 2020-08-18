@@ -129,10 +129,10 @@
 //       // Deploy the Options Factory contract and add assets to it
 //       optionsFactory = await OptionsFactory.deployed();
 
-//       // await optionsFactory.addAsset('DAI', dai.address);
-//       await optionsFactory.addAsset('USDC', usdc.address);
-//       await optionsFactory.addAsset('cDAI', cDaiAddress);
-//       await optionsFactory.addAsset('cUSDC', cUSDCAddress);
+//       // await optionsFactory.updateAsset('DAI', dai.address);
+//       await optionsFactory.updateAsset('USDC', usdc.address);
+//       await optionsFactory.updateAsset('cDAI', cDaiAddress);
+//       await optionsFactory.updateAsset('cUSDC', cUSDCAddress);
 
 //       // Create the unexpired options contract
 //       let optionsContractResult = await optionsFactory.createOptionsContract(
