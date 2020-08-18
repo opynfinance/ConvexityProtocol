@@ -57,8 +57,8 @@ contract('OptionsContract: BAL put', accounts => {
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('BAL', bal.address);
-    await optionsFactory.addAsset('USDC', usdc.address);
+    await optionsFactory.updateAsset('BAL', bal.address);
+    await optionsFactory.updateAsset('USDC', usdc.address);
     const optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
       -6,

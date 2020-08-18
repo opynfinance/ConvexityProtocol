@@ -58,8 +58,8 @@ contract('OptionsContract: Aave insurance', accounts => {
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('aUSDT', ausdt.address);
-    await optionsFactory.addAsset('USDT', usdt.address);
+    await optionsFactory.updateAsset('aUSDT', ausdt.address);
+    await optionsFactory.updateAsset('USDT', usdt.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
@@ -219,18 +219,18 @@ contract('OptionsContract: Aave insurance', accounts => {
 //     );
 //     // add asset
 //     if ((await optionFactoryContract.tokens('USDT')) === ZERO_ADDRESS) {
-//       await optionFactoryContract.addAsset('USDT', USDTAddress, {
+//       await optionFactoryContract.updateAsset('USDT', USDTAddress, {
 //         from: admin
 //       });
 //     }
 //     if ((await optionFactoryContract.tokens('aUSDT')) === ZERO_ADDRESS) {
-//       await optionFactoryContract.addAsset('aUSDT', aUSDTAddress, {
+//       await optionFactoryContract.updateAsset('aUSDT', aUSDTAddress, {
 //         from: admin
 //       });
 //     }
 
 //     if ((await optionFactoryContract.tokens('USDC')) === ZERO_ADDRESS) {
-//       await optionFactoryContract.addAsset('USDC', USDCAddress, {
+//       await optionFactoryContract.updateAsset('USDC', USDCAddress, {
 //         from: admin
 //       });
 //     }

@@ -11,13 +11,13 @@ module.exports = async function (deployer) {
   // const testToken2 = await deployer.deploy(ERC20);
 
   // // add assets
-  // await optionsFactory.addAsset('DAI', testDAI.address)
-  // await optionsFactory.addAsset('USDC', testUSDC.address)
-  // await optionsFactory.addAsset('TKN', testToken1.address)
+  // await optionsFactory.updateAsset('DAI', testDAI.address)
+  // await optionsFactory.updateAsset('USDC', testUSDC.address)
+  // await optionsFactory.updateAsset('TKN', testToken1.address)
 
   // // change asset
-  // await optionsFactory.changeAsset('TKN', testToken2.address)
+  // await optionsFactory.updateAsset('TKN', testToken2.address)
 
   // // delete asset
-  // await optionsFactory.deleteAsset('TKN')
+  // await optionsFactory.updateAsset('TKN')
 };
