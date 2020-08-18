@@ -5,7 +5,7 @@ import {
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
-const {time, expectEvent} = require('@openzeppelin/test-helpers');
+const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
@@ -21,17 +21,16 @@ contract('OptionsContract: YFI put', accounts => {
   const tokenHolder = accounts[2];
 
   let optionsFactory: OptionsFactoryInstance;
-  let oToken: OTokenInstance;
-  let bal: Erc20MintableInstance;
+  let oYfi: OTokenInstance;
+  // let oracle: MockyfioundOracleInstance;
+  let yfi: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
 
-  const _name = 'Opyn YFI Put $5000 09/14/20';
-  const _symbol = 'oYFIp $5000';
-  const _tokenDecimals = 7;
+  const usdcAmount = '1000000000'; // 1000 USDC
+  const yfiAmount = '1000000000000000000000'; // 1000 yfi
 
-  const yfiDigits = new BigNumber(10).exponentiatedBy(18);
-  const usdcDigits = new BigNumber(10).exponentiatedBy(6);
-  const oTokenDigits = new BigNumber(10).exponentiatedBy(7);
+  const _name = 'YFI put 250';
+  const _symbol = 'oYfi 250';
 
   before('set up contracts', async () => {
     const now = (await time.latest()).toNumber();
@@ -39,34 +38,31 @@ contract('OptionsContract: YFI put', accounts => {
     const windowSize = expiry; // time.duration.days(1).toNumber();
 
     // 1. Deploy mock contracts
-    // 1.1 Compound Oracle
-    // oracle = await MockCompoundOracle.deployed();
-    // oracle = MockCompoundOracle.at()
+    // 1.2 Mock yfi contract
+    yfi = await MintableToken.new();
+    await yfi.mint(creatorAddress, yfiAmount); // 1000 yfi
+    await yfi.mint(tokenHolder, yfiAmount);
 
-    // 1.2 Mock BAL contract
-    bal = await MintableToken.new();
-    await bal.mint(creatorAddress, new BigNumber(1000).times(yfiDigits)); // 1000 bal
-    await bal.mint(firstOwner, new BigNumber(1000).times(yfiDigits));
-    await bal.mint(tokenHolder, new BigNumber(1000).times(yfiDigits));
-
-    // 1.3 Mock USDT contract
+    // 1.3 Mock USDC contract
     usdc = await MintableToken.new();
-    await usdc.mint(creatorAddress, new BigNumber(7000).times(usdcDigits)); // 1000 USDC
-    await usdc.mint(firstOwner, new BigNumber(7000).times(usdcDigits));
+    await usdc.mint(creatorAddress, usdcAmount);
+    await usdc.mint(firstOwner, usdcAmount);
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('BAL', bal.address);
+    await optionsFactory.addAsset('YFI', yfi.address);
     await optionsFactory.addAsset('USDC', usdc.address);
+
+    // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
       -6,
-      'BAL',
+      'YFI',
       -18,
-      -_tokenDecimals,
-      7,
-      -7,
+      -6,
+      25,
+      -5,
       'USDC',
       expiry,
       windowSize,
@@ -74,119 +70,115 @@ contract('OptionsContract: YFI put', accounts => {
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
-    oToken = await OTokenContract.at(optionsContractAddr);
+    oYfi = await OTokenContract.at(optionsContractAddr);
 
     await reverter.snapshot();
   });
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oToken.setDetails(_name, _symbol, {
+      await oYfi.setDetails(_name, _symbol, {
         from: creatorAddress
       });
 
-      assert.equal(await oToken.name(), String(_name), 'set name error');
-      assert.equal(await oToken.symbol(), String(_symbol), 'set symbol error');
+      assert.equal(await oYfi.name(), String(_name), 'set name error');
+      assert.equal(await oYfi.symbol(), String(_symbol), 'set symbol error');
     });
 
     it('should update parameters', async () => {
-      await oToken.updateParameters(0, 500, 0, 10, {
-        from: creatorAddress
-      });
+      await oYfi.updateParameters('100', '500', 0, 10, {from: creatorAddress});
     });
 
     it('should open empty vault', async () => {
-      await oToken.openVault({
+      await oYfi.openVault({
         from: creatorAddress
       });
-      const vault = await oToken.getVault(creatorAddress);
+      const vault = await oYfi.getVault(creatorAddress);
       assert.equal(vault[0].toString(), '0');
       assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), '0');
     });
 
-    it('should add USDC collateral', async () => {
-      // approve and add 7000 usdc to the vault
-      const usdcAmount = new BigNumber(7000).times(usdcDigits).toString();
-
-      await usdc.approve(oToken.address, usdcAmount, {
-        from: creatorAddress
-      });
-      await oToken.addERC20Collateral(creatorAddress, usdcAmount, {
+    it('should add USDC collateral successfully', async () => {
+      await usdc.approve(oYfi.address, usdcAmount, {from: creatorAddress});
+      await oYfi.addERC20Collateral(creatorAddress, usdcAmount, {
         from: creatorAddress
       });
 
       // test that the vault's balances have been updated.
-      const vault = await oToken.getVault(creatorAddress);
+      const vault = await oYfi.getVault(creatorAddress);
       assert.equal(vault[0].toString(), usdcAmount);
       assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), '0');
     });
 
     it('should add USDC collateral and Mint', async () => {
-      // mint 1000 bal put
-      const amountToIssue = new BigNumber(1000).times(oTokenDigits).toString();
-      const amountCollateral = new BigNumber(7000).times(usdcDigits).toString();
-      await usdc.approve(oToken.address, amountCollateral, {
-        from: firstOwner
-      });
-      await oToken.createERC20CollateralOption(
-        amountToIssue,
-        amountCollateral,
-        tokenHolder,
+      const amountToIssue = new BigNumber('4000000'); // 1000 usdc can issue 4 250 put.
+
+      await usdc.approve(oYfi.address, usdcAmount, {from: firstOwner});
+
+      await expectRevert(
+        oYfi.createERC20CollateralOption(
+          amountToIssue.plus(1).toString(),
+          usdcAmount,
+          firstOwner,
+          {
+            from: firstOwner
+          }
+        ),
+        'unsafe to mint'
+      );
+
+      await oYfi.createERC20CollateralOption(
+        amountToIssue.toString(),
+        usdcAmount,
+        firstOwner,
         {
           from: firstOwner
         }
       );
 
       // test that the vault's balances have been updated.
-      const vault = await oToken.getVault(firstOwner);
-      assert.equal(vault[0].toString(), amountCollateral);
-      assert.equal(vault[1].toString(), amountToIssue);
+      const vault = await oYfi.getVault(firstOwner);
+      assert.equal(vault[0].toString(), usdcAmount);
+      assert.equal(vault[1].toString(), amountToIssue.toString());
       assert.equal(vault[2].toString(), '0');
     });
 
+    it('should not exercise without underlying allowance', async () => {
+      await oYfi.transfer(tokenHolder, '4000000', {from: firstOwner}); // transfer 80 oYfi
+
+      await expectRevert(
+        oYfi.exercise('4000000', [firstOwner], {
+          from: tokenHolder
+        }),
+        'transfer amount exceeds allowance.'
+      );
+    });
+
     it('should be able to exercise', async () => {
-      // exercise 500 puts
-      const amountToExercise = new BigNumber(500)
-        .times(oTokenDigits)
-        .toString();
-      const amountPayout = new BigNumber(3500).times(usdcDigits).toString();
+      const amountToExercise = '4000000';
       const underlyingRequired = (
-        await oToken.underlyingRequiredToExercise(amountToExercise)
+        await oYfi.underlyingRequiredToExercise(amountToExercise)
       ).toString();
 
-      assert.equal(
-        underlyingRequired,
-        new BigNumber(500).times(yfiDigits).toString()
-      );
-
-      await bal.approve(oToken.address, underlyingRequired, {
+      await yfi.approve(oYfi.address, underlyingRequired, {
         from: tokenHolder
       });
 
-      const exerciseTx = await oToken.exercise(amountToExercise, [firstOwner], {
+      const exerciseTx = await oYfi.exercise(amountToExercise, [firstOwner], {
         from: tokenHolder
       });
 
       expectEvent(exerciseTx, 'Exercise', {
         amtUnderlyingToPay: underlyingRequired,
-        amtCollateralToPay: amountPayout
+        amtCollateralToPay: '1000000000'
       });
 
       // test that the vault's balances have been updated.
-      const vault = await oToken.getVault(firstOwner);
-      // check remaining collateral
-      assert.equal(
-        vault[0].toString(),
-        new BigNumber(7000 - 3500).times(usdcDigits).toString()
-      );
-      // check remaining oTokenIssued
-      assert.equal(
-        vault[1].toString(),
-        new BigNumber(1000 - 500).times(oTokenDigits).toString()
-      );
-      // check underlying In the vault
+      const vault = await oYfi.getVault(firstOwner);
+      assert.equal(vault[0].toString(), '0');
+      assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), underlyingRequired);
     });
   });
