@@ -1,19 +1,22 @@
 pragma solidity 0.5.10;
 
-import "./interfaces/CompoundOracleInterface.sol";
-import "./interfaces/UniswapFactoryInterface.sol";
-import "./interfaces/UniswapExchangeInterface.sol";
-import "./packages/IERC20.sol";
+import "../../interfaces/CompoundOracleInterface.sol";
+import "../../interfaces/UniswapFactoryInterface.sol";
+import "../../interfaces/UniswapExchangeInterface.sol";
+import "../../lib/MockUniswapFactory.sol";
+import "../../packages/IERC20.sol";
 
 
-contract OptionsExchange {
+contract TestOptionsExchange {
     uint256 internal constant LARGE_BLOCK_SIZE = 1651753129000;
     uint256 internal constant LARGE_APPROVAL_NUMBER = 10**30;
 
     UniswapFactoryInterface public uniswapFactory;
 
-    constructor(address _uniswapFactory) public {
-        uniswapFactory = UniswapFactoryInterface(_uniswapFactory);
+    constructor() public {
+        uniswapFactory = UniswapFactoryInterface(
+            address(new MockUniswapFactory())
+        );
     }
 
     /*** Events ***/

@@ -14,7 +14,10 @@ module.exports = {
       'Migrations.sol',
       'lib/MockCompoundOracle.sol',
       'lib/MockUniswapFactory.sol',
-      'lib/MockOtokensExchange.sol'
+      'lib/MockOtokensExchange.sol',
+      'echidna/contracts/TestOptionsContract.sol',
+      'echidna/contracts/TestOptionsExchange.sol',
+      'echidna/EchidnaOptionsContract.sol'
     ]
   };
   
