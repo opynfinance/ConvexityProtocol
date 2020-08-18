@@ -127,7 +127,8 @@ contract TestOptionsContract is Ownable, ERC20 {
 
         IERC20 _collateral = IERC20(usdc);
         int32 _collExp = -6;
-        IERC20 _underlying = IERC20(address(new ERC20()));
+        // IERC20 _underlying = IERC20(address(new ERC20()));
+        IERC20 _underlying = IERC20(address(0));
         int32 _underlyingExp = -18;
         int32 _oTokenExchangeExp = -6;
         uint256 _strikePrice = 25;

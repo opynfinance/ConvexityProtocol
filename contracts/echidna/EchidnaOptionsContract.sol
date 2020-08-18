@@ -77,7 +77,55 @@ contract EchidnaOptionsContract is TestOptionsContract {
         return minCollateralizationRatio.value >= 10;
     }
 
-    function echidna_vault_balances_sum() public view returns (bool) {
-        return minCollateralizationRatio.value >= 10;
+    function echidna_vault_collateral_sum() public view returns (bool) {
+        uint256 collateralSum = 0;
+        if (vaultOwners.length > 0) {
+            for (uint256 i = 0; i < vaultOwners.length; i++) {
+                Vault memory vault = vaults[vaultOwners[i]];
+                collateralSum = collateralSum.add(vault.collateral);
+            }
+        }
+
+        uint256 collateralBalance = 0;
+        if (isETH(collateral)) {
+            collateralBalance = address(this).balance;
+        } else {
+            collateralBalance = collateral.balanceOf(address(this));
+        }
+        return collateralBalance == collateralSum;
+    }
+
+    function echidna_vault_oTokens_sum() public view returns (bool) {
+        uint256 oTokensSum = 0;
+        if (vaultOwners.length > 0) {
+            for (uint256 i = 0; i < vaultOwners.length; i++) {
+                Vault memory vault = vaults[vaultOwners[i]];
+                oTokensSum = oTokensSum.add(vault.oTokensIssued);
+            }
+        }
+
+        return oTokensSum == totalSupply();
+    }
+
+    function echidna_vault_underlying_sum() public view returns (bool) {
+        uint256 underlyingSum = 0;
+        if (vaultOwners.length > 0) {
+            for (uint256 i = 0; i < vaultOwners.length; i++) {
+                Vault memory vault = vaults[vaultOwners[i]];
+                underlyingSum = underlyingSum.add(vault.underlying);
+            }
+        }
+
+        uint256 underlyingBalance = 0;
+        if (isETH(underlying)) {
+            underlyingBalance = address(this).balance;
+        } else {
+            underlyingBalance = underlying.balanceOf(address(this));
+        }
+        return underlyingBalance == underlyingSum;
+    }
+
+    function echidna_test_should_fail() public view returns (bool) {
+        return collateral.balanceOf(address(this)) == 0;
     }
 }
