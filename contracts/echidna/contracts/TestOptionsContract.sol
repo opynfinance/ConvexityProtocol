@@ -1,21 +1,22 @@
 pragma solidity ^0.5.10;
 
-import "./interfaces/CompoundOracleInterface.sol";
-import "./interfaces/UniswapFactoryInterface.sol";
-import "./interfaces/UniswapExchangeInterface.sol";
-import "./OptionsExchange.sol";
-import "./packages/ERC20.sol";
-import "./packages/IERC20.sol";
-import "./packages/ERC20Detailed.sol";
-import "./packages/Ownable.sol";
-import "./packages/SafeMath.sol";
+import "../../lib/MockCompoundOracle.sol";
+import "../../interfaces/CompoundOracleInterface.sol";
+import "../../packages/ERC20.sol";
+import "../../packages/IERC20.sol";
+import "../../packages/ERC20Detailed.sol";
+import "../../packages/Ownable.sol";
+import "../../packages/SafeMath.sol";
+import "../../interfaces/UniswapFactoryInterface.sol";
+import "../../interfaces/UniswapExchangeInterface.sol";
+import "./TestOptionsExchange.sol";
 
 
 /**
  * @title Opyn's Options Contract
  * @author Opyn
  */
-contract OptionsContract is Ownable, ERC20 {
+contract TestOptionsContract is Ownable, ERC20 {
     using SafeMath for uint256;
 
     /* represents floting point numbers, where number = value * 10 ** exponent
@@ -33,7 +34,7 @@ contract OptionsContract is Ownable, ERC20 {
         bool owned;
     }
 
-    OptionsExchange public optionsExchange;
+    TestOptionsExchange public optionsExchange;
 
     mapping(address => Vault) internal vaults;
 
@@ -97,35 +98,8 @@ contract OptionsContract is Ownable, ERC20 {
     // The number of decimals of the contract
     uint8 public decimals;
 
-    /**
-     * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
-     * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
-     * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
-     * @param _strikePrice The amount of strike asset that will be paid out per oToken
-     * @param _strikeExp The precision of the strike price.
-     * @param _strike The asset in which the insurance is calculated
-     * @param _expiry The time at which the insurance expires
-     * @param _optionsExchange The contract which interfaces with the exchange + oracle
-     * @param _oracleAddress The address of the oracle
-     * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
-     */
-    constructor(
-        IERC20 _collateral,
-        int32 _collExp,
-        IERC20 _underlying,
-        int32 _underlyingExp,
-        int32 _oTokenExchangeExp,
-        uint256 _strikePrice,
-        int32 _strikeExp,
-        IERC20 _strike,
-        uint256 _expiry,
-        OptionsExchange _optionsExchange,
-        address _oracleAddress,
-        uint256 _windowSize
-    ) public {
-        require(block.timestamp < _expiry, "Can't deploy an expired contract");
+    constructor() public {
+        /*require(block.timestamp < _expiry, "Can't deploy an expired contract");
         require(
             _windowSize <= _expiry,
             "Exercise window can't be longer than the contract's lifespan"
@@ -145,12 +119,25 @@ contract OptionsContract is Ownable, ERC20 {
         require(
             isWithinExponentRange(_oTokenExchangeExp),
             "oToken exchange rate exponent not within expected range"
-        );
+        );*/
 
-        require(
-            address(_underlying) != address(0),
-            "OptionsContract: Can't use ETH as underlying."
-        );
+        address usdc = address(new ERC20());
+        address compoundOracleMock = address(new MockCompoundOracle());
+        //address uniswapFactoryMock = address(new MockUniswapFactory());
+
+        IERC20 _collateral = IERC20(usdc);
+        int32 _collExp = -6;
+        IERC20 _underlying = IERC20(address(new ERC20()));
+        int32 _underlyingExp = -18;
+        int32 _oTokenExchangeExp = -6;
+        uint256 _strikePrice = 25;
+        int32 _strikeExp = -5;
+        IERC20 _strike = IERC20(usdc);
+        uint256 _expiry = now + 30 days;
+        TestOptionsExchange _optionsExchange = new TestOptionsExchange();
+        //address _oracleAddress = address(new Oracle(compoundOracleMock));
+        address _oracleAddress = compoundOracleMock;
+        uint256 _windowSize = _expiry;
 
         collateral = _collateral;
         collateralExp = _collExp;
@@ -270,17 +257,6 @@ contract OptionsContract is Ownable, ERC20 {
             _minCollateralizationRatio,
             owner()
         );
-    }
-
-    function harvest(address _token, uint256 _amount) external onlyOwner {
-        require(
-            (_token != address(underlying)) &&
-                (_token != address(collateral)) &&
-                (_token != address(strike)),
-            "Owner can't harvest this token"
-        );
-
-        ERC20(_token).transfer(msg.sender, _amount);
     }
 
     /**
@@ -774,6 +750,11 @@ contract OptionsContract is Ownable, ERC20 {
             oTokensToExercise <= vault.oTokensIssued,
             "Can't exercise more oTokens than the owner has"
         );
+        // Ensure person calling has enough oTokens
+        require(
+            balanceOf(msg.sender) >= oTokensToExercise,
+            "Not enough oTokens"
+        );
 
         // 1. Check sufficient underlying
         // 1.1 update underlying balances
@@ -789,26 +770,37 @@ contract OptionsContract is Ownable, ERC20 {
             Number(1, 0)
         );
 
+        // 2.2 Take a small fee on every exercise
+        uint256 amtFee = calculateCollateralToPay(
+            oTokensToExercise,
+            transactionFee
+        );
+        totalFee = totalFee.add(amtFee);
+
+        uint256 totalCollateralToPay = amtCollateralToPay.add(amtFee);
         require(
-            amtCollateralToPay <= vault.collateral,
+            totalCollateralToPay <= vault.collateral,
             "Vault underwater, can't exercise"
         );
 
         // 3. Update collateral + oToken balances
-        vault.collateral = vault.collateral.sub(amtCollateralToPay);
+        vault.collateral = vault.collateral.sub(totalCollateralToPay);
         vault.oTokensIssued = vault.oTokensIssued.sub(oTokensToExercise);
 
         // 4. Transfer in underlying, burn oTokens + pay out collateral
         // 4.1 Transfer in underlying
-        require(
-            underlying.transferFrom(
-                msg.sender,
-                address(this),
-                amtUnderlyingToPay
-            ),
-            "OptionsContract: Could not transfer in tokens"
-        );
-
+        if (isETH(underlying)) {
+            require(msg.value == amtUnderlyingToPay, "Incorrect msg.value");
+        } else {
+            require(
+                underlying.transferFrom(
+                    msg.sender,
+                    address(this),
+                    amtUnderlyingToPay
+                ),
+                "OptionsContract: Could not transfer in tokens"
+            );
+        }
         // 4.2 burn oTokens
         _burn(msg.sender, oTokensToExercise);
 
@@ -1015,10 +1007,14 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _amt The amount of the underlying to pay out.
      */
     function transferUnderlying(address payable _addr, uint256 _amt) internal {
-        require(
-            underlying.transfer(_addr, _amt),
-            "OptionsContract: transfer underlying failed"
-        );
+        if (isETH(underlying)) {
+            _addr.transfer(_amt);
+        } else {
+            require(
+                underlying.transfer(_addr, _amt),
+                "OptionsContract: transfer underlying failed"
+            );
+        }
     }
 
     /**

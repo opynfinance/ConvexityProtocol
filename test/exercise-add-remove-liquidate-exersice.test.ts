@@ -945,7 +945,7 @@ contract('OptionsContract', accounts => {
         from: creatorAddress
       });
 
-      const collateralRedeemed = new BN(9999091);
+      const collateralRedeemed = new BN(9999100);
       const underlyingRedeemed = new BN(100000);
 
       const initialDaiBalance = new BN(
@@ -975,7 +975,7 @@ contract('OptionsContract', accounts => {
     });
 
     it('firstVaultOwnerAddress should be able to claim after expiry', async () => {
-      const collateralRedeemed = new BN(10722238);
+      const collateralRedeemed = new BN(10722242);
       const underlyingRedeemed = new BN(100000);
 
       const initialDaiBalance = new BN(
@@ -1001,23 +1001,6 @@ contract('OptionsContract', accounts => {
 
       const vault = await optionsContracts[0].getVault(firstVaultOwnerAddress);
       expect(vault['0'].toString()).to.equal('0');
-    });
-
-    it('owner should be able to withdraw fee', async () => {
-      const initialETH = await balance.current(creatorAddress);
-
-      const txInfo = await optionsContracts[0].transferFee(creatorAddress, {
-        from: creatorAddress
-      });
-
-      const tx = await web3.eth.getTransaction(txInfo.tx);
-      const finalETH = await balance.current(creatorAddress);
-      const gasUsed = new BN(txInfo.receipt.gasUsed);
-      const gasPrice = new BN(tx.gasPrice);
-      const expectedEndETHBalance = initialETH
-        .sub(gasUsed.mul(gasPrice))
-        .add(new BN('13'));
-      expect(finalETH.toString()).to.equal(expectedEndETHBalance.toString());
     });
   });
 });

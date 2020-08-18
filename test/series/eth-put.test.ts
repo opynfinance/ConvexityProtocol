@@ -24,6 +24,7 @@ contract('OptionsContract: ETH put', accounts => {
   // let oracle: MockCompoundOracleInstance;
   // let comp: Erc20MintableInstance;
   let usdc: Erc20MintableInstance;
+  let weth: Erc20MintableInstance;
 
   const usdcAmount = '1000000000'; // 1000 USDC
 
@@ -40,6 +41,7 @@ contract('OptionsContract: ETH put', accounts => {
 
     // 1.3 Mock USDC contract
     usdc = await MintableToken.new();
+    weth = await MintableToken.new();
     await usdc.mint(creatorAddress, usdcAmount);
     await usdc.mint(firstOwner, usdcAmount);
 
@@ -47,12 +49,13 @@ contract('OptionsContract: ETH put', accounts => {
     optionsFactory = await OptionsFactory.deployed();
 
     await optionsFactory.addAsset('USDC', usdc.address);
+    await optionsFactory.addAsset('WETH', weth.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       'USDC',
       -6,
-      'ETH',
+      'WETH',
       -18,
       -6,
       25,
@@ -146,9 +149,10 @@ contract('OptionsContract: ETH put', accounts => {
         await oETH.underlyingRequiredToExercise(amountToExercise)
       ).toString();
 
+      await weth.mint(tokenHolder, underlyingRequired);
+      await weth.approve(oETH.address, underlyingRequired, {from: tokenHolder});
       const exerciseTx = await oETH.exercise(amountToExercise, [firstOwner], {
-        from: tokenHolder,
-        value: new BigNumber(4).times(1e18).toString()
+        from: tokenHolder
       });
 
       expectEvent(exerciseTx, 'Exercise', {

@@ -1,2 +1,4 @@
 contracts/lib/
 contracts/Migrations.sol
+contracts/packages/
+contracts/echidna/

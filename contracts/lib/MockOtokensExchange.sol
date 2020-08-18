@@ -1,6 +1,6 @@
 pragma solidity 0.5.10;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../packages/IERC20.sol";
 
 contract MockOtokensExchange {
 
@@ -29,14 +29,20 @@ contract MockOtokensExchange {
 
     function pullToken(address _from, address _token, uint256 _amount) internal {
         if(_token != address(0)) 
-            IERC20(_token).transferFrom(_from, address(this), _amount);
+            require(
+                IERC20(_token).transferFrom(_from, address(this), _amount),
+                "MockOtokenExchange: Pull token failed"
+            );
     }
 
     function pushToken(address payable _to, address _token, uint256 _amount) internal {
         if(_token == address(0)) {
             _to.transfer(_amount);
         } else {
-            IERC20(_token).transferFrom(address(this), _to, _amount);
+            require (
+                IERC20(_token).transfer(_to, _amount),
+                "MockOtokenExchange: Push token failed"
+            );
         }
     }
 

@@ -257,7 +257,7 @@ contract(
         const txInfo = await optionsFactory.createOptionsContract(
           'ETH',
           -'18',
-          'ETH',
+          'DAI',
           -'18',
           -'17',
           '90',
@@ -281,7 +281,7 @@ contract(
         const txInfo = await optionsFactory.createOptionsContract(
           'ETH',
           -'18',
-          'ETH',
+          'DAI',
           -'18',
           -'17',
           '90',

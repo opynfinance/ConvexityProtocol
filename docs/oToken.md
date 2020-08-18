@@ -99,7 +99,7 @@ function createAndSellETHCollateralOption(uint256 amtToCreate, address payable r
 adds ETH collateral to an existing Vault, and mints new oTokens and sells the oTokens in one step
 
 ```js
-function addAndSellETHCollateralOption(uint256 amtToCreate, address payable receiver) public payable
+function addAndSellETHCollateralOption(uint256 amtToCreate, address payable receiver) external payable
 ```
 
 **Arguments**
@@ -170,7 +170,7 @@ function createAndSellERC20CollateralOption(uint256 amtToCreate, uint256 amtColl
 adds ERC20 collateral, mints new oTokens and sells the oTokens in one step
 
 ```js
-function addAndSellERC20CollateralOption(uint256 amtToCreate, uint256 amtCollateral, address payable receiver) public nonpayable
+function addAndSellERC20CollateralOption(uint256 amtToCreate, uint256 amtCollateral, address payable receiver) external nonpayable
 ```
 
 **Arguments**
@@ -190,11 +190,13 @@ function addAndSellERC20CollateralOption(uint256 amtToCreate, uint256 amtCollate
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)

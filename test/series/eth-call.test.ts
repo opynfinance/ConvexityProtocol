@@ -2,7 +2,7 @@ import {
   Erc20MintableInstance,
   OptionsContractInstance,
   OptionsFactoryInstance
-} from '../build/types/truffle-types';
+} from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
 
@@ -10,7 +10,7 @@ const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MintableToken = artifacts.require('ERC20Mintable');
 
-import {calculateMaxOptionsToCreate} from './utils/helper';
+import {calculateMaxOptionsToCreate} from '../utils/helper';
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
 
 contract(
@@ -494,7 +494,7 @@ contract(
               from: buyer1
             }
           ),
-          'Not enough oTokens'
+          'ERC20: transfer amount exceeds balance'
         );
       });
 
