@@ -772,7 +772,7 @@ contract('OptionsContract', accounts => {
       expiry = now + time.duration.days(30).toNumber();
       windowSize = expiry;
       otoken = await OptionsContract.new(
-        usdc.address,
+        weth.address,
         -'18',
         dai.address,
         -'18',
@@ -791,9 +791,9 @@ contract('OptionsContract', accounts => {
     });
 
     it('should revert trying to harvest collateral token', async () => {
-      usdc.mint(otoken.address, amount);
+      weth.mint(otoken.address, amount);
       await expectRevert(
-        otoken.harvest(usdc.address, amount, {
+        otoken.harvest(weth.address, amount, {
           from: creatorAddress
         }),
         "Owner can't harvest this token"
@@ -801,9 +801,19 @@ contract('OptionsContract', accounts => {
     });
 
     it('should revert trying to harvest underlying token', async () => {
-      usdc.mint(otoken.address, amount);
+      dai.mint(otoken.address, amount);
       await expectRevert(
         otoken.harvest(dai.address, amount, {
+          from: creatorAddress
+        }),
+        "Owner can't harvest this token"
+      );
+    });
+
+    it('should revert trying to harvest strike token', async () => {
+      usdc.mint(otoken.address, amount);
+      await expectRevert(
+        otoken.harvest(usdc.address, amount, {
           from: creatorAddress
         }),
         "Owner can't harvest this token"
