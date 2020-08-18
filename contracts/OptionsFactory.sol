@@ -18,9 +18,11 @@ contract OptionsFactory is Ownable {
     address public oracleAddress;
 
     event OptionsContractCreated(address addr);
-    event AssetAdded(string indexed asset, address indexed addr);
-    event AssetChanged(string indexed asset, address indexed addr);
-    event AssetDeleted(string indexed asset);
+    event AssetUpdated(
+        string indexed asset,
+        address indexed oldAddr,
+        address indexed newAddr
+    );
 
     /**
      * @param _optionsExchangeAddr: The contract which interfaces with the exchange
@@ -102,53 +104,17 @@ contract OptionsFactory is Ownable {
     }
 
     /**
-     * @notice The owner of the Factory Contract can add a new asset to be supported
-     * @dev admin don't add ETH. ETH is set to 0x0.
+     * @notice The owner of the Factory Contract can update an asset's address, by adding it, changing the address or removing the asset
      * @param _asset The ticker symbol for the asset
      * @param _addr The address of the asset
      */
-    function addAsset(string calldata _asset, address _addr)
+    function updateAsset(string calldata _asset, address _addr)
         external
         onlyOwner
     {
-        require(!supportsAsset(_asset), "Asset already added");
-        require(_addr != address(0), "Cannot set to address(0)");
+        emit AssetUpdated(_asset, address(tokens[_asset]), _addr);
 
         tokens[_asset] = IERC20(_addr);
-        emit AssetAdded(_asset, _addr);
-    }
-
-    /**
-     * @notice The owner of the Factory Contract can change an existing asset's address
-     * @param _asset The ticker symbol for the asset
-     * @param _addr The address of the asset
-     */
-    function changeAsset(string calldata _asset, address _addr)
-        external
-        onlyOwner
-    {
-        require(
-            tokens[_asset] != IERC20(0),
-            "Trying to replace a non-existent asset"
-        );
-        require(_addr != address(0), "Cannot set to address(0)");
-
-        tokens[_asset] = IERC20(_addr);
-        emit AssetChanged(_asset, _addr);
-    }
-
-    /**
-     * @notice The owner of the Factory Contract can delete an existing asset's address
-     * @param _asset The ticker symbol for the asset
-     */
-    function deleteAsset(string calldata _asset) external onlyOwner {
-        require(
-            tokens[_asset] != IERC20(0),
-            "Trying to delete a non-existent asset"
-        );
-
-        tokens[_asset] = IERC20(0);
-        emit AssetDeleted(_asset);
     }
 
     /**
