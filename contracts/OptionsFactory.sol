@@ -2,8 +2,8 @@ pragma solidity 0.5.10;
 
 import "./oToken.sol";
 import "./lib/StringComparator.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./packages/Ownable.sol";
+import "./packages/IERC20.sol";
 
 
 contract OptionsFactory is Ownable {

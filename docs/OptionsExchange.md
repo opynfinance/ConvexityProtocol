@@ -54,7 +54,7 @@ function (address _uniswapFactory) public nonpayable
 This function sells oTokens on Uniswap and sends back payoutTokens to the receiver
 
 ```js
-function sellOTokens(address payable receiver, address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell) public nonpayable
+function sellOTokens(address payable receiver, address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell) external nonpayable
 ```
 
 **Arguments**
@@ -71,7 +71,7 @@ function sellOTokens(address payable receiver, address oTokenAddress, address pa
 This function buys oTokens on Uniswap and using paymentTokens from the receiver
 
 ```js
-function buyOTokens(address payable receiver, address oTokenAddress, address paymentTokenAddress, uint256 oTokensToBuy) public payable
+function buyOTokens(address payable receiver, address oTokenAddress, address paymentTokenAddress, uint256 oTokensToBuy) external payable
 ```
 
 **Arguments**
@@ -89,7 +89,7 @@ This function calculates the amount of premiums that the seller
 will receive if they sold oTokens on Uniswap
 
 ```js
-function premiumReceived(address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell) public view
+function premiumReceived(address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell) external view
 returns(uint256)
 ```
 
@@ -197,11 +197,13 @@ function () external payable
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)

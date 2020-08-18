@@ -54,7 +54,7 @@ function (OptionsExchange _optionsExchangeAddr, address _oracleAddress) public n
 creates a new Option Contract
 
 ```js
-function createOptionsContract(string _collateralType, int32 _collateralExp, string _underlyingType, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, string _strikeAsset, uint256 _expiry, uint256 _windowSize) public nonpayable
+function createOptionsContract(string _collateralType, int32 _collateralExp, string _underlyingType, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, string _strikeAsset, uint256 _expiry, uint256 _windowSize) external nonpayable
 returns(address)
 ```
 
@@ -78,7 +78,7 @@ returns(address)
 The number of Option Contracts that the Factory contract has stored
 
 ```js
-function getNumberOfOptionsContracts() public view
+function getNumberOfOptionsContracts() external view
 returns(uint256)
 ```
 
@@ -92,7 +92,7 @@ returns(uint256)
 The owner of the Factory Contract can add a new asset to be supported
 
 ```js
-function addAsset(string _asset, address _addr) public nonpayable onlyOwner 
+function addAsset(string _asset, address _addr) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -107,7 +107,7 @@ function addAsset(string _asset, address _addr) public nonpayable onlyOwner
 The owner of the Factory Contract can change an existing asset's address
 
 ```js
-function changeAsset(string _asset, address _addr) public nonpayable onlyOwner 
+function changeAsset(string _asset, address _addr) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -122,7 +122,7 @@ function changeAsset(string _asset, address _addr) public nonpayable onlyOwner
 The owner of the Factory Contract can delete an existing asset's address
 
 ```js
-function deleteAsset(string _asset) public nonpayable onlyOwner 
+function deleteAsset(string _asset) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -155,11 +155,13 @@ returns(bool)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
+* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
 * [LibNote](LibNote.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)
