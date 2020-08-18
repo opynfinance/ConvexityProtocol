@@ -49,7 +49,4 @@ contract MockUniswapFactory {
     function setTokenWithId(uint256 tokenId, address token) external {
         idToToken[tokenId] = token;
     }
-
-    // Never use
-    function initializeFactory(address template) external {}
 }
