@@ -39,9 +39,6 @@ contract OptionsContract is Ownable, ERC20 {
     // 10 is 0.01 i.e. 1% incentive.
     Number public liquidationIncentive = Number(10, -3);
 
-    // 100 is egs. 0.1 i.e. 10%.
-    Number public transactionFee = Number(0, -3);
-
     /* 500 is 0.5. Max amount that a Vault can be liquidated by i.e.
     max collateral that can be taken in one function call */
     Number public liquidationFactor = Number(500, -3);
@@ -49,7 +46,7 @@ contract OptionsContract is Ownable, ERC20 {
     /* 16 means 1.6. The minimum ratio of a Vault's collateral to insurance promised.
     The ratio is calculated as below:
     vault.collateral / (Vault.oTokensIssued * strikePrice) */
-    Number public minCollateralizationRatio = Number(16, -1);
+    Number public minCollateralizationRatio = Number(10, -1);
 
     // The amount of insurance promised per oToken
     Number public strikePrice;
@@ -201,7 +198,6 @@ contract OptionsContract is Ownable, ERC20 {
     event UpdateParameters(
         uint256 liquidationIncentive,
         uint256 liquidationFactor,
-        uint256 transactionFee,
         uint256 minCollateralizationRatio,
         address owner
     );
@@ -235,13 +231,11 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
      * @param _liquidationIncentive The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive.
      * @param _liquidationFactor Max amount that a Vault can be liquidated by. 500 is 0.5.
-     * @param _transactionFee The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%.
      * @param _minCollateralizationRatio The minimum ratio of a Vault's collateral to insurance promised. 16 means 1.6.
      */
     function updateParameters(
         uint256 _liquidationIncentive,
         uint256 _liquidationFactor,
-        uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) external onlyOwner {
         require(
@@ -252,7 +246,6 @@ contract OptionsContract is Ownable, ERC20 {
             _liquidationFactor <= 1000,
             "Can't liquidate more than 100% of the vault"
         );
-        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
         require(
             _minCollateralizationRatio >= 10,
             "Can't have minCollateralizationRatio < 1"
@@ -260,13 +253,11 @@ contract OptionsContract is Ownable, ERC20 {
 
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
-        transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
 
         emit UpdateParameters(
             _liquidationIncentive,
             _liquidationFactor,
-            _transactionFee,
             _minCollateralizationRatio,
             owner()
         );
