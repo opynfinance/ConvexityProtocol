@@ -1,7 +1,9 @@
 import {
   OptionsFactoryInstance,
   OTokenInstance,
-  Erc20MintableInstance
+  Erc20MintableInstance,
+  ExerciserInstance,
+  Weth9Instance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -11,11 +13,10 @@ const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockERC20 = artifacts.require('MockERC20');
 
-import Reverter from '../utils/reverter';
+const Exerciser = artifacts.require('Exerciser');
+const WETH = artifacts.require('WETH9');
 
 contract('OptionsContract: weth put', accounts => {
-  const reverter = new Reverter(web3);
-
   const creatorAddress = accounts[0];
   const firstOwner = accounts[1];
   const tokenHolder = accounts[2];
@@ -23,11 +24,14 @@ contract('OptionsContract: weth put', accounts => {
   let optionsFactory: OptionsFactoryInstance;
   let oWeth: OTokenInstance;
   // let oracle: MockwethoundOracleInstance;
-  let weth: Erc20MintableInstance;
+
+  let exerciser: ExerciserInstance;
+
+  let weth: Weth9Instance;
   let usdc: Erc20MintableInstance;
 
-  const usdcAmount = '1000000000'; // 1000 USDC
-  const wethAmount = '1000000000000000000000'; // 1000 weth
+  const usdcAmount = '1000000000'; // 10000 USDC
+  const wethAmount = '4000000000000000000';
 
   const _name = 'TH put 250';
   const _symbol = 'oEth 250';
@@ -39,9 +43,8 @@ contract('OptionsContract: weth put', accounts => {
 
     // 1. Deploy mock contracts
     // 1.2 Mock weth contract
-    weth = await MockERC20.new('weth', 'weth', 18);
-    await weth.mint(creatorAddress, wethAmount); // 1000 weth
-    await weth.mint(tokenHolder, wethAmount);
+    weth = await WETH.new();
+    exerciser = await Exerciser.new(weth.address);
 
     // 1.3 Mock USDC contract
     usdc = await MockERC20.new('USDC', 'USDC', 6);
@@ -71,16 +74,10 @@ contract('OptionsContract: weth put', accounts => {
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     oWeth = await OTokenContract.at(optionsContractAddr);
-
-    await reverter.snapshot();
   });
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oWeth.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oWeth.name(), String(_name), 'set name error');
       assert.equal(await oWeth.symbol(), String(_symbol), 'set symbol error');
     });
@@ -141,34 +138,34 @@ contract('OptionsContract: weth put', accounts => {
       assert.equal(vault[2].toString(), '0');
     });
 
-    it('should not exercise without underlying allowance', async () => {
-      await oWeth.transfer(tokenHolder, '4000000', {from: firstOwner}); // transfer 80 oWeth
-
-      await expectRevert(
-        oWeth.exercise('4000000', [firstOwner], {
-          from: tokenHolder
-        }),
-        'transfer amount exceeds allowance.'
-      );
-    });
-
-    it('should be able to exercise', async () => {
+    it('should be able to exercise from wrapper exerciser ', async () => {
       const amountToExercise = '4000000';
+      await oWeth.transfer(tokenHolder, amountToExercise, {from: firstOwner});
+      // weth
       const underlyingRequired = (
         await oWeth.underlyingRequiredToExercise(amountToExercise)
       ).toString();
 
-      await weth.approve(oWeth.address, underlyingRequired, {
+      // approve exerciser to spend otoken
+      await oWeth.approve(exerciser.address, amountToExercise, {
         from: tokenHolder
       });
 
-      const exerciseTx = await oWeth.exercise(amountToExercise, [firstOwner], {
-        from: tokenHolder
-      });
+      const exerciseTx = await exerciser.exercise(
+        oWeth.address,
+        amountToExercise,
+        [firstOwner],
+        {
+          value: underlyingRequired,
+          from: tokenHolder
+        }
+      );
 
-      expectEvent(exerciseTx, 'Exercise', {
-        amtUnderlyingToPay: underlyingRequired,
-        amtCollateralToPay: '1000000000'
+      expectEvent(exerciseTx, 'WrapperExercise', {
+        otoken: oWeth.address,
+        otokenAmount: amountToExercise,
+        collateralExercised: '1000000000',
+        user: tokenHolder
       });
 
       // test that the vault's balances have been updated.
