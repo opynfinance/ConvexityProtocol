@@ -86,12 +86,14 @@ contract('OptionsContract: Aave insurance', accounts => {
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oaUSDT.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oaUSDT.name(), String(_name), 'set name error');
       assert.equal(await oaUSDT.symbol(), String(_symbol), 'set symbol error');
+    });
+
+    it('should update parameters', async () => {
+      await oaUSDT.updateParameters(10, 500, 16, {
+        from: creatorAddress
+      });
     });
 
     it('should open empty vault', async () => {
