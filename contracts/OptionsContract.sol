@@ -39,9 +39,6 @@ contract OptionsContract is Ownable, ERC20 {
     // 10 is 0.01 i.e. 1% incentive.
     Number public liquidationIncentive = Number(10, -3);
 
-    // 100 is egs. 0.1 i.e. 10%.
-    Number public transactionFee = Number(0, -3);
-
     /* 500 is 0.5. Max amount that a Vault can be liquidated by i.e.
     max collateral that can be taken in one function call */
     Number public liquidationFactor = Number(500, -3);
@@ -49,7 +46,7 @@ contract OptionsContract is Ownable, ERC20 {
     /* 16 means 1.6. The minimum ratio of a Vault's collateral to insurance promised.
     The ratio is calculated as below:
     vault.collateral / (Vault.oTokensIssued * strikePrice) */
-    Number public minCollateralizationRatio = Number(16, -1);
+    Number public minCollateralizationRatio = Number(10, -1);
 
     // The amount of insurance promised per oToken
     Number public strikePrice;
@@ -99,43 +96,32 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
      * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
      * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
      * @param _strikePrice The amount of strike asset that will be paid out per oToken
      * @param _strikeExp The precision of the strike price.
      * @param _strike The asset in which the insurance is calculated
      * @param _expiry The time at which the insurance expires
-     * @param _oracleAddress The address of the oracle
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+     * @param _oracleAddress The address of the oracle
      */
     constructor(
-        IERC20 _collateral,
-        int32 _collExp,
-        IERC20 _underlying,
-        int32 _underlyingExp,
+        address _collateral,
+        address _underlying,
+        address _strike,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        IERC20 _strike,
         uint256 _expiry,
-        address _oracleAddress,
-        uint256 _windowSize
+        uint256 _windowSize,
+        address _oracleAddress
     ) public {
         require(block.timestamp < _expiry, "Can't deploy an expired contract");
         require(
             _windowSize <= _expiry,
             "Exercise window can't be longer than the contract's lifespan"
         );
-        require(
-            isWithinExponentRange(_collExp),
-            "collateral exponent not within expected range"
-        );
-        require(
-            isWithinExponentRange(_underlyingExp),
-            "underlying exponent not within expected range"
-        );
+
         require(
             isWithinExponentRange(_strikeExp),
             "strike price exponent not within expected range"
@@ -150,15 +136,24 @@ contract OptionsContract is Ownable, ERC20 {
             "OptionsContract: Can't use ETH as underlying."
         );
 
-        collateral = _collateral;
-        collateralExp = _collExp;
+        collateral = IERC20(_collateral);
+        underlying = IERC20(_underlying);
+        strike = IERC20(_strike);
 
-        underlying = _underlying;
-        underlyingExp = _underlyingExp;
+        collateralExp = getAssetExp(_collateral);
+        underlyingExp = getAssetExp(_underlying);
+        require(
+            isWithinExponentRange(collateralExp),
+            "collateral exponent not within expected range"
+        );
+        require(
+            isWithinExponentRange(underlyingExp),
+            "underlying exponent not within expected range"
+        );
+
         oTokenExchangeRate = Number(1, _oTokenExchangeExp);
 
         strikePrice = Number(_strikePrice, _strikeExp);
-        strike = _strike;
 
         expiry = _expiry;
         oracle = OracleInterface(_oracleAddress);
@@ -203,7 +198,6 @@ contract OptionsContract is Ownable, ERC20 {
     event UpdateParameters(
         uint256 liquidationIncentive,
         uint256 liquidationFactor,
-        uint256 transactionFee,
         uint256 minCollateralizationRatio,
         address owner
     );
@@ -237,13 +231,11 @@ contract OptionsContract is Ownable, ERC20 {
      * @notice Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
      * @param _liquidationIncentive The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive.
      * @param _liquidationFactor Max amount that a Vault can be liquidated by. 500 is 0.5.
-     * @param _transactionFee The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%.
      * @param _minCollateralizationRatio The minimum ratio of a Vault's collateral to insurance promised. 16 means 1.6.
      */
     function updateParameters(
         uint256 _liquidationIncentive,
         uint256 _liquidationFactor,
-        uint256 _transactionFee,
         uint256 _minCollateralizationRatio
     ) external onlyOwner {
         require(
@@ -254,7 +246,6 @@ contract OptionsContract is Ownable, ERC20 {
             _liquidationFactor <= 1000,
             "Can't liquidate more than 100% of the vault"
         );
-        require(_transactionFee <= 100, "Can't have transaction fee > 10%");
         require(
             _minCollateralizationRatio >= 10,
             "Can't have minCollateralizationRatio < 1"
@@ -262,13 +253,11 @@ contract OptionsContract is Ownable, ERC20 {
 
         liquidationIncentive.value = _liquidationIncentive;
         liquidationFactor.value = _liquidationFactor;
-        transactionFee.value = _transactionFee;
         minCollateralizationRatio.value = _minCollateralizationRatio;
 
         emit UpdateParameters(
             _liquidationIncentive,
             _liquidationFactor,
-            _transactionFee,
             _minCollateralizationRatio,
             owner()
         );
@@ -1050,6 +1039,15 @@ contract OptionsContract is Ownable, ERC20 {
             underlying.transfer(_addr, _amt),
             "OptionsContract: transfer underlying failed"
         );
+    }
+
+    /**
+     * @dev internal function to parse token decimals for constructor
+     * @param _asset the asset address
+     */
+    function getAssetExp(address _asset) internal view returns (int32) {
+        if (_asset == address(0)) return -18;
+        return -1 * int32(ERC20Detailed(_asset).decimals());
     }
 
     /**

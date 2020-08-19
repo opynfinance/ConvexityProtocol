@@ -1,14 +1,15 @@
 import {expect} from 'chai';
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   OTokenInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
 import BN = require('bn.js');
+import {ZERO_ADDRESS} from './utils/helper';
 const oToken = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 const {
   time,
@@ -23,7 +24,7 @@ contract(
   ([creatorAddress, owner1, owner2, exerciser, nonOwnerAddress]) => {
     let otoken: OTokenInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let usdc: Erc20MintableInstance;
+    let usdc: MockErc20Instance;
     let expiry: number;
 
     let mintAmount: BN;
@@ -38,36 +39,34 @@ contract(
       await MockOracle.deployed();
 
       // 1.2 Mock usdc contract
-      usdc = await MintableToken.new();
+      usdc = await MockERC20.new('USDC', 'USDC', 6);
 
       // 2. Deploy our contracts
       // Deploy the Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
 
-      await optionsFactory.updateAsset('USDC', usdc.address);
+      await optionsFactory.whitelistAsset(usdc.address);
+      await optionsFactory.whitelistAsset(ZERO_ADDRESS);
 
       // Create the unexpired options contract
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        'ETH',
-        -18,
-        'USDC',
-        -6,
+        ZERO_ADDRESS,
+        usdc.address,
+        ZERO_ADDRESS,
         -6,
         4, // strike price
         -9, // strike price exp
-        'ETH',
         expiry,
         expiry,
+        'Opyn USDC:ETH',
+        'oUSDC',
         {from: creatorAddress}
       );
 
       const optionsContractAddr = optionsContractResult.logs[1].args[0];
       otoken = await oToken.at(optionsContractAddr);
       // change collateral ratio to 1
-      await otoken.setDetails('Opyn USDC:ETH', 'oUSDC', {
-        from: creatorAddress
-      });
-      await otoken.updateParameters('100', '500', 0, 10, {
+      await otoken.updateParameters('100', '500', 10, {
         from: creatorAddress
       });
 

@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
   OTokenInstance,
-  Erc20MintableInstance,
+  MockErc20Instance,
   MockOracleInstance
 } from '../../build/types/truffle-types';
 
@@ -16,9 +16,10 @@ const {
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
+import {ZERO_ADDRESS} from '../utils/helper';
 
 contract('OptionsContract: Aave insurance', accounts => {
   const reverter = new Reverter(web3);
@@ -30,8 +31,8 @@ contract('OptionsContract: Aave insurance', accounts => {
   let optionsFactory: OptionsFactoryInstance;
   let oaUSDT: OTokenInstance;
   let oracle: MockOracleInstance;
-  let ausdt: Erc20MintableInstance;
-  let usdt: Erc20MintableInstance;
+  let ausdt: MockErc20Instance;
+  let usdt: MockErc20Instance;
 
   const _name = 'Aave USDT insurance';
   const _symbol = 'oaUSDT';
@@ -47,32 +48,33 @@ contract('OptionsContract: Aave insurance', accounts => {
     // oracle = MockOracle.at()
 
     // 1.2 Mock aUSDT contract
-    ausdt = await MintableToken.new();
+    ausdt = await MockERC20.new('Aave USDC', 'aUSDC', 6);
     await ausdt.mint(creatorAddress, '1000000000'); // 1000 ausdt
     await ausdt.mint(firstOwner, '1000000000');
     await ausdt.mint(tokenHolder, '1000000000');
 
     // 1.3 Mock USDT contract
-    usdt = await MintableToken.new();
+    usdt = await MockERC20.new('USDT', 'USDT', 6);
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('aUSDT', ausdt.address);
-    await optionsFactory.updateAsset('USDT', usdt.address);
+    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
+    await optionsFactory.whitelistAsset(ausdt.address);
+    await optionsFactory.whitelistAsset(usdt.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'ETH',
-      -18,
-      'aUSDT',
-      -6,
+      ZERO_ADDRESS,
+      ausdt.address,
+      usdt.address,
       -6,
       950,
       -9,
-      'USDT',
       expiry,
       windowSize,
+      _name,
+      _symbol,
       {from: creatorAddress}
     );
 
@@ -84,16 +86,14 @@ contract('OptionsContract: Aave insurance', accounts => {
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oaUSDT.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oaUSDT.name(), String(_name), 'set name error');
       assert.equal(await oaUSDT.symbol(), String(_symbol), 'set symbol error');
     });
 
     it('should update parameters', async () => {
-      // await oaUSDT.updateParameters('100', '500', 0, 16, {from: creatorAddress});
+      await oaUSDT.updateParameters(10, 500, 16, {
+        from: creatorAddress
+      });
     });
 
     it('should open empty vault', async () => {

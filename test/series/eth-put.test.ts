@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
   OTokenInstance,
-  Erc20MintableInstance
+  MockErc20Instance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -9,7 +9,7 @@ const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 import Reverter from '../utils/reverter';
 
 contract('OptionsContract: ETH put', accounts => {
@@ -22,9 +22,9 @@ contract('OptionsContract: ETH put', accounts => {
   let optionsFactory: OptionsFactoryInstance;
   let oETH: OTokenInstance;
   // let oracle: MockOracleInstance;
-  // let comp: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
-  let weth: Erc20MintableInstance;
+  // let comp: MockErc20Instance;
+  let usdc: MockErc20Instance;
+  let weth: MockErc20Instance;
 
   const usdcAmount = '1000000000'; // 1000 USDC
 
@@ -40,29 +40,29 @@ contract('OptionsContract: ETH put', accounts => {
     // 1.2 Mock Comp contract
 
     // 1.3 Mock USDC contract
-    usdc = await MintableToken.new();
-    weth = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
+    weth = await MockERC20.new('WETH', 'WETH', 18);
     await usdc.mint(creatorAddress, usdcAmount);
     await usdc.mint(firstOwner, usdcAmount);
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('USDC', usdc.address);
-    await optionsFactory.updateAsset('WETH', weth.address);
+    await optionsFactory.whitelistAsset(usdc.address);
+    await optionsFactory.whitelistAsset(weth.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'USDC',
-      -6,
-      'WETH',
-      -18,
+      usdc.address,
+      weth.address,
+      usdc.address,
       -6,
       25,
       -5,
-      'USDC',
       expiry,
       windowSize,
+      _name,
+      _symbol,
       {from: creatorAddress}
     );
 
@@ -83,7 +83,7 @@ contract('OptionsContract: ETH put', accounts => {
     });
 
     it('should update parameters', async () => {
-      await oETH.updateParameters('100', '500', 0, 10, {from: creatorAddress});
+      await oETH.updateParameters('100', '500', 10, {from: creatorAddress});
     });
 
     it('should open empty vault', async () => {

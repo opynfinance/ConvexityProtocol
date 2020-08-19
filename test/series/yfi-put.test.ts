@@ -9,7 +9,7 @@ const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
 
@@ -39,33 +39,33 @@ contract('OptionsContract: YFI put', accounts => {
 
     // 1. Deploy mock contracts
     // 1.2 Mock yfi contract
-    yfi = await MintableToken.new();
+    yfi = await MockERC20.new('YFI', 'YFI', 18);
     await yfi.mint(creatorAddress, yfiAmount); // 1000 yfi
     await yfi.mint(tokenHolder, yfiAmount);
 
     // 1.3 Mock USDC contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, usdcAmount);
     await usdc.mint(firstOwner, usdcAmount);
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.addAsset('YFI', yfi.address);
-    await optionsFactory.addAsset('USDC', usdc.address);
+    await optionsFactory.whitelistAsset(yfi.address);
+    await optionsFactory.whitelistAsset(usdc.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'USDC',
-      -6,
-      'YFI',
-      -18,
+      usdc.address,
+      yfi.address,
+      usdc.address,
       -6,
       25,
       -5,
-      'USDC',
       expiry,
       windowSize,
+      _name,
+      _symbol,
       {from: creatorAddress}
     );
 
@@ -77,16 +77,8 @@ contract('OptionsContract: YFI put', accounts => {
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oYfi.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oYfi.name(), String(_name), 'set name error');
       assert.equal(await oYfi.symbol(), String(_symbol), 'set symbol error');
-    });
-
-    it('should update parameters', async () => {
-      await oYfi.updateParameters('100', '500', 0, 10, {from: creatorAddress});
     });
 
     it('should open empty vault', async () => {

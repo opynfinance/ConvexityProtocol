@@ -1,15 +1,16 @@
 import {expect} from 'chai';
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   MockOracleInstance,
   OptionsContractInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
+import {ZERO_ADDRESS} from './utils/helper';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 const {
   time,
@@ -29,8 +30,8 @@ contract('OptionsContract', accounts => {
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
   let compoundOracle: MockOracleInstance;
-  let dai: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
+  let dai: MockErc20Instance;
+  let usdc: MockErc20Instance;
 
   const vault1Collateral = '20000000';
   const vault1PutsOutstanding = '250000';
@@ -45,18 +46,19 @@ contract('OptionsContract', accounts => {
     // 1.2 Uniswap Factory
 
     // 1.3 Mock Dai contract
-    dai = await MintableToken.new();
+    dai = await MockERC20.new('DAI', 'DAI', 18);
     await dai.mint(creatorAddress, '10000000');
     await dai.mint(tokenHolder, '100000', {from: creatorAddress});
     // 1.4 Mock Dai contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, '10000000');
 
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('DAI', dai.address);
-    await optionsFactory.updateAsset('USDC', usdc.address);
+    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
+    await optionsFactory.whitelistAsset(dai.address);
+    await optionsFactory.whitelistAsset(usdc.address);
 
     // const windowSize = expiry;
     const now = (await time.latest()).toNumber();
@@ -64,21 +66,25 @@ contract('OptionsContract', accounts => {
     const windowSize = expiry;
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'ETH',
-      -'18',
-      'DAI',
-      -'18',
+      ZERO_ADDRESS,
+      dai.address,
+      usdc.address,
       -'14',
       '9',
       -'15',
-      'USDC',
       expiry,
       windowSize,
+      'Opyn DAI:USDC option',
+      'oDAI',
       {from: creatorAddress}
     );
 
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
+
+    await optionsContracts[0].updateParameters(10, 500, 16, {
+      from: creatorAddress
+    });
 
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({

@@ -1,6 +1,6 @@
 // import {expect} from 'chai';
 // import {
-//   Erc20MintableInstance,
+//   MockErc20Instance,
 //   OTokenInstance,
 //   OptionsFactoryInstance,
 //   OptionsExchangeInstance,
@@ -13,7 +13,7 @@
 // import {Address} from 'cluster';
 
 // const OptionsFactory = artifacts.require('OptionsFactory');
-// const MintableToken = artifacts.require('ERC20Mintable');
+// const MockERC20 = artifacts.require('MockERC20');
 // const UniswapFactory = artifacts.require('UniswapFactoryInterface');
 // const UniswapExchange = artifacts.require('UniswapExchangeInterface');
 // const OptionsExchange = artifacts.require('OptionsExchange.sol');
@@ -57,7 +57,7 @@
 
 //   const optionsContracts: OTokenInstance[] = [];
 //   let optionsFactory: OptionsFactoryInstance;
-//   let yDai: Erc20MintableInstance;
+//   let yDai: MockErc20Instance;
 //   let uniswapFactory: UniswapFactoryInterfaceInstance;
 //   let optionsExchange: OptionsExchangeInstance;
 //   let oracle: OracleInstance;
@@ -82,7 +82,7 @@
 //     if (!contractsDeployed) {
 //       oracle = await Oracle.at(oracleAddress);
 //       // 1.2 Mock Dai contract
-//       yDai = await MintableToken.at(yDaiAddress);
+//       yDai = await MockERC20.at(yDaiAddress);
 
 //       // 2. Deploy our contracts
 //       // Deploy the Options Exchange

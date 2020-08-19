@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
   OTokenInstance,
-  Erc20MintableInstance
+  MockErc20Instance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -9,7 +9,7 @@ const {time, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
 
@@ -22,8 +22,8 @@ contract('OptionsContract: BAL put', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oToken: OTokenInstance;
-  let bal: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
+  let bal: MockErc20Instance;
+  let usdc: MockErc20Instance;
 
   const _name = 'Opyn BAL Put $7 08/28/20';
   const _symbol = 'oBALp $7';
@@ -44,32 +44,33 @@ contract('OptionsContract: BAL put', accounts => {
     // oracle = MockOracle.at()
 
     // 1.2 Mock BAL contract
-    bal = await MintableToken.new();
+    bal = await MockERC20.new('bal', 'bal', 18);
     await bal.mint(creatorAddress, new BigNumber(1000).times(balDigits)); // 1000 bal
     await bal.mint(firstOwner, new BigNumber(1000).times(balDigits));
     await bal.mint(tokenHolder, new BigNumber(1000).times(balDigits));
 
     // 1.3 Mock USDT contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, new BigNumber(7000).times(usdcDigits)); // 1000 USDC
     await usdc.mint(firstOwner, new BigNumber(7000).times(usdcDigits));
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('BAL', bal.address);
-    await optionsFactory.updateAsset('USDC', usdc.address);
+    await optionsFactory.whitelistAsset(bal.address);
+    await optionsFactory.whitelistAsset(usdc.address);
+
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'USDC',
-      -6,
-      'BAL',
-      -18,
+      usdc.address,
+      bal.address,
+      usdc.address,
       -_tokenDecimals,
       7,
       -7,
-      'USDC',
       expiry,
       windowSize,
+      _name,
+      _symbol,
       {from: creatorAddress}
     );
 
@@ -81,16 +82,12 @@ contract('OptionsContract: BAL put', accounts => {
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oToken.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oToken.name(), String(_name), 'set name error');
       assert.equal(await oToken.symbol(), String(_symbol), 'set symbol error');
     });
 
     it('should update parameters', async () => {
-      await oToken.updateParameters(0, 500, 0, 10, {
+      await oToken.updateParameters(0, 500, 10, {
         from: creatorAddress
       });
     });
