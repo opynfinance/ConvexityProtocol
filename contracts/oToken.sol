@@ -14,9 +14,7 @@ contract oToken is OptionsContract {
 
     /**
      * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
      * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
      * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
      * @param _strikePrice The amount of strike asset that will be paid out
      * @param _strikeExp The precision of the strike asset (-18 if ETH)
@@ -27,14 +25,12 @@ contract oToken is OptionsContract {
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
      */
     constructor(
-        IERC20 _collateral,
-        int32 _collExp,
-        IERC20 _underlying,
-        int32 _underlyingExp,
+        address _collateral,
+        address _underlying,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        IERC20 _strike,
+        address _strike,
         uint256 _expiry,
         OptionsExchange _optionsExchange,
         address _oracleAddress,
@@ -43,9 +39,7 @@ contract oToken is OptionsContract {
         public
         OptionsContract(
             _collateral,
-            _collExp,
             _underlying,
-            _underlyingExp,
             _oTokenExchangeExp,
             _strikePrice,
             _strikeExp,

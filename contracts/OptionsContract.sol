@@ -99,9 +99,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     /**
      * @param _collateral The collateral asset
-     * @param _collExp The precision of the collateral (-18 if ETH)
      * @param _underlying The asset that is being protected
-     * @param _underlyingExp The precision of the underlying asset
      * @param _oTokenExchangeExp The precision of the `amount of underlying` that 1 oToken protects
      * @param _strikePrice The amount of strike asset that will be paid out per oToken
      * @param _strikeExp The precision of the strike price.
@@ -111,14 +109,12 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
      */
     constructor(
-        IERC20 _collateral,
-        int32 _collExp,
-        IERC20 _underlying,
-        int32 _underlyingExp,
+        address _collateral,
+        address _underlying,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        IERC20 _strike,
+        address _strike,
         uint256 _expiry,
         address _oracleAddress,
         uint256 _windowSize
@@ -128,14 +124,7 @@ contract OptionsContract is Ownable, ERC20 {
             _windowSize <= _expiry,
             "Exercise window can't be longer than the contract's lifespan"
         );
-        require(
-            isWithinExponentRange(_collExp),
-            "collateral exponent not within expected range"
-        );
-        require(
-            isWithinExponentRange(_underlyingExp),
-            "underlying exponent not within expected range"
-        );
+
         require(
             isWithinExponentRange(_strikeExp),
             "strike price exponent not within expected range"
@@ -150,15 +139,24 @@ contract OptionsContract is Ownable, ERC20 {
             "OptionsContract: Can't use ETH as underlying."
         );
 
-        collateral = _collateral;
-        collateralExp = _collExp;
+        collateral = IERC20(_collateral);
+        underlying = IERC20(_underlying);
+        strike = IERC20(_strike);
 
-        underlying = _underlying;
-        underlyingExp = _underlyingExp;
+        collateralExp = -1 * int32(ERC20Detailed(_collateral).decimals());
+        underlyingExp = -1 * int32(ERC20Detailed(_underlying).decimals());
+        require(
+            isWithinExponentRange(collateralExp),
+            "collateral exponent not within expected range"
+        );
+        require(
+            isWithinExponentRange(underlyingExp),
+            "underlying exponent not within expected range"
+        );
+
         oTokenExchangeRate = Number(1, _oTokenExchangeExp);
 
         strikePrice = Number(_strikePrice, _strikeExp);
-        strike = _strike;
 
         expiry = _expiry;
         oracle = OracleInterface(_oracleAddress);
