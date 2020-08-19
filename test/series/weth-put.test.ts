@@ -31,7 +31,6 @@ contract('OptionsContract: weth put', accounts => {
   let usdc: Erc20MintableInstance;
 
   const usdcAmount = '1000000000'; // 10000 USDC
-  const wethAmount = '4000000000000000000';
 
   const _name = 'TH put 250';
   const _symbol = 'oEth 250';
@@ -151,6 +150,9 @@ contract('OptionsContract: weth put', accounts => {
         from: tokenHolder
       });
 
+      const usdcBefore = (await usdc.balanceOf(oWeth.address)).toString();
+      const wethBefore = (await weth.balanceOf(oWeth.address)).toString();
+
       const exerciseTx = await exerciser.exercise(
         oWeth.address,
         amountToExercise,
@@ -173,6 +175,21 @@ contract('OptionsContract: weth put', accounts => {
       assert.equal(vault[0].toString(), '0');
       assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), underlyingRequired);
+
+      const usdcAfter = (await usdc.balanceOf(oWeth.address)).toString();
+      const wethAfter = (await weth.balanceOf(oWeth.address)).toString();
+
+      assert.equal(
+        new BigNumber(usdcBefore).minus(new BigNumber('1000000000')).toString(),
+        new BigNumber(usdcAfter).toString()
+      );
+
+      assert.equal(
+        new BigNumber(wethBefore)
+          .plus(new BigNumber(underlyingRequired))
+          .toString(),
+        new BigNumber(wethAfter).toString()
+      );
     });
   });
 });
