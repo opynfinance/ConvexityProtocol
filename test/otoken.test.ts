@@ -1,5 +1,5 @@
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   MockOracleInstance,
   OTokenInstance,
   MockOtokensExchangeInstance
@@ -10,7 +10,7 @@ import BN = require('bn.js');
 const OToken = artifacts.require('oToken');
 const MockOtokensExchange = artifacts.require('MockOtokensExchange');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 const {time, expectRevert, send} = require('@openzeppelin/test-helpers');
 
@@ -29,8 +29,8 @@ contract('OToken', accounts => {
 
   let exchange: MockOtokensExchangeInstance;
   let oracle: MockOracleInstance;
-  let dai: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
+  let dai: MockErc20Instance;
+  let usdc: MockErc20Instance;
 
   let otoken1: OTokenInstance; // erc20 collateral options
   let otoken2: OTokenInstance; // eth collateral options
@@ -47,13 +47,13 @@ contract('OToken', accounts => {
     oracle = await MockOracle.new();
 
     // 1.2 Mock Dai contract
-    dai = await MintableToken.new();
+    dai = await MockERC20.new('DAI', 'DAI', 18);
     await dai.mint(creatorAddress, '10000000');
 
     exchange = await MockOtokensExchange.new();
 
     // 1.3 Mock USDC contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, '10000000000');
     await usdc.mint(firstOwner, '10000000000');
     await usdc.mint(secondOwner, '10000000000');
@@ -64,34 +64,30 @@ contract('OToken', accounts => {
     it('should create an ERC20 collateral option', async () => {
       otoken1 = await OToken.new(
         usdc.address,
-        -'18',
         dai.address,
-        -'18',
+        usdc.address,
         -'17',
         '90',
         -'18',
-        usdc.address,
         expiry,
+        windowSize,
         exchange.address,
-        oracle.address,
-        windowSize
+        oracle.address
       );
     });
 
     it('should create an ETH collateral option', async () => {
       otoken2 = await OToken.new(
         ZERO_ADDRESS,
-        -'18',
         dai.address,
-        -'18',
+        usdc.address,
         -'17',
         '90',
         -'18',
-        usdc.address,
         expiry,
+        windowSize,
         exchange.address,
-        oracle.address,
-        windowSize
+        oracle.address
       );
     });
   });

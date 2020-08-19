@@ -1,5 +1,5 @@
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   OptionsContractInstance,
   OptionsFactoryInstance
 } from '../../build/types/truffle-types';
@@ -8,9 +8,9 @@ import BigNumber from 'bignumber.js';
 
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
-import {calculateMaxOptionsToCreate} from '../utils/helper';
+import {calculateMaxOptionsToCreate, ZERO_ADDRESS} from '../utils/helper';
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
 
 contract(
@@ -26,7 +26,7 @@ contract(
   ]) => {
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let usdc: Erc20MintableInstance;
+    let usdc: MockErc20Instance;
 
     const _name = 'test call option $280';
     const _symbol = 'test oETH $280';
@@ -56,7 +56,7 @@ contract(
       _windowSize = _expiry; // time.duration.days(1).toNumber();
 
       // usdc token
-      usdc = await MintableToken.new();
+      usdc = await MockERC20.new('USDC', 'USDC', 6);
 
       // get deployed opyn protocol contracts
 
@@ -64,22 +64,25 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
 
       // add assets to the factory
-      await optionsFactory.updateAsset('USDC', usdc.address, {
+      await optionsFactory.whitelistAsset(ZERO_ADDRESS, {
+        from: opynDeployer
+      });
+      await optionsFactory.whitelistAsset(usdc.address, {
         from: opynDeployer
       });
 
       // create ETH call option
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        _collateralType,
-        _collateralExp,
-        _underlyingType,
-        _underlyingExp,
+        ZERO_ADDRESS,
+        usdc.address,
+        ZERO_ADDRESS,
         _oTokenExchangeExp,
         _strikePrice,
         _strikeExp,
-        _strikeAsset,
         _expiry,
         _windowSize,
+        _name,
+        _symbol,
         {from: opynDeployer}
       );
 
@@ -114,7 +117,7 @@ contract(
         assert.equal(await optionContract.symbol(), _symbol, 'invalid symbol');
         assert.equal(
           await optionContract.collateral(),
-          await optionsFactory.tokens(_collateralType),
+          ZERO_ADDRESS,
           'invalid collateral'
         );
         assert.equal(
@@ -124,7 +127,7 @@ contract(
         );
         assert.equal(
           await optionContract.underlying(),
-          await optionsFactory.tokens(_underlyingType),
+          usdc.address,
           'invalid underlying'
         );
         assert.equal(
@@ -149,7 +152,7 @@ contract(
         );
         assert.equal(
           await optionContract.strike(),
-          await optionsFactory.tokens(_strikeAsset),
+          ZERO_ADDRESS,
           'invalid strike asset'
         );
         assert.equal(

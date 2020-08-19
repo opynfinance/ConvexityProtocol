@@ -1,6 +1,6 @@
 // import {expect} from 'chai';
 // import {
-//   Erc20MintableInstance,
+//   MockErc20Instance,
 //   OTokenInstance,
 //   OptionsFactoryInstance,
 //   OptionsExchangeInstance,
@@ -13,7 +13,7 @@
 // import {Address} from 'cluster';
 
 // const OptionsFactory = artifacts.require('OptionsFactory');
-// const MintableToken = artifacts.require('ERC20Mintable');
+// const MockERC20 = artifacts.require('MockERC20');
 // const UniswapFactory = artifacts.require('UniswapFactoryInterface');
 // const UniswapExchange = artifacts.require('UniswapExchangeInterface');
 // const OptionsExchange = artifacts.require('OptionsExchange.sol');
@@ -59,8 +59,8 @@
 
 //   const optionsContracts: OTokenInstance[] = [];
 //   let optionsFactory: OptionsFactoryInstance;
-//   let dai: Erc20MintableInstance;
-//   let usdc: Erc20MintableInstance;
+//   let dai: MockErc20Instance;
+//   let usdc: MockErc20Instance;
 //   let uniswapFactory: UniswapFactoryInterfaceInstance;
 //   let optionsExchange: OptionsExchangeInstance;
 //   let oracle: OracleInstance;
@@ -118,9 +118,9 @@
 //     if (!contractsDeployed) {
 //       oracle = await Oracle.deployed();
 //       // 1.2 Mock Dai contract
-//       dai = await MintableToken.at(daiAddress);
+//       dai = await MockERC20.at(daiAddress);
 //       // 1.3 USDC contract
-//       usdc = await MintableToken.at(usdcAddress);
+//       usdc = await MockERC20.at(usdcAddress);
 
 //       // 2. Deploy our contracts
 //       // Deploy the Options Exchange
@@ -434,7 +434,7 @@
 
 //     xit('should be able to buy oTokens with ERC20s', async () => {
 //       const paymentTokenAddr = '0x2448eE2641d78CC42D7AD76498917359D961A783';
-//       const paymentToken = await MintableToken.at(paymentTokenAddr);
+//       const paymentToken = await MockERC20.at(paymentTokenAddr);
 //       // set to optionsCotnracs[0].address
 //       const oTokenAddress = optionsContractAddresses[0];
 //       await paymentToken.approve(

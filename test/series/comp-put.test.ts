@@ -1,7 +1,7 @@
 import {
   OptionsFactoryInstance,
   OTokenInstance,
-  Erc20MintableInstance
+  MockErc20Instance
 } from '../../build/types/truffle-types';
 
 import BigNumber from 'bignumber.js';
@@ -9,7 +9,7 @@ const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
 
@@ -23,8 +23,8 @@ contract('OptionsContract: COMP put', accounts => {
   let optionsFactory: OptionsFactoryInstance;
   let oComp: OTokenInstance;
   // let oracle: MockOracleInstance;
-  let comp: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
+  let comp: MockErc20Instance;
+  let usdc: MockErc20Instance;
 
   const usdcAmount = '1000000000'; // 1000 USDC
   const compAmount = '1000000000000000000000'; // 1000 comp
@@ -39,33 +39,33 @@ contract('OptionsContract: COMP put', accounts => {
 
     // 1. Deploy mock contracts
     // 1.2 Mock Comp contract
-    comp = await MintableToken.new();
+    comp = await MockERC20.new('COMP', 'COMP', 18);
     await comp.mint(creatorAddress, compAmount); // 1000 comp
     await comp.mint(tokenHolder, compAmount);
 
     // 1.3 Mock USDC contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, usdcAmount);
     await usdc.mint(firstOwner, usdcAmount);
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('COMP', comp.address);
-    await optionsFactory.updateAsset('USDC', usdc.address);
+    await optionsFactory.whitelistAsset(comp.address);
+    await optionsFactory.whitelistAsset(usdc.address);
 
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
-      'USDC',
-      -6,
-      'COMP',
-      -18,
+      usdc.address,
+      comp.address,
+      usdc.address,
       -6,
       25,
       -5,
-      'USDC',
       expiry,
       windowSize,
+      _name,
+      _symbol,
       {from: creatorAddress}
     );
 
@@ -77,10 +77,6 @@ contract('OptionsContract: COMP put', accounts => {
 
   describe('New option parameter test', () => {
     it('should have basic setting', async () => {
-      await oComp.setDetails(_name, _symbol, {
-        from: creatorAddress
-      });
-
       assert.equal(await oComp.name(), String(_name), 'set name error');
       assert.equal(await oComp.symbol(), String(_symbol), 'set symbol error');
     });

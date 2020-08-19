@@ -1,9 +1,12 @@
 import {expect} from 'chai';
-import {OptionsFactoryInstance} from '../build/types/truffle-types';
+import {
+  OptionsFactoryInstance,
+  MockErc20Instance
+} from '../build/types/truffle-types';
 
-const Web3Utils = require('web3-utils');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const OptionsContract = artifacts.require('OptionsContract');
+const MockERC20 = artifacts.require('MockERC20');
 
 import {getUnixTime, addSeconds, fromUnixTime} from 'date-fns';
 
@@ -13,20 +16,12 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 contract(
   'OptionsFactory',
-  ([
-    creatorAddress,
-    firstOwnerAddress,
-    DAIAddress,
-    BATAddress,
-    BATAddress2,
-    USDCAddress,
-    WEIRDToken,
-    random
-  ]) => {
+  ([creatorAddress, firstOwnerAddress, DAIAddress, random]) => {
     let optionsFactory: OptionsFactoryInstance;
 
     let expiry: number;
     let windowSize: number;
+    let dai: MockErc20Instance;
 
     before(async () => {
       const now = (await time.latest()).toNumber();
@@ -38,55 +33,32 @@ contract(
 
       // Deploy the Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
+
+      dai = await MockERC20.new('DAI', 'DAI', 18);
     });
 
     describe('#updateAsset()', () => {
-      it('should add an asset correctly', async () => {
-        const txInfo = await optionsFactory.updateAsset('DAI', DAIAddress);
-        expectEvent(txInfo, 'AssetUpdated', {
-          asset: Web3Utils.keccak256('DAI'),
-          newAddr: DAIAddress
+      it('should whitelist an asset', async () => {
+        const txInfo = await optionsFactory.whitelistAsset(ZERO_ADDRESS);
+        expectEvent(txInfo, 'AssetWhitelisted', {
+          asset: ZERO_ADDRESS
         });
-        const supported = await optionsFactory.supportsAsset('DAI');
-
+        const supported = await optionsFactory.whitelisted(ZERO_ADDRESS);
         expect(supported).to.be.true;
       });
 
       it('should add a second asset', async () => {
-        const txInfo = await optionsFactory.updateAsset('BAT', BATAddress);
-        expectEvent(txInfo, 'AssetUpdated', {
-          asset: Web3Utils.keccak256('BAT'),
-          newAddr: BATAddress
+        const txInfo = await optionsFactory.whitelistAsset(dai.address);
+        expectEvent(txInfo, 'AssetWhitelisted', {
+          asset: dai.address
         });
-        const supported = await optionsFactory.supportsAsset('BAT');
-
+        const supported = await optionsFactory.whitelisted(dai.address);
         expect(supported).to.be.true;
       });
 
       it('should fails if anyone but owner tries to add asset', async () => {
         await expectRevert(
-          optionsFactory.updateAsset(
-            'ETH',
-            '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-            {from: random}
-          ),
-          'Ownable: caller is not the owner'
-        );
-      });
-    });
-
-    describe('#updateAsset()', () => {
-      it('should change an asset that exists correctly', async () => {
-        const txInfo = await optionsFactory.updateAsset('BAT', BATAddress2);
-        expectEvent(txInfo, 'AssetUpdated', {
-          asset: Web3Utils.keccak256('BAT'),
-          newAddr: BATAddress2
-        });
-      });
-
-      it('should revert if anyone but owner tries to change asset', async () => {
-        await expectRevert(
-          optionsFactory.updateAsset('BAT', BATAddress, {from: random}), // try change it back to BATAddr
+          optionsFactory.whitelistAsset(random, {from: random}),
           'Ownable: caller is not the owner'
         );
       });
@@ -98,16 +70,16 @@ contract(
 
         await expectRevert(
           optionsFactory.createOptionsContract(
-            'ETH',
-            -'18',
-            'ETH',
-            -'18',
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
             -'17',
             '90',
             -'18',
-            'ETH',
             expiredExpiry,
             expiredExpiry,
+            'Opyn Token',
+            'oETH',
             {from: creatorAddress}
           ),
           'Cannot create an expired option'
@@ -119,16 +91,16 @@ contract(
 
         await expectRevert(
           optionsFactory.createOptionsContract(
-            'ETH',
-            -'18',
-            'ETH',
-            -'18',
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
             -'17',
             '90',
             -'18',
-            'ETH',
             expiry,
             bigWindowSize,
+            'Opyn Token',
+            'oETH',
             {from: creatorAddress}
           ),
           'Invalid _windowSize'
@@ -138,72 +110,72 @@ contract(
       it('should not allow to create a new options with unsupported collateral', async () => {
         await expectRevert(
           optionsFactory.createOptionsContract(
-            'WRONG',
-            -'18',
-            'ETH',
-            -'18',
+            random,
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
             -'17',
             '90',
             -'18',
-            'ETH',
             expiry,
             expiry,
+            'Opyn Token',
+            'oETH',
             {from: creatorAddress}
           ),
-          'Collateral type not supported'
+          'Collateral not whitelisted'
         );
       });
 
       it('should not allow to create a new options with unsupported underlying', async () => {
         await expectRevert(
           optionsFactory.createOptionsContract(
-            'ETH',
-            -'18',
-            'WRONG',
-            -'18',
+            ZERO_ADDRESS,
+            random,
+            ZERO_ADDRESS,
             -'17',
             '90',
             -'18',
-            'ETH',
             expiry,
             expiry,
+            'Opyn Token',
+            'oRANDOM',
             {from: creatorAddress}
           ),
-          'Underlying type not supported'
+          'Underlying not whitelisted'
         );
       });
 
       it('should not allow to create a new options with unsupported strike', async () => {
         await expectRevert(
           optionsFactory.createOptionsContract(
-            'ETH',
-            -'18',
-            'ETH',
-            -'18',
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
+            random,
             -'17',
             '90',
             -'18',
-            'WRONG',
             expiry,
             expiry,
+            'Opyn Token',
+            'oETH',
             {from: creatorAddress}
           ),
-          'Strike asset type not supported'
+          'Strike not whitelisted.'
         );
       });
 
       it('should create a new options contract correctly', async () => {
         const txInfo = await optionsFactory.createOptionsContract(
-          'ETH',
-          -'18',
-          'DAI',
-          -'18',
+          ZERO_ADDRESS,
+          dai.address,
+          ZERO_ADDRESS,
           -'17',
           '90',
           -'18',
-          'ETH',
           expiry,
           windowSize,
+          'Opyn Token',
+          'oDAI',
           {from: creatorAddress}
         );
 
@@ -218,16 +190,16 @@ contract(
       });
       it('anyone else should be able to create a second options contract correctly', async () => {
         const txInfo = await optionsFactory.createOptionsContract(
-          'ETH',
+          ZERO_ADDRESS,
+          dai.address,
+          ZERO_ADDRESS,
           -'18',
-          'DAI',
-          -'18',
-          -'17',
           '90',
           -'18',
-          'ETH',
           expiry,
           windowSize,
+          'Opyn Token',
+          'oDAI',
           {from: firstOwnerAddress}
         );
 

@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   OptionsFactoryInstance,
   MockOracleInstance,
   OptionsContractInstance
@@ -9,7 +9,7 @@ import {
 const OptionsContract = artifacts.require('OptionsContract');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 const truffleAssert = require('truffle-assertions');
 
@@ -34,9 +34,9 @@ contract('OptionsContract', accounts => {
   const optionsContracts: OptionsContractInstance[] = [];
   let optionsFactory: OptionsFactoryInstance;
   let oracle: MockOracleInstance;
-  let weth: Erc20MintableInstance;
-  let dai: Erc20MintableInstance;
-  let usdc: Erc20MintableInstance;
+  let weth: MockErc20Instance;
+  let dai: MockErc20Instance;
+  let usdc: MockErc20Instance;
 
   let expiry: number;
   let windowSize: number;
@@ -49,13 +49,13 @@ contract('OptionsContract', accounts => {
     // 1.1 Compound Oracle
     oracle = await MockOracle.new();
 
-    weth = await MintableToken.new();
+    weth = await MockERC20.new('WETH', 'WETH', 18);
     // 1.2 Mock Dai contract
-    dai = await MintableToken.new();
+    dai = await MockERC20.new('DAI', 'DAI', 18);
     await dai.mint(creatorAddress, '10000000');
 
     // 1.3 Mock USDC contract
-    usdc = await MintableToken.new();
+    usdc = await MockERC20.new('USDC', 'USDC', 6);
     await usdc.mint(creatorAddress, '10000000');
     await usdc.mint(nonOwnerAddress, '10000000');
 
@@ -65,22 +65,23 @@ contract('OptionsContract', accounts => {
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.updateAsset('WETH', weth.address);
-    await optionsFactory.updateAsset('DAI', dai.address);
-    await optionsFactory.updateAsset('USDC', usdc.address);
+    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
+    await optionsFactory.whitelistAsset(weth.address);
+    await optionsFactory.whitelistAsset(dai.address);
+    await optionsFactory.whitelistAsset(usdc.address);
 
     // Create the unexpired options contract
     let optionsContractResult = await optionsFactory.createOptionsContract(
-      'ETH',
-      -'18',
-      'DAI',
-      -'18',
+      ZERO_ADDRESS,
+      dai.address,
+      ZERO_ADDRESS,
       -'17',
       '90',
       -'18',
-      'ETH',
       expiry,
       windowSize,
+      'Opyn Token',
+      'oDAI',
       {from: creatorAddress}
     );
 
@@ -88,16 +89,16 @@ contract('OptionsContract', accounts => {
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
     optionsContractResult = await optionsFactory.createOptionsContract(
-      'USDC',
-      -'18',
-      'DAI',
-      -'18',
+      usdc.address,
+      dai.address,
+      usdc.address,
       -'17',
       '90',
       -'18',
-      'USDC',
       expiry,
       windowSize,
+      'Opyn Token',
+      'oDai',
       {from: creatorAddress}
     );
 
@@ -116,16 +117,14 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         OptionsContract.new(
           usdc.address,
-          -'18',
           dai.address,
-          -'18',
+          usdc.address,
           -'17',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
-          windowSize
+          windowSize,
+          oracle.address
         ),
         "Can't deploy an expired contract"
       );
@@ -135,54 +134,50 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         OptionsContract.new(
           usdc.address,
-          -'18',
           dai.address,
-          -'18',
+          usdc.address,
           -'17',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
-          expiry + 1
+          expiry + 1,
+          oracle.address
         ),
         "Exercise window can't be longer than the contract's lifespan"
       );
     });
 
     it('should revert with invalid collateral exponent range', async () => {
+      const wrongToken = await MockERC20.new('Wrong', 'wrong', 31);
       await expectRevert(
         OptionsContract.new(
-          usdc.address,
-          -'31',
+          wrongToken.address,
           dai.address,
-          -'18',
+          usdc.address,
           -'17',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
-          expiry
+          expiry,
+          oracle.address
         ),
         'collateral exponent not within expected range'
       );
     });
 
     it('should revert with invalid underlying exponent range', async () => {
+      const wrongToken = await MockERC20.new('Wrong', 'wrong', 31);
       await expectRevert(
         OptionsContract.new(
           usdc.address,
-          -'18',
-          dai.address,
-          -'31',
+          wrongToken.address,
+          usdc.address,
           -'17',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
-          expiry
+          expiry,
+          oracle.address
         ),
         'underlying exponent not within expected range'
       );
@@ -192,16 +187,14 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         OptionsContract.new(
           usdc.address,
-          -'18',
           dai.address,
-          -'18',
+          usdc.address,
           -'17',
           '90',
           -'31',
-          usdc.address,
           expiry,
-          oracle.address,
-          expiry
+          expiry,
+          oracle.address
         ),
         'strike price exponent not within expected range'
       );
@@ -211,16 +204,14 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         OptionsContract.new(
           usdc.address,
-          -'18',
           dai.address,
-          -'18',
+          usdc.address,
           -'31',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
-          expiry
+          expiry,
+          oracle.address
         ),
         'oToken exchange rate exponent not within expected range'
       );
@@ -230,16 +221,14 @@ contract('OptionsContract', accounts => {
       await expectRevert(
         OptionsContract.new(
           ZERO_ADDRESS,
-          -'18',
           ZERO_ADDRESS,
-          -'18',
+          ZERO_ADDRESS,
           -'17',
           '90',
           -'18',
-          ZERO_ADDRESS,
           expiry,
-          oracle.address,
-          expiry
+          expiry,
+          oracle.address
         ),
         "OptionsContract: Can't use ETH as underlying"
       );
@@ -248,16 +237,14 @@ contract('OptionsContract', accounts => {
     it('should create a option with eth as collateral, strike, DAI as underlying ', async () => {
       await OptionsContract.new(
         ZERO_ADDRESS,
-        -'18',
         dai.address,
-        -'18',
+        ZERO_ADDRESS,
         -'17',
         '90',
         -'18',
-        ZERO_ADDRESS,
         expiry,
-        oracle.address,
-        expiry
+        expiry,
+        oracle.address
       );
     });
   });
@@ -266,16 +253,14 @@ contract('OptionsContract', accounts => {
     it('should set detail for the valid otoken', async () => {
       const validOtoken = await OptionsContract.new(
         usdc.address,
-        -'18',
         dai.address,
-        -'18',
+        usdc.address,
         1,
         '90',
         -'18',
-        usdc.address,
         expiry,
-        oracle.address,
-        expiry
+        expiry,
+        oracle.address
       );
       await validOtoken.setDetails('Valid Otoken', 'oDAI');
       const name = await validOtoken.name();
@@ -288,16 +273,14 @@ contract('OptionsContract', accounts => {
     before('Create a test option', async () => {
       option = await OptionsContract.new(
         ZERO_ADDRESS,
-        -18,
         usdc.address,
-        -6,
+        ZERO_ADDRESS,
         -6,
         4, // strike price
         -9, // strike price exp
-        ZERO_ADDRESS,
+        expiry,
         expiry,
         oracle.address,
-        expiry,
         {from: creatorAddress}
       );
     });
@@ -764,26 +747,24 @@ contract('OptionsContract', accounts => {
     describe('#harvest', () => {
       const amount = '100000000';
       let otoken: OptionsContractInstance;
-      let bonusToken: Erc20MintableInstance;
+      let bonusToken: MockErc20Instance;
       before('contract setup', async () => {
         const now = (await time.latest()).toNumber();
         expiry = now + time.duration.days(30).toNumber();
         windowSize = expiry;
         otoken = await OptionsContract.new(
           weth.address,
-          -'18',
           dai.address,
-          -'18',
+          usdc.address,
           -'17',
           '90',
           -'18',
-          usdc.address,
           expiry,
-          oracle.address,
           windowSize,
+          oracle.address,
           {from: creatorAddress}
         );
-        bonusToken = await MintableToken.new();
+        bonusToken = await MockERC20.new('BONUS', 'BONUS', 18);
 
         await bonusToken.mint(otoken.address, amount);
       });

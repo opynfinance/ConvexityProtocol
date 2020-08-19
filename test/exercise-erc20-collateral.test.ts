@@ -1,5 +1,5 @@
 import {
-  Erc20MintableInstance,
+  MockErc20Instance,
   OTokenInstance,
   OptionsFactoryInstance
 } from '../build/types/truffle-types';
@@ -7,7 +7,7 @@ import BN = require('bn.js');
 const oToken = artifacts.require('oToken');
 const OptionsFactory = artifacts.require('OptionsFactory');
 const MockOracle = artifacts.require('MockOracle');
-const MintableToken = artifacts.require('ERC20Mintable');
+const MockERC20 = artifacts.require('MockERC20');
 
 const {time, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 
@@ -26,8 +26,8 @@ contract(
   ]) => {
     let otoken: OTokenInstance;
     let optionsFactory: OptionsFactoryInstance;
-    let weth: Erc20MintableInstance;
-    let usdc: Erc20MintableInstance;
+    let weth: MockErc20Instance;
+    let usdc: MockErc20Instance;
     let expiry: number;
 
     let mintAmount: BN;
@@ -41,37 +41,35 @@ contract(
       await MockOracle.deployed();
 
       // 1.2 Mock usdc contract
-      usdc = await MintableToken.new();
-      weth = await MintableToken.new();
+      usdc = await MockERC20.new('USDC', 'USDC', 6);
+      weth = await MockERC20.new('WETH', 'WETH', 18);
 
       // 2. Deploy our contracts
       // Deploy the Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
 
-      await optionsFactory.updateAsset('USDC', usdc.address);
-      await optionsFactory.updateAsset('WETH', weth.address);
+      await optionsFactory.whitelistAsset(usdc.address);
+      await optionsFactory.whitelistAsset(weth.address);
 
       // Create the unexpired options contract
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        'USDC',
-        -6,
-        'WETH',
-        -18,
+        usdc.address,
+        weth.address,
+        usdc.address,
         -6,
         25,
         -5,
-        'USDC',
         expiry,
         expiry,
+        'Opyn Token',
+        'oUSDC',
         {from: creatorAddress}
       );
 
       const optionsContractAddr = optionsContractResult.logs[1].args[0];
       otoken = await oToken.at(optionsContractAddr);
       // change collateral ratio to 1
-      await otoken.setDetails('Opyn WETH:USDC', 'oETH', {
-        from: creatorAddress
-      });
+
       await otoken.updateParameters('100', '500', 0, 10, {
         from: creatorAddress
       });
