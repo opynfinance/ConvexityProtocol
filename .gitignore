@@ -5,3 +5,6 @@ flattened/
 secret.js
 coverage/
 coverage.json
+.mnemonic
+.secret
+crytic-export

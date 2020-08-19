@@ -12,7 +12,15 @@ module.exports = {
     copyPackages: ['openzeppelin'],
     skipFiles: [
       'Migrations.sol',
-
+      'packages/Context.sol',
+      'packages/ERC20.sol',
+      'packages/ERC20Detailed.sol',
+      'packages/ERC20Mintable.sol',
+      'packages/IERC20.sol',
+      'packages/MinterRole.sol',
+      'packages/Ownable.sol',
+      'packages/Roles.sol',
+      'packages/SafeMath.sol',
       'mocks/MockOracle.sol',
       'mocks/MockERC20.sol',
       'mocks/MockCtoken.sol',
