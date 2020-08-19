@@ -3,7 +3,6 @@ import {
   MockErc20Instance,
   MockCtokenInstance,
   MockCompoundOracleInstance,
-  MockOracleInstance,
   MockOtokensExchangeInstance,
   OracleInstance
 } from '../../build/types/truffle-types';
@@ -12,7 +11,6 @@ import BigNumber from 'bignumber.js';
 const {time, expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 
 const OTokenContract = artifacts.require('oToken');
-const OptionsContract = artifacts.require('OptionsContract');
 
 const Oracle = artifacts.require('Oracle');
 const MockCompoundOracle = artifacts.require('MockCompoundOracle');
@@ -88,17 +86,15 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
     // Create the unexpired options contract
     oETH = await OTokenContract.new(
       cusdc.address,
-      -8,
       weth.address,
-      -18,
+      usdc.address,
       -7,
       25,
       -6,
-      usdc.address,
       expiry,
+      windowSize,
       exchange.address,
       oracle.address,
-      windowSize,
       {from: creatorAddress}
     );
   });
@@ -111,10 +107,6 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
 
       assert.equal(await oETH.name(), String(_name), 'set name error');
       assert.equal(await oETH.symbol(), String(_symbol), 'set symbol error');
-    });
-
-    it('should update parameters', async () => {
-      await oETH.updateParameters('100', '500', 0, 10, {from: creatorAddress});
     });
 
     it('should open empty vault', async () => {
