@@ -105,19 +105,19 @@ contract OptionsContract is Ownable, ERC20 {
      * @param _strikeExp The precision of the strike price.
      * @param _strike The asset in which the insurance is calculated
      * @param _expiry The time at which the insurance expires
-     * @param _oracleAddress The address of the oracle
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+     * @param _oracleAddress The address of the oracle
      */
     constructor(
         address _collateral,
         address _underlying,
+        address _strike,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        address _strike,
         uint256 _expiry,
-        address _oracleAddress,
-        uint256 _windowSize
+        uint256 _windowSize,
+        address _oracleAddress
     ) public {
         require(block.timestamp < _expiry, "Can't deploy an expired contract");
         require(
@@ -143,8 +143,8 @@ contract OptionsContract is Ownable, ERC20 {
         underlying = IERC20(_underlying);
         strike = IERC20(_strike);
 
-        collateralExp = -1 * int32(ERC20Detailed(_collateral).decimals());
-        underlyingExp = -1 * int32(ERC20Detailed(_underlying).decimals());
+        collateralExp = getAssetExp(_collateral);
+        underlyingExp = getAssetExp(_underlying);
         require(
             isWithinExponentRange(collateralExp),
             "collateral exponent not within expected range"
@@ -1048,6 +1048,15 @@ contract OptionsContract is Ownable, ERC20 {
             underlying.transfer(_addr, _amt),
             "OptionsContract: transfer underlying failed"
         );
+    }
+
+    /**
+     * @dev internal function to parse token decimals for constructor
+     * @param _asset the asset address
+     */
+    function getAssetExp(address _asset) internal view returns (int32) {
+        if (_asset == address(0)) return -18;
+        return -1 * int32(ERC20Detailed(_asset).decimals());
     }
 
     /**

@@ -9,8 +9,6 @@ import "./packages/IERC20.sol";
 contract OptionsFactory is Ownable {
     using StringComparator for string;
 
-    // keys saved in front-end -- look at the docs if needed
-    // mapping(string => address) public tokens;
     mapping(address => bool) public whitelisted;
     address[] public optionsContracts;
 
@@ -19,7 +17,7 @@ contract OptionsFactory is Ownable {
     address public oracleAddress;
 
     event OptionsContractCreated(address addr);
-    event AssetWhiteListed(address indexed asset);
+    event AssetWhitelisted(address indexed asset);
 
     /**
      * @param _optionsExchangeAddr: The contract which interfaces with the exchange
@@ -46,10 +44,10 @@ contract OptionsFactory is Ownable {
     function createOptionsContract(
         address _collateral,
         address _underlying,
+        address _strike,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        address _strike,
         uint256 _expiry,
         uint256 _windowSize,
         string calldata _name,
@@ -65,14 +63,14 @@ contract OptionsFactory is Ownable {
         oToken otoken = new oToken(
             _collateral,
             _underlying,
+            _strike,
             _oTokenExchangeExp,
             _strikePrice,
             _strikeExp,
-            _strike,
             _expiry,
+            _windowSize,
             optionsExchange,
-            oracleAddress,
-            _windowSize
+            oracleAddress
         );
 
         otoken.setDetails(_name, _symbol);
@@ -97,7 +95,7 @@ contract OptionsFactory is Ownable {
      * @param _asset The address for the asset
      */
     function whitelistAsset(address _asset) external onlyOwner {
-        emit AssetWhiteListed(_asset);
         whitelisted[_asset] = true;
+        emit AssetWhitelisted(_asset);
     }
 }

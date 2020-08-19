@@ -27,26 +27,26 @@ contract oToken is OptionsContract {
     constructor(
         address _collateral,
         address _underlying,
+        address _strike,
         int32 _oTokenExchangeExp,
         uint256 _strikePrice,
         int32 _strikeExp,
-        address _strike,
         uint256 _expiry,
+        uint256 _windowSize,
         OptionsExchange _optionsExchange,
-        address _oracleAddress,
-        uint256 _windowSize
+        address _oracleAddress
     )
         public
         OptionsContract(
             _collateral,
             _underlying,
+            _strike,
             _oTokenExchangeExp,
             _strikePrice,
             _strikeExp,
-            _strike,
             _expiry,
-            _oracleAddress,
-            _windowSize
+            _windowSize,
+            _oracleAddress
         )
     {
         optionsExchange = _optionsExchange;
