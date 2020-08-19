@@ -2,13 +2,15 @@ pragma solidity 0.5.10;
 
 import "./interfaces/CompoundOracleInterface.sol";
 import "./interfaces/CTokenInterface.sol";
+import "./interfaces/OracleInterface.sol";
+import "./packages/Initializable.sol";
 import "./packages/ERC20Detailed.sol";
 import "./packages/ERC20.sol";
-import "./packages/Ownable.sol";
 import "./packages/SafeMath.sol";
+import {Ownable} from "./packages/InitializedOwnable.sol";
 
 
-contract Oracle is Ownable {
+contract Oracle is Ownable, OracleInterface {
     using SafeMath for uint256;
 
     // used ctoken addresses
@@ -34,7 +36,7 @@ contract Oracle is Ownable {
     // The Oracle used for the contract
     CompoundOracleInterface public priceOracle;
 
-    constructor(address _oracleAddress) public {
+    function init(address _oracleAddress) public initializer {
         priceOracle = CompoundOracleInterface(_oracleAddress);
         // Mainnet
         cEth = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
