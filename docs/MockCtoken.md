@@ -1,26 +1,38 @@
-# StringComparator.sol
+# MockCtoken.sol
 
-View Source: [contracts/lib/StringComparator.sol](../contracts/lib/StringComparator.sol)
+View Source: [contracts/mocks/MockCtoken.sol](../contracts/mocks/MockCtoken.sol)
 
-**StringComparator**
+**↗ Extends: [MockERC20](MockERC20.md)**
+
+**MockCtoken**
+
+## Contract Members
+**Constants & Variables**
+
+```js
+address public underlying;
+uint256 public exchangeRateStored;
+
+```
 
 ## Functions
 
-- [compareStrings(string a, string b)](#comparestrings)
+- [(string _name, string _symbol, address _underlying, uint256 _exchageRateStored)](#)
 
-### compareStrings
+### 
 
 ```js
-function compareStrings(string a, string b) public pure
-returns(bool)
+function (string _name, string _symbol, address _underlying, uint256 _exchageRateStored) public nonpayable MockERC20 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | string |  | 
-| b | string |  | 
+| _name | string |  | 
+| _symbol | string |  | 
+| _underlying | address |  | 
+| _exchageRateStored | uint256 |  | 
 
 ## Contracts
 

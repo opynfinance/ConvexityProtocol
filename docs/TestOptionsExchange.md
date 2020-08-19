@@ -1,8 +1,8 @@
-# OptionsExchange.sol
+# TestOptionsExchange.sol
 
-View Source: [contracts/OptionsExchange.sol](../contracts/OptionsExchange.sol)
+View Source: [contracts/echidna/contracts/TestOptionsExchange.sol](../contracts/echidna/contracts/TestOptionsExchange.sol)
 
-**OptionsExchange**
+**TestOptionsExchange**
 
 ## Contract Members
 **Constants & Variables**
@@ -26,7 +26,7 @@ event BuyOTokens(address  buyer, address payable  receiver, address  oTokenAddre
 
 ## Functions
 
-- [(address _uniswapFactory)](#)
+- [()](#)
 - [sellOTokens(address payable receiver, address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell)](#sellotokens)
 - [buyOTokens(address payable receiver, address oTokenAddress, address paymentTokenAddress, uint256 oTokensToBuy)](#buyotokens)
 - [premiumReceived(address oTokenAddress, address payoutTokenAddress, uint256 oTokensToSell)](#premiumreceived)
@@ -40,14 +40,13 @@ event BuyOTokens(address  buyer, address payable  receiver, address  oTokenAddre
 ### 
 
 ```js
-function (address _uniswapFactory) public nonpayable
+function () public nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _uniswapFactory | address |  | 
 
 ### sellOTokens
 

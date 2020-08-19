@@ -10,7 +10,7 @@ View Source: [contracts/OptionsFactory.sol](../contracts/OptionsFactory.sol)
 **Constants & Variables**
 
 ```js
-mapping(string => contract IERC20) public tokens;
+mapping(address => bool) public whitelisted;
 address[] public optionsContracts;
 contract OptionsExchange public optionsExchange;
 address public oracleAddress;
@@ -21,20 +21,15 @@ address public oracleAddress;
 
 ```js
 event OptionsContractCreated(address  addr);
-event AssetAdded(string indexed asset, address indexed addr);
-event AssetChanged(string indexed asset, address indexed addr);
-event AssetDeleted(string indexed asset);
+event AssetWhitelisted(address indexed asset);
 ```
 
 ## Functions
 
 - [(OptionsExchange _optionsExchangeAddr, address _oracleAddress)](#)
-- [createOptionsContract(string _collateralType, int32 _collateralExp, string _underlyingType, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, string _strikeAsset, uint256 _expiry, uint256 _windowSize)](#createoptionscontract)
+- [createOptionsContract(address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, string _name, string _symbol)](#createoptionscontract)
 - [getNumberOfOptionsContracts()](#getnumberofoptionscontracts)
-- [updateAsset(string _asset, address _addr)](#updateAsset)
-- [updateAsset(string _asset, address _addr)](#updateAsset)
-- [updateAsset(string _asset)](#updateAsset)
-- [supportsAsset(string _asset)](#supportsasset)
+- [whitelistAsset(address _asset)](#whitelistasset)
 
 ### 
 
@@ -54,7 +49,7 @@ function (OptionsExchange _optionsExchangeAddr, address _oracleAddress) public n
 creates a new Option Contract
 
 ```js
-function createOptionsContract(string _collateralType, int32 _collateralExp, string _underlyingType, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, string _strikeAsset, uint256 _expiry, uint256 _windowSize) external nonpayable
+function createOptionsContract(address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, string _name, string _symbol) external nonpayable
 returns(address)
 ```
 
@@ -62,16 +57,16 @@ returns(address)
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _collateralType | string | The collateral asset. Eg. "ETH" | 
-| _collateralExp | int32 | The number of decimals the collateral asset has | 
-| _underlyingType | string | The underlying asset. Eg. "DAI" | 
-| _underlyingExp | int32 | The precision of the underlying asset. Eg. (-18 if Dai) | 
+| _collateral | address | The collateral asset. Eg. "ETH" | 
+| _underlying | address | The underlying asset. Eg. "DAI" | 
+| _strike | address | Price The amount of strike asset that will be paid out | 
 | _oTokenExchangeExp | int32 | Units of underlying that 1 oToken protects | 
 | _strikePrice | uint256 | The amount of strike asset that will be paid out | 
 | _strikeExp | int32 | The precision of the strike Price | 
-| _strikeAsset | string | The asset in which the insurance is calculated | 
 | _expiry | uint256 | The time at which the insurance expires | 
 | _windowSize | uint256 | UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`. | 
+| _name | string |  | 
+| _symbol | string |  | 
 
 ### getNumberOfOptionsContracts
 
@@ -87,92 +82,54 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 
-### updateAsset
+### whitelistAsset
 
-The owner of the Factory Contract can add a new asset to be supported
+The owner of the Factory Contract can update an asset's address, by adding it, changing the address or removing the asset
 
 ```js
-function updateAsset(string _asset, address _addr) external nonpayable onlyOwner 
+function whitelistAsset(address _asset) external nonpayable onlyOwner 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _asset | string | The ticker symbol for the asset | 
-| _addr | address | The address of the asset | 
-
-### updateAsset
-
-The owner of the Factory Contract can change an existing asset's address
-
-```js
-function updateAsset(string _asset, address _addr) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _asset | string | The ticker symbol for the asset | 
-| _addr | address | The address of the asset | 
-
-### updateAsset
-
-The owner of the Factory Contract can delete an existing asset's address
-
-```js
-function updateAsset(string _asset) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _asset | string | The ticker symbol for the asset | 
-
-### supportsAsset
-
-Check if the Factory contract supports a specific asset
-
-```js
-function supportsAsset(string _asset) public view
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _asset | string | The ticker symbol for the asset | 
+| _asset | address | The address for the asset | 
 
 ## Contracts
 
 * [CompoundOracleInterface](CompoundOracleInterface.md)
 * [Context](Context.md)
 * [CTokenInterface](CTokenInterface.md)
-* [Dai](Dai.md)
+* [EchidnaOptionsContract](EchidnaOptionsContract.md)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
-* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
-* [LibNote](LibNote.md)
+* [Initializable](Initializable.md)
+* [InitializedOwnable](InitializedOwnable.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockCtoken](MockCtoken.md)
+* [MockERC20](MockERC20.md)
+* [MockOracle](MockOracle.md)
 * [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)
 * [OptionsFactory](OptionsFactory.md)
-* [OptionsUtils](OptionsUtils.md)
 * [Oracle](Oracle.md)
+* [OracleInterface](OracleInterface.md)
 * [oToken](oToken.md)
+* [OTokenInterface](OTokenInterface.md)
 * [Ownable](Ownable.md)
 * [Roles](Roles.md)
 * [SafeMath](SafeMath.md)
+* [Spawn](Spawn.md)
+* [Spawner](Spawner.md)
 * [StringComparator](StringComparator.md)
-* [TestImports](TestImports.md)
+* [TestOptionsContract](TestOptionsContract.md)
+* [TestOptionsExchange](TestOptionsExchange.md)
 * [UniswapExchangeInterface](UniswapExchangeInterface.md)
 * [UniswapFactoryInterface](UniswapFactoryInterface.md)

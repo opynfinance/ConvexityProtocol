@@ -1,26 +1,29 @@
-# StringComparator.sol
+# OracleInterface.sol
 
-View Source: [contracts/lib/StringComparator.sol](../contracts/lib/StringComparator.sol)
+View Source: [contracts/interfaces/OracleInterface.sol](../contracts/interfaces/OracleInterface.sol)
 
-**StringComparator**
+**↘ Derived Contracts: [MockOracle](MockOracle.md)**
+
+**OracleInterface**
 
 ## Functions
 
-- [compareStrings(string a, string b)](#comparestrings)
+- [getPrice(address asset)](#getprice)
 
-### compareStrings
+### getPrice
+
+⤿ Overridden Implementation(s): [MockOracle.getPrice](MockOracle.md#getprice)
 
 ```js
-function compareStrings(string a, string b) public pure
-returns(bool)
+function getPrice(address asset) external view
+returns(uint256)
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | string |  | 
-| b | string |  | 
+| asset | address |  | 
 
 ## Contracts
 

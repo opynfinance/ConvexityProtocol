@@ -1,11 +1,10 @@
-# Ownable.sol
+# InitializedOwnable.sol
 
-View Source: [contracts/packages/Ownable.sol](../contracts/packages/Ownable.sol)
+View Source: [contracts/packages/InitializedOwnable.sol](../contracts/packages/InitializedOwnable.sol)
 
 **↗ Extends: [Context](Context.md)**
-**↘ Derived Contracts: [OptionsContract](OptionsContract.md), [OptionsFactory](OptionsFactory.md), [Oracle](Oracle.md), [TestOptionsContract](TestOptionsContract.md)**
 
-**Ownable**
+**InitializedOwnable**
 
 Contract module which provides a basic access control mechanism, where
 there is an account (an owner) that can be granted exclusive access to
@@ -47,19 +46,19 @@ modifier onlyOwner() internal
 
 ## Functions
 
-- [()](#)
+- [initOwnership()](#initownership)
 - [owner()](#owner)
 - [isOwner()](#isowner)
 - [renounceOwnership()](#renounceownership)
 - [transferOwnership(address newOwner)](#transferownership)
 - [_transferOwnership(address newOwner)](#_transferownership)
 
-### 
+### initOwnership
 
 Initializes the contract setting the deployer as the initial owner.
 
 ```js
-function () internal nonpayable
+function initOwnership() internal nonpayable
 ```
 
 **Arguments**

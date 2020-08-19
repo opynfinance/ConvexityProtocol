@@ -1,26 +1,29 @@
-# StringComparator.sol
+# MockERC20.sol
 
-View Source: [contracts/lib/StringComparator.sol](../contracts/lib/StringComparator.sol)
+View Source: [contracts/mocks/MockERC20.sol](../contracts/mocks/MockERC20.sol)
 
-**StringComparator**
+**↗ Extends: [ERC20Detailed](ERC20Detailed.md), [ERC20Mintable](ERC20Mintable.md)**
+**↘ Derived Contracts: [MockCtoken](MockCtoken.md)**
+
+**MockERC20**
 
 ## Functions
 
-- [compareStrings(string a, string b)](#comparestrings)
+- [(string _name, string _symbol, uint8 _decimals)](#)
 
-### compareStrings
+### 
 
 ```js
-function compareStrings(string a, string b) public pure
-returns(bool)
+function (string _name, string _symbol, uint8 _decimals) public nonpayable ERC20Detailed 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | string |  | 
-| b | string |  | 
+| _name | string |  | 
+| _symbol | string |  | 
+| _decimals | uint8 |  | 
 
 ## Contracts
 

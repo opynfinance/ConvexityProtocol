@@ -1,98 +1,74 @@
-# ERC20Detailed.sol
+# Spawn (Spawn.sol)
 
-View Source: [contracts/packages/ERC20Detailed.sol](../contracts/packages/ERC20Detailed.sol)
+View Source: [contracts/packages/Spawner.sol](../contracts/packages/Spawner.sol)
 
-**↗ Extends: [IERC20](IERC20.md)**
-**↘ Derived Contracts: [MockERC20](MockERC20.md)**
+**Spawn**
 
-**ERC20Detailed**
-
-Optional functions from the ERC20 standard.
-
-## Contract Members
-**Constants & Variables**
-
-```js
-string private _name;
-string private _symbol;
-uint8 private _decimals;
-
-```
+This contract provides creation code that is used by Spawner in order
+to initialize and deploy eip-1167 minimal proxies for a given logic contract.
 
 ## Functions
 
-- [(string name, string symbol, uint8 decimals)](#)
-- [name()](#name)
-- [symbol()](#symbol)
-- [decimals()](#decimals)
+- [(address logicContract, bytes initializationCalldata)](#)
+- [_spawnOldSchool(address logicContract, bytes initializationCalldata)](#_spawnoldschool)
+- [_spawnCreate(bytes initCode)](#_spawncreate)
 
 ### 
 
-Sets the values for `name`, `symbol`, and `decimals`. All three of
-these values are immutable: they can only be set once during
-construction.
-
 ```js
-function (string name, string symbol, uint8 decimals) public nonpayable
+function (address logicContract, bytes initializationCalldata) public payable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| name | string |  | 
-| symbol | string |  | 
-| decimals | uint8 |  | 
+| logicContract | address |  | 
+| initializationCalldata | bytes |  | 
 
-### name
+### _spawnOldSchool
 
-Returns the name of the token.
+Internal function for spawning an eip-1167 minimal proxy using
+`CREATE`. This method will be slightly cheaper than standard _spawn in
+cases where counterfactual address derivation is not required.
 
 ```js
-function name() public view
-returns(string)
+function _spawnOldSchool(address logicContract, bytes initializationCalldata) internal nonpayable
+returns(spawnedContract address)
 ```
+
+**Returns**
+
+The address of the newly-spawned contract.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
+| logicContract | address | address The address of the logic contract. | 
+| initializationCalldata | bytes | bytes The calldata that will be supplied to
+the `DELEGATECALL` from the spawned contract to the logic contract during
+contract creation. | 
 
-### symbol
+### _spawnCreate
 
-Returns the symbol of the token, usually a shorter version of the
-name.
+Private function for spawning a compact eip-1167 minimal proxy
+using `CREATE`. Provides logic that is reused by internal functions.
 
 ```js
-function symbol() public view
-returns(string)
+function _spawnCreate(bytes initCode) private nonpayable
+returns(spawnedContract address)
 ```
+
+**Returns**
+
+The address of the newly-spawned contract.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-
-### decimals
-
-Returns the number of decimals used to get its user representation.
-For example, if `decimals` equals `2`, a balance of `505` tokens should
-be displayed to a user as `5,05` (`505 / 10 ** 2`).
-     * Tokens usually opt for a value of 18, imitating the relationship between
-Ether and Wei.
-     * NOTE: This information is only used for _display_ purposes: it in
-no way affects any of the arithmetic of the contract, including
-{IERC20-balanceOf} and {IERC20-transfer}.
-
-```js
-function decimals() public view
-returns(uint8)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| initCode | bytes | bytes The contract creation code. | 
 
 ## Contracts
 

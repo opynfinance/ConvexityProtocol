@@ -1,11 +1,11 @@
-# Opyn's Options Contract (OptionsContract.sol)
+# Opyn's Options Contract (TestOptionsContract.sol)
 
-View Source: [contracts/OptionsContract.sol](../contracts/OptionsContract.sol)
+View Source: [contracts/echidna/contracts/TestOptionsContract.sol](../contracts/echidna/contracts/TestOptionsContract.sol)
 
 **↗ Extends: [Ownable](Ownable.md), [ERC20](ERC20.md)**
-**↘ Derived Contracts: [oToken](oToken.md)**
+**↘ Derived Contracts: [EchidnaOptionsContract](EchidnaOptionsContract.md)**
 
-**OptionsContract**
+**TestOptionsContract**
 
 ## Structs
 ### Number
@@ -32,19 +32,15 @@ struct Vault {
 **Constants & Variables**
 
 ```js
-//internal members
-mapping(address => struct OptionsContract.Vault) internal vaults;
-uint256 internal windowSize;
-uint256 internal totalFee;
-bool internal isPaused;
-
 //public members
+contract TestOptionsExchange public optionsExchange;
 address payable[] public vaultOwners;
-struct OptionsContract.Number public liquidationIncentive;
-struct OptionsContract.Number public liquidationFactor;
-struct OptionsContract.Number public minCollateralizationRatio;
-struct OptionsContract.Number public strikePrice;
-struct OptionsContract.Number public oTokenExchangeRate;
+struct TestOptionsContract.Number public liquidationIncentive;
+struct TestOptionsContract.Number public transactionFee;
+struct TestOptionsContract.Number public liquidationFactor;
+struct TestOptionsContract.Number public minCollateralizationRatio;
+struct TestOptionsContract.Number public strikePrice;
+struct TestOptionsContract.Number public oTokenExchangeRate;
 uint256 public expiry;
 int32 public collateralExp;
 int32 public underlyingExp;
@@ -55,6 +51,11 @@ contract OracleInterface public oracle;
 string public name;
 string public symbol;
 uint8 public decimals;
+
+//internal members
+mapping(address => struct TestOptionsContract.Vault) internal vaults;
+uint256 internal windowSize;
+uint256 internal totalFee;
 
 ```
 
@@ -70,10 +71,9 @@ event Exercise(uint256  amtUnderlyingToPay, uint256  amtCollateralToPay, address
 event RedeemVaultBalance(uint256  amtCollateralRedeemed, uint256  amtUnderlyingRedeemed, address payable  vaultOwner);
 event BurnOTokens(address payable  vaultOwner, uint256  oTokensBurned);
 event RemoveCollateral(uint256  amtRemoved, address payable  vaultOwner);
-event UpdateParameters(uint256  liquidationIncentive, uint256  liquidationFactor, uint256  minCollateralizationRatio, address  owner);
+event UpdateParameters(uint256  liquidationIncentive, uint256  liquidationFactor, uint256  transactionFee, uint256  minCollateralizationRatio, address  owner);
 event TransferFee(address payable  to, uint256  fees);
 event RemoveUnderlying(uint256  amountUnderlying, address payable  vaultOwner);
-event OptionStateUpdated(bool  oldState, bool  newState, uint256  updateTimestamp);
 ```
 
 ## Modifiers
@@ -95,14 +95,11 @@ modifier notExpired() internal
 
 ## Functions
 
-- [(address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, address _oracleAddress)](#)
+- [()](#)
 - [getVaultOwnersLength()](#getvaultownerslength)
-- [updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _minCollateralizationRatio)](#updateparameters)
-- [harvest(address _token, uint256 _amount)](#harvest)
+- [updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio)](#updateparameters)
 - [setDetails(string _name, string _symbol)](#setdetails)
 - [transferFee(address payable _address)](#transferfee)
-- [setIsPaused(bool _isPaused)](#setispaused)
-- [isSystemPaused()](#issystempaused)
 - [hasVault(address payable _owner)](#hasvault)
 - [openVault()](#openvault)
 - [addETHCollateral(address payable vaultOwner)](#addethcollateral)
@@ -128,32 +125,22 @@ modifier notExpired() internal
 - [_addCollateral(address payable vaultOwner, uint256 amt)](#_addcollateral)
 - [isSafe(uint256 collateralAmt, uint256 oTokensIssued)](#issafe)
 - [maxOTokensIssuable(uint256 collateralAmt)](#maxotokensissuable)
-- [calculateOTokens(uint256 collateralAmt, struct OptionsContract.Number proportion)](#calculateotokens)
-- [calculateCollateralToPay(uint256 _oTokens, struct OptionsContract.Number proportion)](#calculatecollateraltopay)
+- [calculateOTokens(uint256 collateralAmt, struct TestOptionsContract.Number proportion)](#calculateotokens)
+- [calculateCollateralToPay(uint256 _oTokens, struct TestOptionsContract.Number proportion)](#calculatecollateraltopay)
 - [transferCollateral(address payable _addr, uint256 _amt)](#transfercollateral)
 - [transferUnderlying(address payable _addr, uint256 _amt)](#transferunderlying)
-- [getAssetExp(address _asset)](#getassetexp)
 - [getPrice(address asset)](#getprice)
 
 ### 
 
 ```js
-function (address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, address _oracleAddress) public nonpayable
+function () public nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _collateral | address | The collateral asset | 
-| _underlying | address | The asset that is being protected | 
-| _strike | address | Price The amount of strike asset that will be paid out per oToken | 
-| _oTokenExchangeExp | int32 | The precision of the `amount of underlying` that 1 oToken protects | 
-| _strikePrice | uint256 | The amount of strike asset that will be paid out per oToken | 
-| _strikeExp | int32 | The precision of the strike price. | 
-| _expiry | uint256 | The time at which the insurance expires | 
-| _windowSize | uint256 | UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`. | 
-| _oracleAddress | address | The address of the oracle | 
 
 ### getVaultOwnersLength
 
@@ -174,7 +161,7 @@ returns(uint256)
 Can only be called by owner. Used to update the fees, minCollateralizationRatio, etc
 
 ```js
-function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _minCollateralizationRatio) external nonpayable onlyOwner 
+function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFactor, uint256 _transactionFee, uint256 _minCollateralizationRatio) external nonpayable onlyOwner 
 ```
 
 **Arguments**
@@ -183,20 +170,8 @@ function updateParameters(uint256 _liquidationIncentive, uint256 _liquidationFac
 | ------------- |------------- | -----|
 | _liquidationIncentive | uint256 | The incentive paid to liquidator. 10 is 0.01 i.e. 1% incentive. | 
 | _liquidationFactor | uint256 | Max amount that a Vault can be liquidated by. 500 is 0.5. | 
+| _transactionFee | uint256 | The fees paid to our protocol every time a execution happens. 100 is egs. 0.1 i.e. 10%. | 
 | _minCollateralizationRatio | uint256 | The minimum ratio of a Vault's collateral to insurance promised. 16 means 1.6. | 
-
-### harvest
-
-```js
-function harvest(address _token, uint256 _amount) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _token | address |  | 
-| _amount | uint256 |  | 
 
 ### setDetails
 
@@ -226,38 +201,6 @@ function transferFee(address payable _address) external nonpayable onlyOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _address | address payable | The address to send the fee to. | 
-
-### setIsPaused
-
-Can only be called by owner. Used to pause and restart the option contract.
-
-```js
-function setIsPaused(bool _isPaused) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _isPaused | bool | The option contract state, if true then pause the contract, if false then restart contract | 
-
-### isSystemPaused
-
-Get option contract state. If option is paused should return true, else false.
-
-```js
-function isSystemPaused() public view
-returns(bool)
-```
-
-**Returns**
-
-option contract state
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
 
 ### hasVault
 
@@ -677,7 +620,7 @@ returns(uint256)
 This function is used to calculate the amount of tokens that can be issued.
 
 ```js
-function calculateOTokens(uint256 collateralAmt, struct OptionsContract.Number proportion) internal view
+function calculateOTokens(uint256 collateralAmt, struct TestOptionsContract.Number proportion) internal view
 returns(uint256)
 ```
 
@@ -686,7 +629,7 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | collateralAmt | uint256 | The amount of collateral | 
-| proportion | struct OptionsContract.Number | The proportion of the collateral to pay out. If 100% of collateral
+| proportion | struct TestOptionsContract.Number | The proportion of the collateral to pay out. If 100% of collateral
 should be paid out, pass in Number(1, 0). The proportion might be less than 100% if
 you are calculating fees. | 
 
@@ -695,7 +638,7 @@ you are calculating fees. |
 This function calculates the amount of collateral to be paid out.
 
 ```js
-function calculateCollateralToPay(uint256 _oTokens, struct OptionsContract.Number proportion) internal view
+function calculateCollateralToPay(uint256 _oTokens, struct TestOptionsContract.Number proportion) internal view
 returns(uint256)
 ```
 
@@ -704,7 +647,7 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _oTokens | uint256 | The number of oTokens. | 
-| proportion | struct OptionsContract.Number | The proportion of the collateral to pay out. If 100% of collateral
+| proportion | struct TestOptionsContract.Number | The proportion of the collateral to pay out. If 100% of collateral
 should be paid out, pass in Number(1, 0). The proportion might be less than 100% if
 you are calculating fees. | 
 
@@ -737,21 +680,6 @@ function transferUnderlying(address payable _addr, uint256 _amt) internal nonpay
 | ------------- |------------- | -----|
 | _addr | address payable | The address to send the underlying to | 
 | _amt | uint256 | The amount of the underlying to pay out. | 
-
-### getAssetExp
-
-internal function to parse token decimals for constructor
-
-```js
-function getAssetExp(address _asset) internal view
-returns(int32)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _asset | address | the asset address | 
 
 ### getPrice
 

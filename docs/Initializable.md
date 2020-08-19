@@ -1,17 +1,56 @@
-# StringComparator.sol
+# Initializable
+ * (Initializable.sol)
 
-View Source: [contracts/lib/StringComparator.sol](../contracts/lib/StringComparator.sol)
+View Source: [contracts/packages/Initializable.sol](../contracts/packages/Initializable.sol)
 
-**StringComparator**
+**Initializable**
+
+Helper contract to support initializer functions. To use it, replace
+the constructor with a function that has the `initializer` modifier.
+WARNING: Unlike constructors, initializer functions must be manually
+invoked. This applies both to deploying an Initializable contract, as well
+as extending an Initializable contract via inheritance.
+WARNING: When used with inheritance, manual care must be taken to not invoke
+a parent initializer twice, or ensure that all initializers are idempotent,
+because this is not dealt with automatically as with constructors.
+
+## Contract Members
+**Constants & Variables**
+
+```js
+bool private initialized;
+bool private initializing;
+uint256[50] private ______gap;
+
+```
+
+## Modifiers
+
+- [initializer](#initializer)
+
+### initializer
+
+Modifier to use in the initializer function of a contract.
+
+```js
+modifier initializer() internal
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
 
 ## Functions
 
-- [compareStrings(string a, string b)](#comparestrings)
+- [isConstructor()](#isconstructor)
 
-### compareStrings
+### isConstructor
+
+Returns true if and only if the function is running in the constructor
 
 ```js
-function compareStrings(string a, string b) public pure
+function isConstructor() private view
 returns(bool)
 ```
 
@@ -19,8 +58,6 @@ returns(bool)
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | string |  | 
-| b | string |  | 
 
 ## Contracts
 

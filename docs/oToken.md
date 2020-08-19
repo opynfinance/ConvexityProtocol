@@ -6,9 +6,17 @@ View Source: [contracts/oToken.sol](../contracts/oToken.sol)
 
 **oToken**
 
+## Contract Members
+**Constants & Variables**
+
+```js
+contract OptionsExchange public optionsExchange;
+
+```
+
 ## Functions
 
-- [(IERC20 _collateral, int32 _collExp, IERC20 _underlying, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, IERC20 _strike, uint256 _expiry, OptionsExchange _optionsExchange, address _oracleAddress, uint256 _windowSize)](#)
+- [(address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, OptionsExchange _optionsExchange, address _oracleAddress)](#)
 - [createETHCollateralOption(uint256 amtToCreate, address receiver)](#createethcollateraloption)
 - [addETHCollateralOption(uint256 amtToCreate, address receiver)](#addethcollateraloption)
 - [createAndSellETHCollateralOption(uint256 amtToCreate, address payable receiver)](#createandsellethcollateraloption)
@@ -21,25 +29,23 @@ View Source: [contracts/oToken.sol](../contracts/oToken.sol)
 ### 
 
 ```js
-function (IERC20 _collateral, int32 _collExp, IERC20 _underlying, int32 _underlyingExp, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, IERC20 _strike, uint256 _expiry, OptionsExchange _optionsExchange, address _oracleAddress, uint256 _windowSize) public nonpayable OptionsContract 
+function (address _collateral, address _underlying, address _strike, int32 _oTokenExchangeExp, uint256 _strikePrice, int32 _strikeExp, uint256 _expiry, uint256 _windowSize, OptionsExchange _optionsExchange, address _oracleAddress) public nonpayable OptionsContract 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _collateral | IERC20 | The collateral asset | 
-| _collExp | int32 | The precision of the collateral (-18 if ETH) | 
-| _underlying | IERC20 | The asset that is being protected | 
-| _underlyingExp | int32 | The precision of the underlying asset | 
+| _collateral | address | The collateral asset | 
+| _underlying | address | The asset that is being protected | 
+| _strike | address | Price The amount of strike asset that will be paid out | 
 | _oTokenExchangeExp | int32 | The precision of the `amount of underlying` that 1 oToken protects | 
 | _strikePrice | uint256 | The amount of strike asset that will be paid out | 
 | _strikeExp | int32 | The precision of the strike asset (-18 if ETH) | 
-| _strike | IERC20 | Price The amount of strike asset that will be paid out | 
 | _expiry | uint256 | The time at which the insurance expires | 
+| _windowSize | uint256 | UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`. | 
 | _optionsExchange | OptionsExchange | The contract which interfaces with the exchange + oracle | 
 | _oracleAddress | address | The address of the oracle | 
-| _windowSize | uint256 | UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`. | 
 
 ### createETHCollateralOption
 
@@ -186,28 +192,35 @@ function addAndSellERC20CollateralOption(uint256 amtToCreate, uint256 amtCollate
 * [CompoundOracleInterface](CompoundOracleInterface.md)
 * [Context](Context.md)
 * [CTokenInterface](CTokenInterface.md)
-* [Dai](Dai.md)
+* [EchidnaOptionsContract](EchidnaOptionsContract.md)
 * [ERC20](ERC20.md)
 * [ERC20Detailed](ERC20Detailed.md)
 * [ERC20Mintable](ERC20Mintable.md)
-* [FixedPointUint256](FixedPointUint256.md)
 * [IERC20](IERC20.md)
-* [LibNote](LibNote.md)
+* [Initializable](Initializable.md)
+* [InitializedOwnable](InitializedOwnable.md)
 * [Migrations](Migrations.md)
 * [MinterRole](MinterRole.md)
 * [MockCompoundOracle](MockCompoundOracle.md)
+* [MockCtoken](MockCtoken.md)
+* [MockERC20](MockERC20.md)
+* [MockOracle](MockOracle.md)
 * [MockOtokensExchange](MockOtokensExchange.md)
 * [MockUniswapFactory](MockUniswapFactory.md)
 * [OptionsContract](OptionsContract.md)
 * [OptionsExchange](OptionsExchange.md)
 * [OptionsFactory](OptionsFactory.md)
-* [OptionsUtils](OptionsUtils.md)
 * [Oracle](Oracle.md)
+* [OracleInterface](OracleInterface.md)
 * [oToken](oToken.md)
+* [OTokenInterface](OTokenInterface.md)
 * [Ownable](Ownable.md)
 * [Roles](Roles.md)
 * [SafeMath](SafeMath.md)
+* [Spawn](Spawn.md)
+* [Spawner](Spawner.md)
 * [StringComparator](StringComparator.md)
-* [TestImports](TestImports.md)
+* [TestOptionsContract](TestOptionsContract.md)
+* [TestOptionsExchange](TestOptionsExchange.md)
 * [UniswapExchangeInterface](UniswapExchangeInterface.md)
 * [UniswapFactoryInterface](UniswapFactoryInterface.md)

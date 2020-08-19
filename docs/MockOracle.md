@@ -1,26 +1,62 @@
-# StringComparator.sol
+# MockOracle.sol
 
-View Source: [contracts/lib/StringComparator.sol](../contracts/lib/StringComparator.sol)
+View Source: [contracts/mocks/MockOracle.sol](../contracts/mocks/MockOracle.sol)
 
-**StringComparator**
+**↗ Extends: [OracleInterface](OracleInterface.md)**
+
+**MockOracle**
+
+## Contract Members
+**Constants & Variables**
+
+```js
+uint256 public price;
+
+```
 
 ## Functions
 
-- [compareStrings(string a, string b)](#comparestrings)
+- [()](#)
+- [getPrice(address asset)](#getprice)
+- [updatePrice(uint256 newPrice)](#updateprice)
 
-### compareStrings
+### 
 
 ```js
-function compareStrings(string a, string b) public pure
-returns(bool)
+function () public nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | string |  | 
-| b | string |  | 
+
+### getPrice
+
+⤾ overrides [OracleInterface.getPrice](OracleInterface.md#getprice)
+
+```js
+function getPrice(address asset) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| asset | address |  | 
+
+### updatePrice
+
+```js
+function updatePrice(uint256 newPrice) external nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| newPrice | uint256 |  | 
 
 ## Contracts
 
