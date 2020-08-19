@@ -10,7 +10,7 @@ import "./packages/SafeMath.sol";
 import {Ownable} from "./packages/InitializedOwnable.sol";
 
 
-contract Oracle is Ownable, OracleInterface {
+contract OracleV1 is Ownable, OracleInterface {
     using SafeMath for uint256;
 
     // used ctoken addresses
@@ -37,6 +37,9 @@ contract Oracle is Ownable, OracleInterface {
     CompoundOracleInterface public priceOracle;
 
     function init(address _oracleAddress) public initializer {
+        // set original owner to msg.sender
+        initialize(msg.sender);
+
         priceOracle = CompoundOracleInterface(_oracleAddress);
         // Mainnet
         cEth = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
