@@ -87,7 +87,7 @@ contract('OptionsContract: BAL put', accounts => {
     });
 
     it('should update parameters', async () => {
-      await oToken.updateParameters(0, 500, 0, 10, {
+      await oToken.updateParameters(0, 500, 10, {
         from: creatorAddress
       });
     });

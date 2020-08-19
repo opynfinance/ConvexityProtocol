@@ -83,7 +83,7 @@ contract('OptionsContract: ETH put', accounts => {
     });
 
     it('should update parameters', async () => {
-      await oETH.updateParameters('100', '500', 0, 10, {from: creatorAddress});
+      await oETH.updateParameters('100', '500', 10, {from: creatorAddress});
     });
 
     it('should open empty vault', async () => {

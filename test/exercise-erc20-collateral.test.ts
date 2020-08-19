@@ -70,7 +70,7 @@ contract(
       otoken = await oToken.at(optionsContractAddr);
       // change collateral ratio to 1
 
-      await otoken.updateParameters('100', '500', 0, 10, {
+      await otoken.updateParameters('100', '500', 10, {
         from: creatorAddress
       });
     });

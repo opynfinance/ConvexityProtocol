@@ -95,6 +95,10 @@ contract('OptionsContract', accounts => {
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
+    await optionsContracts[0].updateParameters(10, 500, 16, {
+      from: creatorAddress
+    });
+
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
       from: firstVaultOwnerAddress
@@ -577,7 +581,7 @@ contract('OptionsContract', accounts => {
 
     it('only owner should be able to update parameters', async () => {
       await expectRevert(
-        optionsContracts[0].updateParameters(0, 0, 0, 0, {
+        optionsContracts[0].updateParameters(0, 0, 0, {
           from: firstVaultOwnerAddress
         }),
         'Ownable: caller is not the owner.'
@@ -587,7 +591,6 @@ contract('OptionsContract', accounts => {
     it('owner should be able to update parameters', async () => {
       const liquidationIncentive = 20;
       const liquidationFactor = 1000;
-      const transactionFee = 10;
       const collateralizationRatio = 20;
 
       let currentCollateralizationRatio = await optionsContracts[0].minCollateralizationRatio();
@@ -596,7 +599,6 @@ contract('OptionsContract', accounts => {
       await optionsContracts[0].updateParameters(
         liquidationIncentive,
         liquidationFactor,
-        transactionFee,
         collateralizationRatio,
         {from: creatorAddress}
       );

@@ -82,6 +82,10 @@ contract('OptionsContract', accounts => {
     const optionsContractAddr = optionsContractResult.logs[1].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
+    await optionsContracts[0].updateParameters(10, 500, 16, {
+      from: creatorAddress
+    });
+
     // Open vault1, add Collateral and Mint oTokens
     await optionsContracts[0].openVault({
       from: firstVaultOwnerAddress

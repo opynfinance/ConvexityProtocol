@@ -30,20 +30,18 @@ contract(
 
     const _name = 'test call option $280';
     const _symbol = 'test oETH $280';
-    const _collateralType = 'ETH';
+
     const _collateralExp = -18;
-    const _underlyingType = 'USDC';
+
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
     const _strikePrice = 3571428;
     const _strikeExp = -15;
-    const _strikeAsset = 'ETH';
 
     let _expiry: number;
     let _windowSize: number;
     const _liquidationIncentiveValue = 0;
     const _liquidationFactorValue = 0;
-    const _transactionFeeValue = 0;
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
@@ -97,7 +95,6 @@ contract(
       await optionContract.updateParameters(
         _liquidationIncentiveValue,
         _liquidationFactorValue,
-        _transactionFeeValue,
         _minCollateralizationRatioValue,
         {from: opynDeployer}
       );

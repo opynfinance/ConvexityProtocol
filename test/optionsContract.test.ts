@@ -88,6 +88,10 @@ contract('OptionsContract', accounts => {
     let optionsContractAddr = optionsContractResult.logs[1].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
+    await optionsContracts[0].updateParameters(10, 500, 16, {
+      from: creatorAddress
+    });
+
     optionsContractResult = await optionsFactory.createOptionsContract(
       usdc.address,
       dai.address,
@@ -107,6 +111,10 @@ contract('OptionsContract', accounts => {
       optionsContractAddr
     );
     optionsContracts.push(ERC20collateralOptContract);
+
+    await optionsContracts[1].updateParameters(10, 500, 16, {
+      from: creatorAddress
+    });
 
     await reverter.snapshot();
   });
@@ -287,47 +295,39 @@ contract('OptionsContract', accounts => {
 
     it('should revert when calling from other address', async () => {
       await expectRevert(
-        option.updateParameters(100, 500, 0, 10, {from: random}),
+        option.updateParameters(100, 500, 10, {from: random}),
         'Ownable: caller is not the owner'
       );
     });
 
     it('should revert when trying to set liquidation incentive > 200%', async () => {
       await expectRevert(
-        option.updateParameters(201, 500, 0, 10), //
+        option.updateParameters(201, 500, 10), //
         "Can't have >20% liquidation incentive"
-      );
-    });
-
-    it('should revert when trying to set transaction fee > 10%', async () => {
-      await expectRevert(
-        option.updateParameters(100, 500, 101, 10), //
-        "Can't have transaction fee > 10%"
       );
     });
 
     it('should revert when trying to set liquidation factor > 100%', async () => {
       await expectRevert(
-        option.updateParameters(100, 1001, 0, 10), //
+        option.updateParameters(100, 1001, 10), //
         "Can't liquidate more than 100% of the vault"
       );
     });
 
     it('should revert when trying to set collateral ratio < 1', async () => {
       await expectRevert(
-        option.updateParameters(100, 500, 0, 9), //
+        option.updateParameters(100, 500, 9), //
         "Can't have minCollateralizationRatio < 1"
       );
     });
 
     it('should emit UpdateParameters event ', async () => {
       expectEvent(
-        await option.updateParameters(200, 500, 0, 10), //
+        await option.updateParameters(200, 500, 10), //
         'UpdateParameters',
         {
           liquidationIncentive: '200',
           liquidationFactor: '500',
-          transactionFee: '0',
           minCollateralizationRatio: '10'
         }
       );

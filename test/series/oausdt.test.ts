@@ -94,10 +94,6 @@ contract('OptionsContract: Aave insurance', accounts => {
       assert.equal(await oaUSDT.symbol(), String(_symbol), 'set symbol error');
     });
 
-    it('should update parameters', async () => {
-      // await oaUSDT.updateParameters('100', '500', 0, 16, {from: creatorAddress});
-    });
-
     it('should open empty vault', async () => {
       await oaUSDT.openVault({
         from: creatorAddress
