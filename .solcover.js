@@ -21,6 +21,7 @@ module.exports = {
       'packages/Ownable.sol',
       'packages/Roles.sol',
       'packages/SafeMath.sol',
+      'packages/WETH.sol',
       'mocks/MockOracle.sol',
       'mocks/MockERC20.sol',
       'mocks/MockCtoken.sol',
