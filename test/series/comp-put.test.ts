@@ -181,5 +181,25 @@ contract('OptionsContract: COMP put', accounts => {
       assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), underlyingRequired);
     });
+
+    it('exponents should not overflow', async () => {
+      const strikePrice = await oComp.strikePrice();
+      const strikeExponent = strikePrice[1];
+      const colalteralExponent = await oComp.collateralExp();
+      const collateralToPayExponent = Math.max(
+        Math.abs(strikeExponent - colalteralExponent),
+        Math.abs(strikeExponent - colalteralExponent - 3)
+      );
+
+      assert(collateralToPayExponent <= 9, 'overflow possibility');
+
+      const oTokenExchangeExponent = await oComp.oTokenExchangeRate();
+      const underlingExponent = await oComp.underlyingExp();
+
+      assert(
+        Math.abs(oTokenExchangeExponent[1] - underlingExponent) <= 19,
+        'overflow possiblitiy'
+      );
+    });
   });
 });

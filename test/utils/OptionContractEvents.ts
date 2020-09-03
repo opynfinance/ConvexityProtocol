@@ -1,4 +1,4 @@
-export function RepoOpened(params: { addr: string }) {
+export function RepoOpened(params: {addr: string}) {
   return {
     event: 'RepoOpened',
     args: {

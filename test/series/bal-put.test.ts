@@ -189,5 +189,25 @@ contract('OptionsContract: BAL put', accounts => {
       // check underlying In the vault
       assert.equal(vault[2].toString(), underlyingRequired);
     });
+
+    it('exponents should not overflow', async () => {
+      const strikePrice = await oToken.strikePrice();
+      const strikeExponent = strikePrice[1];
+      const colalteralExponent = await oToken.collateralExp();
+      const collateralToPayExponent = Math.max(
+        Math.abs(strikeExponent - colalteralExponent),
+        Math.abs(strikeExponent - colalteralExponent - 3)
+      );
+
+      assert(collateralToPayExponent <= 9, 'overflow possibility');
+
+      const oTokenExchangeExponent = await oToken.oTokenExchangeRate();
+      const underlingExponent = await oToken.underlyingExp();
+
+      assert(
+        Math.abs(oTokenExchangeExponent[1] - underlingExponent) <= 19,
+        'overflow possiblitiy'
+      );
+    });
   });
 });
