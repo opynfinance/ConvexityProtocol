@@ -390,11 +390,11 @@ contract OptionsContract is Ownable, ERC20 {
         returns (uint256)
     {
         require(!isSystemPaused(), "Option contract is paused");
+        require(hasVault(vaultOwner), "Vault does not exist");
         require(
             collateral.transferFrom(msg.sender, address(this), amt),
             "OptionsContract: transfer collateral failed."
         );
-        require(hasVault(vaultOwner), "Vault does not exist");
 
         emit ERC20CollateralAdded(vaultOwner, amt, msg.sender);
         return _addCollateral(vaultOwner, amt);
