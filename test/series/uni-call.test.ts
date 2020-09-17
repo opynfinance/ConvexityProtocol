@@ -14,7 +14,7 @@ import {calculateMaxOptionsToCreate, ZERO_ADDRESS} from '../utils/helper';
 const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
 
 contract(
-  'OptionsContract: ETH Call',
+  'OptionsContract: UNI Call',
   ([
     opynDeployer,
     vaultOwner1,
@@ -28,15 +28,15 @@ contract(
     let optionsFactory: OptionsFactoryInstance;
     let usdc: MockErc20Instance;
 
-    const _name = 'test call option $280';
-    const _symbol = 'test oETH $280';
+    const _name = 'test call option $8';
+    const _symbol = 'test oUNIc $8';
 
     const _collateralExp = -18;
 
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 250;
-    const _strikeExp = -11;
+    const _strikePrice = 125;
+    const _strikeExp = -9;
 
     let _expiry: number;
     let _windowSize: number;
@@ -45,8 +45,9 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = '800000000'; // 5600.00896 USD ~ 20 call options
-    const ethCollateralToAdd = ether('25');
+    const mintedAmount = '160000000'; // 5600.00896 USD ~ 20 call options
+    // const collateralToAdd = ether('20');
+    const collateralToAdd = new BigNumber(20).times(1e18).toString();
 
     before('set up contracts', async () => {
       const now = (await time.latest()).toNumber();
@@ -241,9 +242,8 @@ contract(
     describe('Add colateral', () => {
       it('should revert adding collateral to a non existing vault', async () => {
         await expectRevert(
-          optionContract.addETHCollateral(random, {
-            from: random,
-            value: ethCollateralToAdd
+          optionContract.addERC20Collateral(opynDeployer, collateralToAdd, {
+            from: opynDeployer
           }),
           'Vault does not exist'
         );
@@ -260,17 +260,17 @@ contract(
           await optionContract.getVault(vaultOwner3)
         )[0].toString();
 
-        await optionContract.addETHCollateral(vaultOwner1, {
+        await optionContract.addERC20Collateral(vaultOwner1, {
           from: vaultOwner1,
-          value: ethCollateralToAdd
+          value: collateralToAdd
         });
-        await optionContract.addETHCollateral(vaultOwner2, {
+        await optionContract.addERC20Collateral(vaultOwner2, {
           from: vaultOwner2,
-          value: ethCollateralToAdd
+          value: collateralToAdd
         });
-        await optionContract.addETHCollateral(vaultOwner3, {
+        await optionContract.addERC20Collateral(vaultOwner3, {
           from: vaultOwner3,
-          value: ethCollateralToAdd
+          value: collateralToAdd
         });
 
         const vault1CollateralAfter = (
@@ -287,34 +287,34 @@ contract(
           new BigNumber(vault1CollateralAfter)
             .minus(new BigNumber(vault1CollateralBefore))
             .toString(),
-          ethCollateralToAdd.toString(),
+          collateralToAdd.toString(),
           'error deposited ETH collateral'
         );
         assert.equal(
           new BigNumber(vault2CollateralAfter)
             .minus(new BigNumber(vault2CollateralBefore))
             .toString(),
-          ethCollateralToAdd.toString(),
+          collateralToAdd.toString(),
           'error deposited ETH collateral'
         );
         assert.equal(
           new BigNumber(vault3CollateralAfter)
             .minus(new BigNumber(vault3CollateralBefore))
             .toString(),
-          ethCollateralToAdd.toString(),
+          collateralToAdd.toString(),
           'error deposited ETH collateral'
         );
       });
 
-      it('should revert adding ERC20 token as collateral', async () => {
-        await expectRevert(
-          optionContract.addERC20Collateral(vaultOwner1, '10', {
-            from: vaultOwner1,
-            value: ethCollateralToAdd
-          }),
-          'revert'
-        );
-      });
+      // it('should revert adding ERC20 token as collateral', async () => {
+      //   await expectRevert(
+      //     optionContract.addERC20Collateral(vaultOwner1, '10', {
+      //       from: vaultOwner1,
+      //       value: collateralToAdd
+      //     }),
+      //     'revert'
+      //   );
+      // });
     });
 
     describe('Issue oToken', () => {

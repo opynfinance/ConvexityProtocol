@@ -13,7 +13,7 @@ const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
 
-contract('OptionsContract: BAL put', accounts => {
+contract('OptionsContract: UNI put', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -22,14 +22,14 @@ contract('OptionsContract: BAL put', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oToken: OTokenInstance;
-  let bal: MockErc20Instance;
+  let uni: MockErc20Instance;
   let usdc: MockErc20Instance;
 
-  const _name = 'Opyn BAL Put $7 08/28/20';
-  const _symbol = 'oBALp $7';
+  const _name = 'Opyn UNI Put $2.5 08/28/20';
+  const _symbol = 'oUNIp $2.5';
   const _tokenDecimals = 7;
 
-  const balDigits = new BigNumber(10).exponentiatedBy(18);
+  const uniDigits = new BigNumber(10).exponentiatedBy(18);
   const usdcDigits = new BigNumber(10).exponentiatedBy(6);
   const oTokenDigits = new BigNumber(10).exponentiatedBy(7);
 
@@ -43,30 +43,30 @@ contract('OptionsContract: BAL put', accounts => {
     // oracle = await MockOracle.deployed();
     // oracle = MockOracle.at()
 
-    // 1.2 Mock BAL contract
-    bal = await MockERC20.new('bal', 'bal', 18);
-    await bal.mint(creatorAddress, new BigNumber(1000).times(balDigits)); // 1000 bal
-    await bal.mint(firstOwner, new BigNumber(1000).times(balDigits));
-    await bal.mint(tokenHolder, new BigNumber(1000).times(balDigits));
+    // 1.2 Mock UNI contract
+    uni = await MockERC20.new('uni', 'uni', 18);
+    await uni.mint(creatorAddress, new BigNumber(1000).times(uniDigits)); // 1000 uni
+    await uni.mint(firstOwner, new BigNumber(1000).times(uniDigits));
+    await uni.mint(tokenHolder, new BigNumber(1000).times(uniDigits));
 
     // 1.3 Mock USDT contract
     usdc = await MockERC20.new('USDC', 'USDC', 6);
-    await usdc.mint(creatorAddress, new BigNumber(7000).times(usdcDigits)); // 1000 USDC
-    await usdc.mint(firstOwner, new BigNumber(7000).times(usdcDigits));
+    await usdc.mint(creatorAddress, new BigNumber(2500).times(usdcDigits)); // 1000 USDC
+    await usdc.mint(firstOwner, new BigNumber(2500).times(usdcDigits));
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(bal.address);
+    await optionsFactory.whitelistAsset(uni.address);
     await optionsFactory.whitelistAsset(usdc.address);
 
     const optionsContractResult = await optionsFactory.createOptionsContract(
       usdc.address,
-      bal.address,
+      uni.address,
       usdc.address,
       -_tokenDecimals,
-      7,
-      -7,
+      125,
+      -9,
       expiry,
       windowSize,
       _name,
@@ -103,8 +103,8 @@ contract('OptionsContract: BAL put', accounts => {
     });
 
     it('should add USDC collateral', async () => {
-      // approve and add 7000 usdc to the vault
-      const usdcAmount = new BigNumber(7000).times(usdcDigits).toString();
+      // approve and add 2500 usdc to the vault
+      const usdcAmount = new BigNumber(2500).times(usdcDigits).toString();
 
       await usdc.approve(oToken.address, usdcAmount, {
         from: creatorAddress
@@ -121,9 +121,9 @@ contract('OptionsContract: BAL put', accounts => {
     });
 
     it('should add USDC collateral and Mint', async () => {
-      // mint 1000 bal put
+      // mint 1000 uni put
       const amountToIssue = new BigNumber(1000).times(oTokenDigits).toString();
-      const amountCollateral = new BigNumber(7000).times(usdcDigits).toString();
+      const amountCollateral = new BigNumber(2500).times(usdcDigits).toString();
       await usdc.approve(oToken.address, amountCollateral, {
         from: firstOwner
       });
@@ -155,10 +155,10 @@ contract('OptionsContract: BAL put', accounts => {
 
       assert.equal(
         underlyingRequired,
-        new BigNumber(500).times(balDigits).toString()
+        new BigNumber(500).times(uniDigits).toString()
       );
 
-      await bal.approve(oToken.address, underlyingRequired, {
+      await uni.approve(oToken.address, underlyingRequired, {
         from: tokenHolder
       });
 
@@ -176,7 +176,7 @@ contract('OptionsContract: BAL put', accounts => {
       // check remaining collateral
       assert.equal(
         vault[0].toString(),
-        new BigNumber(7000 - 3500).times(usdcDigits).toString()
+        new BigNumber(2500 - 3500).times(usdcDigits).toString()
       );
       // check remaining oTokenIssued
       assert.equal(

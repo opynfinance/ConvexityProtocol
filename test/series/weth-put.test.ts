@@ -30,7 +30,7 @@ contract('OptionsContract: weth put', accounts => {
   let weth: Weth9Instance;
   let usdc: Erc20MintableInstance;
 
-  const usdcAmount = '1000000000'; // 10000 USDC
+  const usdcAmount = '840000000'; // 10000 USDC
 
   const _name = 'TH put 250';
   const _symbol = 'oEth 250';
@@ -61,9 +61,9 @@ contract('OptionsContract: weth put', accounts => {
       usdc.address,
       weth.address,
       usdc.address,
+      -7,
+      28,
       -6,
-      25,
-      -5,
       expiry,
       windowSize,
       _name,
@@ -105,7 +105,8 @@ contract('OptionsContract: weth put', accounts => {
     });
 
     it('should add USDC collateral and Mint', async () => {
-      const amountToIssue = new BigNumber('4000000'); // 1000 usdc can issue 4 250 put.
+      // change this line
+      const amountToIssue = new BigNumber('30000000'); // 1000 usdc can issue 4 250 put.
 
       await usdc.approve(oWeth.address, usdcAmount, {from: firstOwner});
 
@@ -138,7 +139,8 @@ contract('OptionsContract: weth put', accounts => {
     });
 
     it('should be able to exercise from wrapper exerciser ', async () => {
-      const amountToExercise = '4000000';
+      // change this line
+      const amountToExercise = '30000000';
       await oWeth.transfer(tokenHolder, amountToExercise, {from: firstOwner});
       // weth
       const underlyingRequired = (
@@ -166,7 +168,7 @@ contract('OptionsContract: weth put', accounts => {
       expectEvent(exerciseTx, 'WrapperExercise', {
         otoken: oWeth.address,
         otokenAmount: amountToExercise,
-        collateralExercised: '1000000000',
+        collateralExercised: '840000000',
         user: tokenHolder
       });
 
@@ -180,7 +182,7 @@ contract('OptionsContract: weth put', accounts => {
       const wethAfter = (await weth.balanceOf(oWeth.address)).toString();
 
       assert.equal(
-        new BigNumber(usdcBefore).minus(new BigNumber('1000000000')).toString(),
+        new BigNumber(usdcBefore).minus(new BigNumber('840000000')).toString(),
         new BigNumber(usdcAfter).toString()
       );
 
@@ -189,6 +191,26 @@ contract('OptionsContract: weth put', accounts => {
           .plus(new BigNumber(underlyingRequired))
           .toString(),
         new BigNumber(wethAfter).toString()
+      );
+    });
+
+    it('exponents should not overflow', async () => {
+      const strikePrice = await oWeth.strikePrice();
+      const strikeExponent = strikePrice[1];
+      const colalteralExponent = await oWeth.collateralExp();
+      const collateralToPayExponent = Math.max(
+        Math.abs(strikeExponent - colalteralExponent),
+        Math.abs(strikeExponent - colalteralExponent - 3)
+      );
+
+      assert(collateralToPayExponent <= 9, 'overflow possibility');
+
+      const oTokenExchangeExponent = await oWeth.oTokenExchangeRate();
+      const underlingExponent = await oWeth.underlyingExp();
+
+      assert(
+        Math.abs(oTokenExchangeExponent[1] - underlingExponent) <= 19,
+        'overflow possiblitiy'
       );
     });
   });

@@ -27,7 +27,7 @@ contract('OptionsContract: YFI put', accounts => {
   let usdc: Erc20MintableInstance;
 
   const usdcAmount = '1000000000'; // 1000 USDC
-  const yfiAmount = '1000000000000000000000'; // 1000 yfi
+  const yfiAmount = '2000000000000000000000'; // 1000 yfi
 
   const _name = 'YFI put 250';
   const _symbol = 'oYfi 250';
@@ -59,9 +59,9 @@ contract('OptionsContract: YFI put', accounts => {
       usdc.address,
       yfi.address,
       usdc.address,
-      -6,
+      -7,
       25,
-      -5,
+      -4,
       expiry,
       windowSize,
       _name,
@@ -105,7 +105,7 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should add USDC collateral and Mint', async () => {
-      const amountToIssue = new BigNumber('4000000'); // 1000 usdc can issue 4 250 put.
+      const amountToIssue = new BigNumber('400000'); // 1000 usdc can issue 4 250 put.
 
       await usdc.approve(oYfi.address, usdcAmount, {from: firstOwner});
 
@@ -138,10 +138,10 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should not exercise without underlying allowance', async () => {
-      await oYfi.transfer(tokenHolder, '4000000', {from: firstOwner}); // transfer 80 oYfi
+      await oYfi.transfer(tokenHolder, '400000', {from: firstOwner}); // transfer 80 oYfi
 
       await expectRevert(
-        oYfi.exercise('4000000', [firstOwner], {
+        oYfi.exercise('400000', [firstOwner], {
           from: tokenHolder
         }),
         'transfer amount exceeds allowance.'
@@ -149,7 +149,7 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should be able to exercise', async () => {
-      const amountToExercise = '4000000';
+      const amountToExercise = '400000';
       const underlyingRequired = (
         await oYfi.underlyingRequiredToExercise(amountToExercise)
       ).toString();
@@ -172,6 +172,26 @@ contract('OptionsContract: YFI put', accounts => {
       assert.equal(vault[0].toString(), '0');
       assert.equal(vault[1].toString(), '0');
       assert.equal(vault[2].toString(), underlyingRequired);
+    });
+
+    it('exponents should not overflow', async () => {
+      const strikePrice = await oYfi.strikePrice();
+      const strikeExponent = strikePrice[1];
+      const colalteralExponent = await oYfi.collateralExp();
+      const collateralToPayExponent = Math.max(
+        Math.abs(strikeExponent - colalteralExponent),
+        Math.abs(strikeExponent - colalteralExponent - 3)
+      );
+
+      assert(collateralToPayExponent <= 9, 'overflow possibility');
+
+      const oTokenExchangeExponent = await oYfi.oTokenExchangeRate();
+      const underlingExponent = await oYfi.underlyingExp();
+
+      assert(
+        Math.abs(oTokenExchangeExponent[1] - underlingExponent) <= 19,
+        'overflow possiblitiy'
+      );
     });
   });
 });
