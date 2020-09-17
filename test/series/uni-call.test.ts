@@ -11,7 +11,7 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockERC20 = artifacts.require('MockERC20');
 
 import {calculateMaxOptionsToCreate, ZERO_ADDRESS} from '../utils/helper';
-const {expectRevert, ether, time} = require('@openzeppelin/test-helpers');
+const {expectRevert, UNIer, time} = require('@openzeppelin/test-helpers');
 
 contract(
   'OptionsContract: UNI Call',
@@ -27,6 +27,7 @@ contract(
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
     let usdc: MockErc20Instance;
+    let uni: MockErc20Instance;
 
     const _name = 'test call option $8';
     const _symbol = 'test oUNIc $8';
@@ -46,7 +47,7 @@ contract(
     const _minCollateralizationRatioExp = -1;
 
     const mintedAmount = '160000000'; // 5600.00896 USD ~ 20 call options
-    // const collateralToAdd = ether('20');
+    // const collateralToAdd = UNIer('20');
     const collateralToAdd = new BigNumber(20).times(1e18).toString();
 
     before('set up contracts', async () => {
@@ -55,7 +56,8 @@ contract(
       _windowSize = _expiry; // time.duration.days(1).toNumber();
 
       // usdc token
-      usdc = await MockERC20.new('USDC', 'USDC', 6);
+      usdc = await MockERC20.new('USDC', 'USDC', -_underlyingExp);
+      uni = await MockERC20.new('UNI', 'UNI', -_collateralExp);
 
       // get deployed opyn protocol contracts
 
@@ -63,18 +65,18 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
 
       // add assets to the factory
-      await optionsFactory.whitelistAsset(ZERO_ADDRESS, {
+      await optionsFactory.whitelistAsset(uni.address, {
         from: opynDeployer
       });
       await optionsFactory.whitelistAsset(usdc.address, {
         from: opynDeployer
       });
 
-      // create ETH call option
+      // create Uni call option
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        ZERO_ADDRESS,
+        uni.address,
         usdc.address,
-        ZERO_ADDRESS,
+        uni.address,
         _oTokenExchangeExp,
         _strikePrice,
         _strikeExp,
@@ -101,10 +103,10 @@ contract(
       );
 
       // mint money for everyone
-      await usdc.mint(opynDeployer, mintedAmount);
-      await usdc.mint(vaultOwner1, mintedAmount);
-      await usdc.mint(vaultOwner2, mintedAmount);
-      await usdc.mint(vaultOwner3, mintedAmount);
+      await uni.mint(opynDeployer, mintedAmount);
+      await uni.mint(vaultOwner1, collateralToAdd);
+      await uni.mint(vaultOwner2, collateralToAdd);
+      await uni.mint(vaultOwner3, collateralToAdd);
       await usdc.mint(buyer1, mintedAmount);
       await usdc.mint(buyer2, mintedAmount);
     });
@@ -115,7 +117,7 @@ contract(
         assert.equal(await optionContract.symbol(), _symbol, 'invalid symbol');
         assert.equal(
           await optionContract.collateral(),
-          ZERO_ADDRESS,
+          uni.address,
           'invalid collateral'
         );
         assert.equal(
@@ -150,7 +152,7 @@ contract(
         );
         assert.equal(
           await optionContract.strike(),
-          ZERO_ADDRESS,
+          uni.address,
           'invalid strike asset'
         );
         assert.equal(
@@ -241,9 +243,10 @@ contract(
 
     describe('Add colateral', () => {
       it('should revert adding collateral to a non existing vault', async () => {
+        await uni.approve(optionContract.address, collateralToAdd);
         await expectRevert(
-          optionContract.addERC20Collateral(opynDeployer, collateralToAdd, {
-            from: opynDeployer
+          optionContract.addERC20Collateral(random, collateralToAdd, {
+            from: random
           }),
           'Vault does not exist'
         );
@@ -260,17 +263,26 @@ contract(
           await optionContract.getVault(vaultOwner3)
         )[0].toString();
 
-        await optionContract.addERC20Collateral(vaultOwner1, {
-          from: vaultOwner1,
-          value: collateralToAdd
+        await uni.approve(optionContract.address, collateralToAdd, {
+          from: vaultOwner1
         });
-        await optionContract.addERC20Collateral(vaultOwner2, {
-          from: vaultOwner2,
-          value: collateralToAdd
+
+        await uni.approve(optionContract.address, collateralToAdd, {
+          from: vaultOwner2
         });
-        await optionContract.addERC20Collateral(vaultOwner3, {
-          from: vaultOwner3,
-          value: collateralToAdd
+
+        await uni.approve(optionContract.address, collateralToAdd, {
+          from: vaultOwner3
+        });
+
+        await optionContract.addERC20Collateral(vaultOwner1, collateralToAdd, {
+          from: vaultOwner1
+        });
+        await optionContract.addERC20Collateral(vaultOwner2, collateralToAdd, {
+          from: vaultOwner2
+        });
+        await optionContract.addERC20Collateral(vaultOwner3, collateralToAdd, {
+          from: vaultOwner3
         });
 
         const vault1CollateralAfter = (
@@ -288,33 +300,23 @@ contract(
             .minus(new BigNumber(vault1CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited ETH collateral'
+          'error deposited UNI collateral'
         );
         assert.equal(
           new BigNumber(vault2CollateralAfter)
             .minus(new BigNumber(vault2CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited ETH collateral'
+          'error deposited UNI collateral'
         );
         assert.equal(
           new BigNumber(vault3CollateralAfter)
             .minus(new BigNumber(vault3CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited ETH collateral'
+          'error deposited UNI collateral'
         );
       });
-
-      // it('should revert adding ERC20 token as collateral', async () => {
-      //   await expectRevert(
-      //     optionContract.addERC20Collateral(vaultOwner1, '10', {
-      //       from: vaultOwner1,
-      //       value: collateralToAdd
-      //     }),
-      //     'revert'
-      //   );
-      // });
     });
 
     describe('Issue oToken', () => {
@@ -426,7 +428,7 @@ contract(
       });
     });
 
-    describe('Exercise USDC for ETH', async () => {
+    describe('Exercise USDC for UNI', async () => {
       before(async () => {
         const timeToExercise = _expiry - _windowSize;
         const now = await time.latest();
@@ -523,12 +525,12 @@ contract(
         );
       });
 
-      it('exercise USDC+oToken to get 20ETH', async () => {
+      it('exercise USDC+oToken to get 20 UNI', async () => {
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
 
-        const buyerETHBalanceBefore = await web3.eth.getBalance(buyer1);
+        const buyerUNIBalanceBefore = await uni.balanceOf(buyer1);
         const vault1Before = await optionContract.getVault(vaultOwner1);
         const vault2Before = await optionContract.getVault(vaultOwner2);
         const vault3Before = await optionContract.getVault(vaultOwner3);
@@ -543,13 +545,11 @@ contract(
           new BigNumber(vault2Before[0])
         );
 
-        const tx1 = await usdc.approve(
-          optionContract.address,
-          _amountUnderlyingNeeded,
-          {from: buyer1}
-        );
+        await usdc.approve(optionContract.address, _amountUnderlyingNeeded, {
+          from: buyer1
+        });
 
-        const tx2 = await optionContract.exercise(
+        await optionContract.exercise(
           buyerTokenBalanceBefore,
           [vaultOwner1, vaultOwner2, vaultOwner3],
           {
@@ -557,22 +557,10 @@ contract(
           }
         );
 
-        const tx1GasUsed = new BigNumber(tx1.receipt.gasUsed);
-        const tx1GasPrice = new BigNumber(
-          (await web3.eth.getTransaction(tx1.tx)).gasPrice
-        );
-        const tx2GasUsed = new BigNumber(tx2.receipt.gasUsed);
-        const tx2GasPrice = new BigNumber(
-          (await web3.eth.getTransaction(tx2.tx)).gasPrice
-        );
-        const gasUsed = tx1GasUsed
-          .multipliedBy(tx1GasPrice)
-          .plus(tx2GasUsed.multipliedBy(tx2GasPrice));
-
         const buyerTokenBalanceAfter = (
           await optionContract.balanceOf(buyer1)
         ).toString();
-        const buyerETHBalanceAfter = await web3.eth.getBalance(buyer1);
+        const buyerUNIBalanceAfter = await uni.balanceOf(buyer1);
         const vault1After = await optionContract.getVault(vaultOwner1);
         const vault2After = await optionContract.getVault(vaultOwner2);
         const vault3After = await optionContract.getVault(vaultOwner3);
@@ -615,12 +603,11 @@ contract(
           'buyer1 oToken balance mismatch'
         );
         assert.equal(
-          new BigNumber(buyerETHBalanceBefore).toString(),
-          new BigNumber(buyerETHBalanceAfter)
+          new BigNumber(buyerUNIBalanceBefore).toString(),
+          new BigNumber(buyerUNIBalanceAfter)
             .minus(_collateralToPayOut)
-            .plus(gasUsed)
             .toString(),
-          'buyer1 ETH balance mismatch'
+          'buyer1 UNI balance mismatch'
         );
       });
     });
