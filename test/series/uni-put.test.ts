@@ -27,11 +27,13 @@ contract('OptionsContract: UNI put', accounts => {
 
   const _name = 'Opyn UNI Put $2.5 08/28/20';
   const _symbol = 'oUNIp $2.5';
-  const _tokenDecimals = 7;
+  const _tokenDecimals = 5;
 
   const uniDigits = new BigNumber(10).exponentiatedBy(18);
   const usdcDigits = new BigNumber(10).exponentiatedBy(6);
-  const oTokenDigits = new BigNumber(10).exponentiatedBy(7);
+  const oTokenDigits = new BigNumber(10).exponentiatedBy(_tokenDecimals);
+
+  let firstOwnerCollateralBalance = new BigNumber(0);
 
   before('set up contracts', async () => {
     const now = (await time.latest()).toNumber();
@@ -65,8 +67,8 @@ contract('OptionsContract: UNI put', accounts => {
       uni.address,
       usdc.address,
       -_tokenDecimals,
-      125,
-      -9,
+      25,
+      -6,
       expiry,
       windowSize,
       _name,
@@ -141,6 +143,10 @@ contract('OptionsContract: UNI put', accounts => {
       assert.equal(vault[0].toString(), amountCollateral);
       assert.equal(vault[1].toString(), amountToIssue);
       assert.equal(vault[2].toString(), '0');
+
+      firstOwnerCollateralBalance = firstOwnerCollateralBalance.plus(
+        amountCollateral
+      );
     });
 
     it('should be able to exercise', async () => {
@@ -148,7 +154,7 @@ contract('OptionsContract: UNI put', accounts => {
       const amountToExercise = new BigNumber(500)
         .times(oTokenDigits)
         .toString();
-      const amountPayout = new BigNumber(3500).times(usdcDigits).toString();
+      const amountPayout = new BigNumber(1250).times(usdcDigits).toString();
       const underlyingRequired = (
         await oToken.underlyingRequiredToExercise(amountToExercise)
       ).toString();
@@ -176,7 +182,7 @@ contract('OptionsContract: UNI put', accounts => {
       // check remaining collateral
       assert.equal(
         vault[0].toString(),
-        new BigNumber(2500 - 3500).times(usdcDigits).toString()
+        firstOwnerCollateralBalance.minus(amountPayout).toString()
       );
       // check remaining oTokenIssued
       assert.equal(
