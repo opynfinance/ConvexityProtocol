@@ -9,7 +9,6 @@ import "./packages/ERC20Detailed.sol";
 import "./packages/Ownable.sol";
 import "./packages/SafeMath.sol";
 
-
 /**
  * @title Opyn's Options Contract
  * @author Opyn
@@ -408,10 +407,19 @@ contract OptionsContract is Ownable, ERC20 {
         view
         returns (uint256)
     {
+        require(
+            oTokenExchangeRate.exponent >= underlyingExp,
+            "The exchange rate has greater precision than the underlying."
+        );
         uint64 underlyingPerOTokenExp = uint64(
             oTokenExchangeRate.exponent - underlyingExp
         );
-        return uint256(oTokensToExercise.mul(10**underlyingPerOTokenExp));
+
+        require(
+            underlyingPerOTokenExp <= 77,
+            "Exponentiation will overflow type uint256"
+        );
+        return oTokensToExercise.mul(uint256(10)**underlyingPerOTokenExp);
     }
 
     /**
