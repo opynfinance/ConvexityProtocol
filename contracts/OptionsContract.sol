@@ -409,7 +409,7 @@ contract OptionsContract is Ownable, ERC20 {
     {
         require(
             oTokenExchangeRate.exponent >= underlyingExp,
-            "The exchange rate has greater precision than the underlying."
+            "Options Contract: The exchange rate has greater precision than the underlying"
         );
         uint64 underlyingPerOTokenExp = uint64(
             oTokenExchangeRate.exponent - underlyingExp
@@ -417,7 +417,7 @@ contract OptionsContract is Ownable, ERC20 {
 
         require(
             underlyingPerOTokenExp <= 77,
-            "Exponentiation will overflow type uint256"
+            "Options Contract: Exponentiation will overflow type uint256"
         );
         return oTokensToExercise.mul(uint256(10)**underlyingPerOTokenExp);
     }
