@@ -411,15 +411,13 @@ contract OptionsContract is Ownable, ERC20 {
             oTokenExchangeRate.exponent >= underlyingExp,
             "Options Contract: The exchange rate has greater precision than the underlying"
         );
-        uint64 underlyingPerOTokenExp = uint64(
+
+        uint256 underlyingPerOTokenExp = uint256(
             oTokenExchangeRate.exponent - underlyingExp
         );
 
-        require(
-            underlyingPerOTokenExp <= 77,
-            "Options Contract: Exponentiation will overflow type uint256"
-        );
-        return oTokensToExercise.mul(uint256(10)**underlyingPerOTokenExp);
+        // underlyingPerOTokenExp <= 60, no danger of overflowing uint256
+        return oTokensToExercise.mul(10**underlyingPerOTokenExp);
     }
 
     /**
@@ -1002,21 +1000,19 @@ contract OptionsContract is Ownable, ERC20 {
             proportion.exponent -
             collateralExp;
         uint256 amtCollateralToPay = 0;
+        uint256 exp;
         if (amtCollateralToPayExp > 0) {
-            uint32 exp = uint32(amtCollateralToPayExp);
-            amtCollateralToPay = uint256(
-                amtCollateralToPayInEthNum.mul(10**exp).div(
-                    collateralToEthPrice
-                )
+            exp = uint256(amtCollateralToPayExp);
+            amtCollateralToPay = amtCollateralToPayInEthNum.mul(10**exp).div(
+                collateralToEthPrice
             );
         } else {
-            uint32 exp = uint32(-1 * amtCollateralToPayExp);
-            amtCollateralToPay = uint256(
-                (amtCollateralToPayInEthNum.div(10**exp)).div(
-                    collateralToEthPrice
-                )
+            exp = uint256(-1 * amtCollateralToPayExp);
+            amtCollateralToPay = amtCollateralToPayInEthNum.div(10**exp).div(
+                collateralToEthPrice
             );
         }
+        require(exp <= 77, "Options Contract: Exponentiation overflowed");
 
         return amtCollateralToPay;
     }
