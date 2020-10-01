@@ -150,6 +150,10 @@ contract OptionsContract is Ownable, ERC20 {
             isWithinExponentRange(underlyingExp),
             "underlying exponent not within expected range"
         );
+        require(
+            _oTokenExchangeExp >= underlyingExp,
+            "Options Contract: The exchange rate has greater precision than the underlying"
+        );
 
         oTokenExchangeRate = Number(1, _oTokenExchangeExp);
 
@@ -408,11 +412,6 @@ contract OptionsContract is Ownable, ERC20 {
         view
         returns (uint256)
     {
-        require(
-            oTokenExchangeRate.exponent >= underlyingExp,
-            "Options Contract: The exchange rate has greater precision than the underlying"
-        );
-
         uint256 underlyingPerOTokenExp = uint256(
             oTokenExchangeRate.exponent - underlyingExp
         );
