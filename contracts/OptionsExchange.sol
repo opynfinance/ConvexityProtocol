@@ -188,7 +188,7 @@ contract OptionsExchange {
         IERC20 oToken,
         uint256 _amt,
         address payable _transferTo
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
         require(!isETH(oToken), "Can only buy oTokens");
 
         if (!isETH(paymentToken)) {
@@ -241,20 +241,32 @@ contract OptionsExchange {
                 uniswapFactory.getExchange(address(oToken))
             );
 
-            uint256 ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
+            uint256 ethToTransfer;
+            uint256 amount = _amt;
+            if (_amt > 0) {
+                ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
+            } else if (msg.value > 0) {
+                ethToTransfer = msg.value;
+                amount = exchange.getTokenToEthOutputPrice(msg.value);
+            }
+
+            require(
+                msg.value >= ethToTransfer,
+                "Options Exchange: Insufficient ETH"
+            );
 
             emit BuyOTokens(
                 msg.sender,
                 _transferTo,
                 address(oToken),
                 address(paymentToken),
-                _amt,
+                amount,
                 ethToTransfer
             );
 
             return
                 exchange.ethToTokenTransferOutput.value(ethToTransfer)(
-                    _amt,
+                    amount,
                     LARGE_BLOCK_SIZE,
                     _transferTo
                 );
