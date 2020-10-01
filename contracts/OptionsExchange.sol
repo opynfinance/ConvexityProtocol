@@ -245,15 +245,16 @@ contract OptionsExchange {
             uint256 amount = _amt;
             if (_amt > 0) {
                 ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
+                require(
+                    msg.value >= ethToTransfer,
+                    "Options Exchange: Insufficient ETH"
+                );
+                // send excess value back to user
+                msg.sender.transfer(msg.value - ethToTransfer);
             } else if (msg.value > 0) {
                 ethToTransfer = msg.value;
                 amount = exchange.getTokenToEthOutputPrice(msg.value);
             }
-
-            require(
-                msg.value >= ethToTransfer,
-                "Options Exchange: Insufficient ETH"
-            );
 
             emit BuyOTokens(
                 msg.sender,
