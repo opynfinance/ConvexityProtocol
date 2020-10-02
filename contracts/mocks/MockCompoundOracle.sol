@@ -5,6 +5,7 @@ import "../interfaces/CompoundOracleInterface.sol";
 
 
 contract MockCompoundOracle is CompoundOracleInterface {
+    uint256 public _price;
     mapping(string => uint256) private prices;
     mapping(string => bool) private supportedSymbols;
     mapping(address => uint256) private underlyingPrices;
@@ -50,36 +51,42 @@ contract MockCompoundOracle is CompoundOracleInterface {
         underlyingPrices[cWbtc] = 10502.78 * 10e18;
         underlyingPrices[cZrx] = 0.396114 * 10e18;
 
-        supportedSymbols["BTC"] = true;
+        // supportedSymbols["BTC"] = true;
         prices["BTC"] = 10545.80 * 1e6;
+        prices["ETH"] = 337.86 * 10e6;
     }
 
     /**
      * @dev Get the most recent price for a token in USD with 18 decimals of precision.
-     * @param address The address of the cToken contract of the underlying asset.
+     * @param cToken The address of the cToken contract of the underlying asset.
+     * @return The price in USD.
      */
     function getUnderlyingPrice(address cToken)
         external
         view
-        returns (uint256)
+        returns (uint256 price)
     {
         require(
             cToken != address(0),
             "MockCompoundOracle: Should not request with 0 address"
         );
+        // require(
+        //     underlyingPrices[cToken] > 0,
+        //     "Address is not a valid cToken address"
+        // );
         return underlyingPrices[cToken];
     }
 
     /**
      * @dev Get the most recent price for a token in USD.
-     * @param symbol Symbol as a string
-     * @return uint256 Price in USD with 6 decimals of precision.
+     * @param symbol symbol as a string
+     * @return Price in USD with 6 decimals of precision.
      */
     function price(string calldata symbol) external view returns (uint256) {
-        return prices[symbol];
+        return _price;
     }
 
-    // function updatePrice(uint256 newPrice) external {
-    //     _price = newPrice;
-    // }
+    function updatePrice(uint256 newPrice) external {
+        _price = newPrice;
+    }
 }

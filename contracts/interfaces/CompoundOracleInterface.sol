@@ -4,5 +4,7 @@ import "../packages/ERC20.sol";
 
 
 interface CompoundOracleInterface {
-    function getUnderlyingPrice(IERC20 cToken) external view returns (uint256);
+    function getUnderlyingPrice(address cToken) external view returns (uint256);
+
+    function price(string calldata symbol) external view returns (uint256);
 }
