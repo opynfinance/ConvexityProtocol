@@ -225,6 +225,24 @@ contract('OptionsContract', accounts => {
       );
     });
 
+    it('should revert with oTokenExchangeExp less than underlyingExp', async () => {
+      const token = await MockERC20.new('TOKEN', 'TOKEN', 16);
+      await expectRevert(
+        OptionsContract.new(
+          usdc.address,
+          token.address,
+          usdc.address,
+          -'17',
+          '90',
+          -'18',
+          expiry,
+          expiry,
+          oracle.address
+        ),
+        'Options Contract: The exchange rate has greater precision than the underlying'
+      );
+    });
+
     it('should revert when creating an option with eth as underlying ', async () => {
       await expectRevert(
         OptionsContract.new(
