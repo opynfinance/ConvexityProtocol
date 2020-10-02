@@ -7,6 +7,8 @@ import "./packages/IERC20.sol";
 
 
 contract OptionsExchange {
+    using SafeMath for uint256;
+
     uint256 internal constant LARGE_BLOCK_SIZE = 1651753129000;
     uint256 internal constant LARGE_APPROVAL_NUMBER = 10**30;
 
@@ -250,7 +252,7 @@ contract OptionsExchange {
                     "Options Exchange: Insufficient ETH"
                 );
                 // send excess value back to user
-                msg.sender.transfer(msg.value - ethToTransfer);
+                msg.sender.transfer(msg.value.sub(ethToTransfer));
             } else if (msg.value > 0) {
                 ethToTransfer = msg.value;
                 amount = exchange.getTokenToEthOutputPrice(msg.value);
