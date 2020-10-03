@@ -2,12 +2,15 @@ pragma solidity ^0.5.10;
 
 import "../packages/IERC20.sol";
 import "../interfaces/CompoundOracleInterface.sol";
+import "../packages/SafeMath.sol";
+import "../interfaces/CTokenInterface.sol";
+import "../packages/ERC20Detailed.sol";
 
 
 contract MockCompoundOracle is CompoundOracleInterface {
+    using SafeMath for uint256;
     uint256 public _price;
     mapping(string => uint256) private prices;
-    mapping(string => bool) private supportedSymbols;
     mapping(address => uint256) private underlyingPrices;
 
     // used ctoken addresses
@@ -43,15 +46,6 @@ contract MockCompoundOracle is CompoundOracleInterface {
         wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
         zrx = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
 
-        underlyingPrices[cEth] = 337.86 * 10e18;
-        underlyingPrices[cBat] = 0.230202 * 10e18;
-        underlyingPrices[cDai] = 1.01 * 10e18;
-        underlyingPrices[cRep] = 14.02 * 10e18;
-        underlyingPrices[cUsdc] = .997820 * 10e18;
-        underlyingPrices[cWbtc] = 10502.78 * 10e18;
-        underlyingPrices[cZrx] = 0.396114 * 10e18;
-
-        // supportedSymbols["BTC"] = true;
         prices["BTC"] = 10545.80 * 1e6;
         prices["ETH"] = 337.86 * 10e6;
     }
@@ -83,10 +77,22 @@ contract MockCompoundOracle is CompoundOracleInterface {
      * @return Price in USD with 6 decimals of precision.
      */
     function price(string calldata symbol) external view returns (uint256) {
-        return _price;
+        return prices[symbol];
     }
 
-    function updatePrice(uint256 newPrice) external {
-        _price = newPrice;
+    /**
+     * @dev Used for testing purposes to set the price.
+     * @param cTokenAddress the address of the cToken covering the underlying.
+     * @param priceInWei the new price in wei.
+     */
+    function updateUnderlyingPriceInWei(
+        address cTokenAddress,
+        uint256 priceInWei
+    ) external {
+        // store price in USD
+        // prices has 6 degrees of precision
+        underlyingPrices[cTokenAddress] = priceInWei.mul(prices["ETH"]).mul(
+            10**12
+        );
     }
 }

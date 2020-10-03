@@ -72,6 +72,14 @@ contract Oracle is Ownable {
     event AssetToCtokenUpdated(address indexed asset, address ctoken);
 
     /**
+     * @dev get BTC price in USD
+     * @return Price in USD with 6 decimals.
+     */
+    function getBTCPrice() external view returns (uint256) {
+        return priceOracle.price("BTC");
+    }
+
+    /**
      * Asset Getters
      */
     function iscEth(address asset) public view returns (bool) {
@@ -84,35 +92,46 @@ contract Oracle is Ownable {
      * For other assets: ex: USDC: return 2349016936412111
      *  => 1 USDC = 2349016936412111 wei
      *  => 1 ETH = 1e18 / 2349016936412111 USDC = 425.71 USDC
+     * @param asset The address of the token.
+     * @return The price in wei.
      */
     function getPrice(address asset) external view returns (uint256) {
         if (asset == address(0)) {
             return (10**18);
         } else {
+            uint256 exchangeRate;
+            uint256 cTokenDecimals = 8;
+            address underlying = asset;
+
             if (isCtoken[asset]) {
-                // 1. cTokens
                 CTokenInterface cToken = CTokenInterface(asset);
-                uint256 exchangeRate = cToken.exchangeRateStored();
+                // TOKENe18/CTOKEN = exchangeRate * 10 ** (cTokenExp - underlyingExp)
+                exchangeRate = cToken.exchangeRateStored().mul(
+                    10**(cTokenDecimals)
+                );
 
                 if (iscEth(asset)) {
-                    uint256 decimalsDiff = 10;
-                    return exchangeRate.div(10**decimalsDiff);
+                    return exchangeRate.div(1e18);
+                } else {
+                    underlying = cToken.underlying();
+                    uint256 underlyingExp = ERC20Detailed(underlying)
+                        .decimals();
+                    exchangeRate = exchangeRate.div(10**underlyingExp);
                 }
+            }
 
-                address underlyingAddress = cToken.underlying();
-                uint256 decimalsOfUnderlying = ERC20Detailed(underlyingAddress)
-                    .decimals();
-                uint256 maxExponent = 10;
-                uint256 exponent = maxExponent.add(decimalsOfUnderlying);
-
-                // cTokenPriceInETH = underlying price in ETH * (cToken : underlying exchange rate)
-                return
-                    getPriceUnderlying(underlyingAddress).mul(exchangeRate).div(
-                        10**exponent
-                    );
-            } else if (assetToCtokens[asset] != address(0)) {
-                //2. Underlying Tokens that Compound lists
-                return getPriceUnderlying(asset);
+            if (assetToCtokens[underlying] != address(0)) {
+                // get underlying asset price in USD with 18 decimals
+                uint256 assetPrice = priceOracle.getUnderlyingPrice(
+                    assetToCtokens[underlying]
+                );
+                // price has 6 degrees of precision
+                uint256 ethPrice = priceOracle.price("ETH").mul(1e12);
+                // price of underlying token
+                uint256 price = assetPrice.div(ethPrice);
+                // price of token
+                if (exchangeRate > 0) price = price.mul(exchangeRate).div(1e18);
+                return price;
             }
             return 0;
         }
@@ -245,18 +264,5 @@ contract Oracle is Ownable {
         assetToCtokens[_asset] = _ctoken;
 
         emit AssetToCtokenUpdated(_asset, _ctoken);
-    }
-
-    /**
-     * @notice get asset price from Compound's oracle.
-     */
-    function getPriceUnderlying(address asset) internal view returns (uint256) {
-        uint256 priceInWei = priceOracle.getUnderlyingPrice(
-            ERC20(assetToCtokens[asset])
-        );
-        uint256 decimalsOfAsset = ERC20Detailed(asset).decimals();
-        uint256 maxExponent = 18;
-        uint256 exponent = maxExponent.sub(decimalsOfAsset);
-        return priceInWei.div(10**exponent);
     }
 }
