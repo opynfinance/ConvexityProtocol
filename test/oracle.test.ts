@@ -158,7 +158,7 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
 
       // update compound oracle price for BAT
       const batPrice = '777857500000000';
-      await compoundOracle.updatePrice(batPrice); // ? wei per BAT
+      await compoundOracle.updateUnderlyingPriceInWei(cBat.address, batPrice); // ? wei per BAT
       // get price for BAT
       const price = await oracle.getPrice(bat.address);
       assert.equal(price.toString(), batPrice);
@@ -174,22 +174,24 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
       await oracle.setUsdc(usdc.address, {from: owner});
 
       // https://etherscan.io/address/0x39AA39c021dfbaE8faC545936693aC917d5E7563#readContract
-      const cusdcExchagneRate = '211278877392162'; // 0.02112 * 1e16/
+      const cusdcExchangeRate = '211278877392162'; // 0.02112 * 1e16/
       cUSDC = await MockCToken.new(
         'cUSDC',
         'cUSDC',
         usdc.address,
-        cusdcExchagneRate
+        cusdcExchangeRate
       );
       await oracle.setCusdc(cUSDC.address, {from: owner});
       await oracle.setIsCtoken(cUSDC.address, true);
       await oracle.setAssetToCtoken(usdc.address, cUSDC.address);
 
       // update compound oracle price for USDC
-      const usdcPrice = '2348189545860141000000000000';
-      await compoundOracle.updatePrice(usdcPrice); // ? wei per USDC
+      // in wei
+      const usdcPrice = '2348189545860141';
+      await compoundOracle.updateUnderlyingPriceInWei(cUSDC.address, usdcPrice); // ? wei per USDC
       // get USDC price
       const price = await oracle.getPrice(usdc.address);
+      // expect the same?
       assert.equal(price.toString(), '2348189545860141');
     });
 
