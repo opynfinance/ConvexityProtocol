@@ -11,10 +11,10 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockERC20 = artifacts.require('MockERC20');
 
 import {calculateMaxOptionsToCreate, ZERO_ADDRESS} from '../utils/helper';
-const {expectRevert, YFIer, time} = require('@openzeppelin/test-helpers');
+const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
 contract(
-  'OptionsContract: YFI Call',
+  'OptionsContract: WBTC Call',
   ([
     opynDeployer,
     vaultOwner1,
@@ -27,17 +27,17 @@ contract(
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
     let usdc: MockErc20Instance;
-    let yfi: MockErc20Instance;
+    let wbtc: MockErc20Instance;
 
-    const _name = 'test call option $25000';
-    const _symbol = 'test oYFIc $25000';
+    const _name = 'test call option $12500';
+    const _symbol = 'test oWBTCc $12500';
 
-    const _collateralExp = -18;
+    const _collateralExp = -8;
 
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 4;
-    const _strikeExp = -11;
+    const _strikePrice = 80;
+    const _strikeExp = -12;
 
     let _expiry: number;
     let _windowSize: number;
@@ -46,9 +46,8 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = '500000000000'; // 5600.00896 USD ~ 20 call options
-    // const collateralToAdd = YFIer('20');
-    const collateralToAdd = new BigNumber(20).times(1e18).toString();
+    const mintedAmount = '250000000000'; // ~ 20 call options
+    const collateralToAdd = new BigNumber(20).times(1e8).toString();
 
     before('set up contracts', async () => {
       const now = (await time.latest()).toNumber();
@@ -57,7 +56,7 @@ contract(
 
       // usdc token
       usdc = await MockERC20.new('USDC', 'USDC', -_underlyingExp);
-      yfi = await MockERC20.new('YFI', 'YFI', -_collateralExp);
+      wbtc = await MockERC20.new('WBTC', 'WBTC', -_collateralExp);
 
       // get deployed opyn protocol contracts
 
@@ -65,18 +64,18 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
 
       // add assets to the factory
-      await optionsFactory.whitelistAsset(yfi.address, {
+      await optionsFactory.whitelistAsset(wbtc.address, {
         from: opynDeployer
       });
       await optionsFactory.whitelistAsset(usdc.address, {
         from: opynDeployer
       });
 
-      // create YFI call option
+      // create WBTC call option
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        yfi.address,
+        wbtc.address,
         usdc.address,
-        yfi.address,
+        wbtc.address,
         _oTokenExchangeExp,
         _strikePrice,
         _strikeExp,
@@ -103,10 +102,10 @@ contract(
       );
 
       // mint money for everyone
-      await yfi.mint(opynDeployer, mintedAmount);
-      await yfi.mint(vaultOwner1, collateralToAdd);
-      await yfi.mint(vaultOwner2, collateralToAdd);
-      await yfi.mint(vaultOwner3, collateralToAdd);
+      await wbtc.mint(opynDeployer, mintedAmount);
+      await wbtc.mint(vaultOwner1, collateralToAdd);
+      await wbtc.mint(vaultOwner2, collateralToAdd);
+      await wbtc.mint(vaultOwner3, collateralToAdd);
       await usdc.mint(buyer1, mintedAmount);
       await usdc.mint(buyer2, mintedAmount);
     });
@@ -117,7 +116,7 @@ contract(
         assert.equal(await optionContract.symbol(), _symbol, 'invalid symbol');
         assert.equal(
           await optionContract.collateral(),
-          yfi.address,
+          wbtc.address,
           'invalid collateral'
         );
         assert.equal(
@@ -152,7 +151,7 @@ contract(
         );
         assert.equal(
           await optionContract.strike(),
-          yfi.address,
+          wbtc.address,
           'invalid strike asset'
         );
         assert.equal(
@@ -243,7 +242,7 @@ contract(
 
     describe('Add colateral', () => {
       it('should revert adding collateral to a non existing vault', async () => {
-        await yfi.approve(optionContract.address, collateralToAdd);
+        await wbtc.approve(optionContract.address, collateralToAdd);
         await expectRevert(
           optionContract.addERC20Collateral(random, collateralToAdd, {
             from: random
@@ -263,15 +262,15 @@ contract(
           await optionContract.getVault(vaultOwner3)
         )[0].toString();
 
-        await yfi.approve(optionContract.address, collateralToAdd, {
+        await wbtc.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner1
         });
 
-        await yfi.approve(optionContract.address, collateralToAdd, {
+        await wbtc.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner2
         });
 
-        await yfi.approve(optionContract.address, collateralToAdd, {
+        await wbtc.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner3
         });
 
@@ -300,21 +299,21 @@ contract(
             .minus(new BigNumber(vault1CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited YFI collateral'
+          'error deposited WBTC collateral'
         );
         assert.equal(
           new BigNumber(vault2CollateralAfter)
             .minus(new BigNumber(vault2CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited YFI collateral'
+          'error deposited WBTC collateral'
         );
         assert.equal(
           new BigNumber(vault3CollateralAfter)
             .minus(new BigNumber(vault3CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited YFI collateral'
+          'error deposited WBTC collateral'
         );
       });
     });
@@ -336,7 +335,7 @@ contract(
         for (let i = 0; i <= vaultsCollateral.length; i++) {
           const _maxIssuable =
             calculateMaxOptionsToCreate(
-              Number(vaultsCollateral[0]) / 10 ** 12,
+              Number(vaultsCollateral[0]) / 10 ** 2,
               1,
               _minCollateralizationRatioValue *
                 10 ** _minCollateralizationRatioExp,
@@ -428,7 +427,7 @@ contract(
       });
     });
 
-    describe('Exercise USDC for YFI', async () => {
+    describe('Exercise USDC for WBTC', async () => {
       before(async () => {
         const timeToExercise = _expiry - _windowSize;
         const now = await time.latest();
@@ -525,12 +524,12 @@ contract(
         );
       });
 
-      it('exercise USDC+oToken to get 20 YFI', async () => {
+      it('exercise USDC+oToken to get 20 WBTC', async () => {
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
 
-        const buyerYFIBalanceBefore = await yfi.balanceOf(buyer1);
+        const buyerWBTCBalanceBefore = await wbtc.balanceOf(buyer1);
         const vault1Before = await optionContract.getVault(vaultOwner1);
         const vault2Before = await optionContract.getVault(vaultOwner2);
         const vault3Before = await optionContract.getVault(vaultOwner3);
@@ -560,7 +559,7 @@ contract(
         const buyerTokenBalanceAfter = (
           await optionContract.balanceOf(buyer1)
         ).toString();
-        const buyerYFIBalanceAfter = await yfi.balanceOf(buyer1);
+        const buyerWBTCBalanceAfter = await wbtc.balanceOf(buyer1);
         const vault1After = await optionContract.getVault(vaultOwner1);
         const vault2After = await optionContract.getVault(vaultOwner2);
         const vault3After = await optionContract.getVault(vaultOwner3);
@@ -603,11 +602,11 @@ contract(
           'buyer1 oToken balance mismatch'
         );
         assert.equal(
-          new BigNumber(buyerYFIBalanceBefore).toString(),
-          new BigNumber(buyerYFIBalanceAfter)
+          new BigNumber(buyerWBTCBalanceBefore).toString(),
+          new BigNumber(buyerWBTCBalanceAfter)
             .minus(_collateralToPayOut)
             .toString(),
-          'buyer1 YFI balance mismatch'
+          'buyer1 WBTC balance mismatch'
         );
       });
     });
