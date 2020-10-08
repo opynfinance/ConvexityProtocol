@@ -60,7 +60,7 @@ contract('OptionsContract: YFI put', accounts => {
       yfi.address,
       usdc.address,
       -7,
-      25,
+      20,
       -4,
       expiry,
       windowSize,
@@ -105,7 +105,7 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should add USDC collateral and Mint', async () => {
-      const amountToIssue = new BigNumber('400000'); // 1000 usdc can issue 4 250 put.
+      const amountToIssue = new BigNumber('500000'); // 1000 usdc can issue 5000000 put.
 
       await usdc.approve(oYfi.address, usdcAmount, {from: firstOwner});
 
@@ -138,10 +138,10 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should not exercise without underlying allowance', async () => {
-      await oYfi.transfer(tokenHolder, '400000', {from: firstOwner}); // transfer 80 oYfi
+      await oYfi.transfer(tokenHolder, '500000', {from: firstOwner}); // transfer 80 oYfi
 
       await expectRevert(
-        oYfi.exercise('400000', [firstOwner], {
+        oYfi.exercise('500000', [firstOwner], {
           from: tokenHolder
         }),
         'transfer amount exceeds allowance.'
@@ -149,7 +149,7 @@ contract('OptionsContract: YFI put', accounts => {
     });
 
     it('should be able to exercise', async () => {
-      const amountToExercise = '400000';
+      const amountToExercise = '500000';
       const underlyingRequired = (
         await oYfi.underlyingRequiredToExercise(amountToExercise)
       ).toString();

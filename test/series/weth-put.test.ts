@@ -30,10 +30,10 @@ contract('OptionsContract: weth put', accounts => {
   let weth: Weth9Instance;
   let usdc: Erc20MintableInstance;
 
-  const usdcAmount = '840000000'; // 10000 USDC
+  const usdcAmount = '1000000000'; // 10000 USDC
 
-  const _name = 'TH put 250';
-  const _symbol = 'oEth 250';
+  const _name = 'WETH put 320';
+  const _symbol = 'oEth 320';
 
   before('set up contracts', async () => {
     const now = (await time.latest()).toNumber();
@@ -62,7 +62,7 @@ contract('OptionsContract: weth put', accounts => {
       weth.address,
       usdc.address,
       -7,
-      28,
+      32,
       -6,
       expiry,
       windowSize,
@@ -106,7 +106,7 @@ contract('OptionsContract: weth put', accounts => {
 
     it('should add USDC collateral and Mint', async () => {
       // change this line
-      const amountToIssue = new BigNumber('30000000'); // 1000 usdc can issue 4 250 put.
+      const amountToIssue = new BigNumber('31250000'); // 1000 usdc can issue 4 250 put.
 
       await usdc.approve(oWeth.address, usdcAmount, {from: firstOwner});
 
@@ -140,7 +140,7 @@ contract('OptionsContract: weth put', accounts => {
 
     it('should be able to exercise from wrapper exerciser ', async () => {
       // change this line
-      const amountToExercise = '30000000';
+      const amountToExercise = '31250000';
       await oWeth.transfer(tokenHolder, amountToExercise, {from: firstOwner});
       // weth
       const underlyingRequired = (
@@ -168,7 +168,7 @@ contract('OptionsContract: weth put', accounts => {
       expectEvent(exerciseTx, 'WrapperExercise', {
         otoken: oWeth.address,
         otokenAmount: amountToExercise,
-        collateralExercised: '840000000',
+        collateralExercised: '1000000000',
         user: tokenHolder
       });
 
@@ -182,7 +182,7 @@ contract('OptionsContract: weth put', accounts => {
       const wethAfter = (await weth.balanceOf(oWeth.address)).toString();
 
       assert.equal(
-        new BigNumber(usdcBefore).minus(new BigNumber('840000000')).toString(),
+        new BigNumber(usdcBefore).minus(new BigNumber('1000000000')).toString(),
         new BigNumber(usdcAfter).toString()
       );
 

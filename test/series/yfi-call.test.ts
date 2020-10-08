@@ -11,10 +11,10 @@ const OptionsFactory = artifacts.require('OptionsFactory');
 const MockERC20 = artifacts.require('MockERC20');
 
 import {calculateMaxOptionsToCreate, ZERO_ADDRESS} from '../utils/helper';
-const {expectRevert, SNXer, time} = require('@openzeppelin/test-helpers');
+const {expectRevert, YFIer, time} = require('@openzeppelin/test-helpers');
 
 contract(
-  'OptionsContract: SNX Call',
+  'OptionsContract: YFI Call',
   ([
     opynDeployer,
     vaultOwner1,
@@ -27,16 +27,16 @@ contract(
     let optionContract: OptionsContractInstance;
     let optionsFactory: OptionsFactoryInstance;
     let usdc: MockErc20Instance;
-    let snx: MockErc20Instance;
+    let yfi: MockErc20Instance;
 
-    const _name = 'test call option $8';
-    const _symbol = 'test oSNXc $8';
+    const _name = 'test call option $25000';
+    const _symbol = 'test oYFIc $25000';
 
     const _collateralExp = -18;
 
     const _underlyingExp = -6;
     const _oTokenExchangeExp = -6;
-    const _strikePrice = 15625;
+    const _strikePrice = 4;
     const _strikeExp = -11;
 
     let _expiry: number;
@@ -46,8 +46,8 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = '128000000'; // 5600.00896 USD ~ 20 call options
-    // const collateralToAdd = UNIer('20');
+    const mintedAmount = '500000000000'; // 5600.00896 USD ~ 20 call options
+    // const collateralToAdd = YFIer('20');
     const collateralToAdd = new BigNumber(20).times(1e18).toString();
 
     before('set up contracts', async () => {
@@ -57,7 +57,7 @@ contract(
 
       // usdc token
       usdc = await MockERC20.new('USDC', 'USDC', -_underlyingExp);
-      snx = await MockERC20.new('SNX', 'SNX', -_collateralExp);
+      yfi = await MockERC20.new('YFI', 'YFI', -_collateralExp);
 
       // get deployed opyn protocol contracts
 
@@ -65,18 +65,18 @@ contract(
       optionsFactory = await OptionsFactory.deployed();
 
       // add assets to the factory
-      await optionsFactory.whitelistAsset(snx.address, {
+      await optionsFactory.whitelistAsset(yfi.address, {
         from: opynDeployer
       });
       await optionsFactory.whitelistAsset(usdc.address, {
         from: opynDeployer
       });
 
-      // create Uni call option
+      // create YFI call option
       const optionsContractResult = await optionsFactory.createOptionsContract(
-        snx.address,
+        yfi.address,
         usdc.address,
-        snx.address,
+        yfi.address,
         _oTokenExchangeExp,
         _strikePrice,
         _strikeExp,
@@ -103,10 +103,10 @@ contract(
       );
 
       // mint money for everyone
-      await snx.mint(opynDeployer, mintedAmount);
-      await snx.mint(vaultOwner1, collateralToAdd);
-      await snx.mint(vaultOwner2, collateralToAdd);
-      await snx.mint(vaultOwner3, collateralToAdd);
+      await yfi.mint(opynDeployer, mintedAmount);
+      await yfi.mint(vaultOwner1, collateralToAdd);
+      await yfi.mint(vaultOwner2, collateralToAdd);
+      await yfi.mint(vaultOwner3, collateralToAdd);
       await usdc.mint(buyer1, mintedAmount);
       await usdc.mint(buyer2, mintedAmount);
     });
@@ -117,7 +117,7 @@ contract(
         assert.equal(await optionContract.symbol(), _symbol, 'invalid symbol');
         assert.equal(
           await optionContract.collateral(),
-          snx.address,
+          yfi.address,
           'invalid collateral'
         );
         assert.equal(
@@ -152,7 +152,7 @@ contract(
         );
         assert.equal(
           await optionContract.strike(),
-          snx.address,
+          yfi.address,
           'invalid strike asset'
         );
         assert.equal(
@@ -243,7 +243,7 @@ contract(
 
     describe('Add colateral', () => {
       it('should revert adding collateral to a non existing vault', async () => {
-        await snx.approve(optionContract.address, collateralToAdd);
+        await yfi.approve(optionContract.address, collateralToAdd);
         await expectRevert(
           optionContract.addERC20Collateral(random, collateralToAdd, {
             from: random
@@ -263,15 +263,15 @@ contract(
           await optionContract.getVault(vaultOwner3)
         )[0].toString();
 
-        await snx.approve(optionContract.address, collateralToAdd, {
+        await yfi.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner1
         });
 
-        await snx.approve(optionContract.address, collateralToAdd, {
+        await yfi.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner2
         });
 
-        await snx.approve(optionContract.address, collateralToAdd, {
+        await yfi.approve(optionContract.address, collateralToAdd, {
           from: vaultOwner3
         });
 
@@ -300,21 +300,21 @@ contract(
             .minus(new BigNumber(vault1CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited SNX collateral'
+          'error deposited YFI collateral'
         );
         assert.equal(
           new BigNumber(vault2CollateralAfter)
             .minus(new BigNumber(vault2CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited SNX collateral'
+          'error deposited YFI collateral'
         );
         assert.equal(
           new BigNumber(vault3CollateralAfter)
             .minus(new BigNumber(vault3CollateralBefore))
             .toString(),
           collateralToAdd.toString(),
-          'error deposited SNX collateral'
+          'error deposited YFI collateral'
         );
       });
     });
@@ -428,7 +428,7 @@ contract(
       });
     });
 
-    describe('Exercise USDC for SNX', async () => {
+    describe('Exercise USDC for YFI', async () => {
       before(async () => {
         const timeToExercise = _expiry - _windowSize;
         const now = await time.latest();
@@ -525,12 +525,12 @@ contract(
         );
       });
 
-      it('exercise USDC+oToken to get 20 SNX', async () => {
+      it('exercise USDC+oToken to get 20 YFI', async () => {
         const buyerTokenBalanceBefore = (
           await optionContract.balanceOf(buyer1)
         ).toString();
 
-        const buyerSNXBalanceBefore = await snx.balanceOf(buyer1);
+        const buyerYFIBalanceBefore = await yfi.balanceOf(buyer1);
         const vault1Before = await optionContract.getVault(vaultOwner1);
         const vault2Before = await optionContract.getVault(vaultOwner2);
         const vault3Before = await optionContract.getVault(vaultOwner3);
@@ -560,7 +560,7 @@ contract(
         const buyerTokenBalanceAfter = (
           await optionContract.balanceOf(buyer1)
         ).toString();
-        const buyerSNXBalanceAfter = await snx.balanceOf(buyer1);
+        const buyerYFIBalanceAfter = await yfi.balanceOf(buyer1);
         const vault1After = await optionContract.getVault(vaultOwner1);
         const vault2After = await optionContract.getVault(vaultOwner2);
         const vault3After = await optionContract.getVault(vaultOwner3);
@@ -603,11 +603,11 @@ contract(
           'buyer1 oToken balance mismatch'
         );
         assert.equal(
-          new BigNumber(buyerSNXBalanceBefore).toString(),
-          new BigNumber(buyerSNXBalanceAfter)
+          new BigNumber(buyerYFIBalanceBefore).toString(),
+          new BigNumber(buyerYFIBalanceAfter)
             .minus(_collateralToPayOut)
             .toString(),
-          'buyer1 SNX balance mismatch'
+          'buyer1 YFI balance mismatch'
         );
       });
     });

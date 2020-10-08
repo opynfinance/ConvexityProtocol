@@ -13,7 +13,7 @@ const MockERC20 = artifacts.require('MockERC20');
 
 import Reverter from '../utils/reverter';
 
-contract('OptionsContract: UNI put', accounts => {
+contract('OptionsContract: SNX put', accounts => {
   const reverter = new Reverter(web3);
 
   const creatorAddress = accounts[0];
@@ -22,14 +22,14 @@ contract('OptionsContract: UNI put', accounts => {
 
   let optionsFactory: OptionsFactoryInstance;
   let oToken: OTokenInstance;
-  let uni: MockErc20Instance;
+  let snx: MockErc20Instance;
   let usdc: MockErc20Instance;
 
-  const _name = 'Opyn UNI Put $2.5 08/28/20';
-  const _symbol = 'oUNIp $2.5';
+  const _name = 'Opyn SNX Put $2.5 08/28/20';
+  const _symbol = 'oSNXp $2.5';
   const _tokenDecimals = 7;
 
-  const uniDigits = new BigNumber(10).exponentiatedBy(18);
+  const snxDigits = new BigNumber(10).exponentiatedBy(18);
   const usdcDigits = new BigNumber(10).exponentiatedBy(6);
   const oTokenDigits = new BigNumber(10).exponentiatedBy(_tokenDecimals);
 
@@ -45,30 +45,30 @@ contract('OptionsContract: UNI put', accounts => {
     // oracle = await MockOracle.deployed();
     // oracle = MockOracle.at()
 
-    // 1.2 Mock UNI contract
-    uni = await MockERC20.new('uni', 'uni', 18);
-    await uni.mint(creatorAddress, new BigNumber(1000).times(uniDigits)); // 1000 uni
-    await uni.mint(firstOwner, new BigNumber(1000).times(uniDigits));
-    await uni.mint(tokenHolder, new BigNumber(1000).times(uniDigits));
+    // 1.2 Mock SNX contract
+    snx = await MockERC20.new('snx', 'snx', 18);
+    await snx.mint(creatorAddress, new BigNumber(1000).times(snxDigits)); // 1000 snx
+    await snx.mint(firstOwner, new BigNumber(1000).times(snxDigits));
+    await snx.mint(tokenHolder, new BigNumber(1000).times(snxDigits));
 
     // 1.3 Mock USDT contract
     usdc = await MockERC20.new('USDC', 'USDC', 6);
-    await usdc.mint(creatorAddress, new BigNumber(3500).times(usdcDigits)); // 1000 USDC
-    await usdc.mint(firstOwner, new BigNumber(3500).times(usdcDigits));
+    await usdc.mint(creatorAddress, new BigNumber(3750).times(usdcDigits)); // 1000 USDC
+    await usdc.mint(firstOwner, new BigNumber(3750).times(usdcDigits));
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(uni.address);
+    await optionsFactory.whitelistAsset(snx.address);
     await optionsFactory.whitelistAsset(usdc.address);
 
     const optionsContractResult = await optionsFactory.createOptionsContract(
       usdc.address,
-      uni.address,
+      snx.address,
       usdc.address,
       -_tokenDecimals,
-      35,
-      -8,
+      375,
+      -9,
       expiry,
       windowSize,
       _name,
@@ -105,8 +105,8 @@ contract('OptionsContract: UNI put', accounts => {
     });
 
     it('should add USDC collateral', async () => {
-      // approve and add 3500 usdc to the vault
-      const usdcAmount = new BigNumber(3500).times(usdcDigits).toString();
+      // approve and add 3750 usdc to the vault
+      const usdcAmount = new BigNumber(3750).times(usdcDigits).toString();
 
       await usdc.approve(oToken.address, usdcAmount, {
         from: creatorAddress
@@ -123,9 +123,9 @@ contract('OptionsContract: UNI put', accounts => {
     });
 
     it('should add USDC collateral and Mint', async () => {
-      // mint 1000 uni put
+      // mint 1000 snx put
       const amountToIssue = new BigNumber(1000).times(oTokenDigits).toString();
-      const amountCollateral = new BigNumber(3500).times(usdcDigits).toString();
+      const amountCollateral = new BigNumber(3750).times(usdcDigits).toString();
       await usdc.approve(oToken.address, amountCollateral, {
         from: firstOwner
       });
@@ -154,17 +154,17 @@ contract('OptionsContract: UNI put', accounts => {
       const amountToExercise = new BigNumber(500)
         .times(oTokenDigits)
         .toString();
-      const amountPayout = new BigNumber(1750).times(usdcDigits).toString();
+      const amountPayout = new BigNumber(1875).times(usdcDigits).toString();
       const underlyingRequired = (
         await oToken.underlyingRequiredToExercise(amountToExercise)
       ).toString();
 
       assert.equal(
         underlyingRequired,
-        new BigNumber(500).times(uniDigits).toString()
+        new BigNumber(500).times(snxDigits).toString()
       );
 
-      await uni.approve(oToken.address, underlyingRequired, {
+      await snx.approve(oToken.address, underlyingRequired, {
         from: tokenHolder
       });
 
