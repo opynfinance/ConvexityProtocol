@@ -255,7 +255,7 @@ contract OptionsExchange {
                 msg.sender.transfer(msg.value.sub(ethToTransfer));
             } else if (msg.value > 0) {
                 ethToTransfer = msg.value;
-                amount = exchange.getTokenToEthOutputPrice(msg.value);
+                amount = exchange.getTokenToEthOutputPrice(ethToTransfer);
             }
 
             emit BuyOTokens(
