@@ -7,6 +7,8 @@ import "./packages/IERC20.sol";
 
 
 contract OptionsExchange {
+    using SafeMath for uint256;
+
     uint256 internal constant LARGE_BLOCK_SIZE = 1651753129000;
     uint256 internal constant LARGE_APPROVAL_NUMBER = 10**30;
 
@@ -188,7 +190,7 @@ contract OptionsExchange {
         IERC20 oToken,
         uint256 _amt,
         address payable _transferTo
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
         require(!isETH(oToken), "Can only buy oTokens");
 
         if (!isETH(paymentToken)) {
@@ -241,20 +243,33 @@ contract OptionsExchange {
                 uniswapFactory.getExchange(address(oToken))
             );
 
-            uint256 ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
+            uint256 ethToTransfer;
+            uint256 amount = _amt;
+            if (_amt > 0) {
+                ethToTransfer = exchange.getEthToTokenOutputPrice(_amt);
+                require(
+                    msg.value >= ethToTransfer,
+                    "Options Exchange: Insufficient ETH"
+                );
+                // send excess value back to user
+                msg.sender.transfer(msg.value.sub(ethToTransfer));
+            } else if (msg.value > 0) {
+                ethToTransfer = msg.value;
+                amount = exchange.getTokenToEthOutputPrice(ethToTransfer);
+            }
 
             emit BuyOTokens(
                 msg.sender,
                 _transferTo,
                 address(oToken),
                 address(paymentToken),
-                _amt,
+                amount,
                 ethToTransfer
             );
 
             return
                 exchange.ethToTokenTransferOutput.value(ethToTransfer)(
-                    _amt,
+                    amount,
                     LARGE_BLOCK_SIZE,
                     _transferTo
                 );
