@@ -142,6 +142,30 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     let cBat: MockCtokenInstance;
     let cUSDC: MockCtokenInstance;
 
+    it('should set ETH price', async () => {
+      const price = 337.86 * 10e6;
+      await compoundOracle.setPrice('ETH', price);
+      const oraclePrice = await oracle.getETHPrice();
+
+      assert.equal(price, oraclePrice);
+    });
+
+    it('should set ETH price', async () => {
+      const price = 337.86 * 10e6;
+      await compoundOracle.setPrice('ETH', price);
+      const oraclePrice = await oracle.getETHPrice();
+
+      assert.equal(price, oraclePrice);
+    });
+
+    it('should set BTC price', async () => {
+      const price = 10545.8 * 1e6;
+      await compoundOracle.setPrice('BTC', price);
+      const oraclePrice = await oracle.getBTCPrice();
+
+      assert.equal(price, oraclePrice);
+    });
+
     it('should get BAT asset price', async () => {
       bat = await MockERC20.new('BAT', 'BAT', 18);
       await oracle.setBat(bat.address, {from: owner});

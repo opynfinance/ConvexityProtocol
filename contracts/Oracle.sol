@@ -80,6 +80,14 @@ contract Oracle is Ownable {
     }
 
     /**
+     * @dev get BTC price in USD
+     * @return Price in USD with 6 decimals.
+     */
+    function getETHPrice() external view returns (uint256) {
+        return priceOracle.price("ETH");
+    }
+
+    /**
      * Asset Getters
      */
     function iscEth(address asset) public view returns (bool) {

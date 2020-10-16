@@ -369,7 +369,7 @@ contract TestOptionsContract is Ownable, ERC20 {
         view
         returns (uint256)
     {
-        uint64 underlyingPerOTokenExp = uint64(
+        uint256 underlyingPerOTokenExp = uint256(
             oTokenExchangeRate.exponent - underlyingExp
         );
         return uint256(oTokensToExercise.mul(10**underlyingPerOTokenExp));
@@ -967,14 +967,14 @@ contract TestOptionsContract is Ownable, ERC20 {
             collateralExp;
         uint256 amtCollateralToPay = 0;
         if (amtCollateralToPayExp > 0) {
-            uint32 exp = uint32(amtCollateralToPayExp);
+            uint256 exp = uint256(amtCollateralToPayExp);
             amtCollateralToPay = uint256(
                 amtCollateralToPayInEthNum.mul(10**exp).div(
                     collateralToEthPrice
                 )
             );
         } else {
-            uint32 exp = uint32(-1 * amtCollateralToPayExp);
+            uint256 exp = uint256(-1 * amtCollateralToPayExp);
             amtCollateralToPay = uint256(
                 (amtCollateralToPayInEthNum.div(10**exp)).div(
                     collateralToEthPrice
