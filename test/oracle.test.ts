@@ -143,7 +143,7 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     let cUSDC: MockCtokenInstance;
 
     it('should set ETH price', async () => {
-      const price = 337.86 * 1e6;
+      const price = 333.5 * 1e6;
       await compoundOracle.setPrice('ETH', price);
       const oraclePrice = await oracle.getETHPrice();
 
@@ -151,7 +151,7 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     });
 
     it('should set BTC price', async () => {
-      const price = 10545.8 * 1e6;
+      const price = 11275.3 * 1e6;
       await compoundOracle.setPrice('BTC', price);
       const oraclePrice = await oracle.getBTCPrice();
 

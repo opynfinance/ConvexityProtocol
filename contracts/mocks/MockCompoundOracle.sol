@@ -46,7 +46,6 @@ contract MockCompoundOracle is CompoundOracleInterface {
         zrx = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
 
         prices["ETH"] = 337.86 * 1e6;
-        prices["ETH"] = 10545.8 * 1e6;
     }
 
     /**
