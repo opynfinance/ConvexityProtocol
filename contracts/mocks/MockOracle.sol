@@ -17,6 +17,14 @@ contract MockOracle is OracleInterface {
         return price;
     }
 
+    function getBTCPrice() external view returns (uint256) {
+        return price;
+    }
+
+    function getETHPrice() external view returns (uint256) {
+        return price;
+    }
+
     function updatePrice(uint256 newPrice) external {
         price = newPrice;
     }

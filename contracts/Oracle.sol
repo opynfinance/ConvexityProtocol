@@ -88,13 +88,6 @@ contract Oracle is Ownable {
     }
 
     /**
-     * Asset Getters
-     */
-    function iscEth(address asset) public view returns (bool) {
-        return asset == cEth;
-    }
-
-    /**
      * @dev get an asset's price in wei
      * For ETH: return 1e18 because 1 eth = 1e18 wei
      * For other assets: ex: USDC: return 2349016936412111
@@ -103,6 +96,7 @@ contract Oracle is Ownable {
      * @param asset The address of the token.
      * @return The price in wei.
      */
+
     function getPrice(address asset) external view returns (uint256) {
         if (asset == address(0)) {
             return (10**18);
@@ -143,6 +137,13 @@ contract Oracle is Ownable {
             }
             return 0;
         }
+    }
+
+    /**
+     * Asset Getters
+     */
+    function iscEth(address asset) public view returns (bool) {
+        return asset == cEth;
     }
 
     function getcEth() external view returns (address) {

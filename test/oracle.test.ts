@@ -143,15 +143,7 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
     let cUSDC: MockCtokenInstance;
 
     it('should set ETH price', async () => {
-      const price = 337.86 * 10e6;
-      await compoundOracle.setPrice('ETH', price);
-      const oraclePrice = await oracle.getETHPrice();
-
-      assert.equal(price, oraclePrice);
-    });
-
-    it('should set ETH price', async () => {
-      const price = 337.86 * 10e6;
+      const price = 337.86 * 1e6;
       await compoundOracle.setPrice('ETH', price);
       const oraclePrice = await oracle.getETHPrice();
 

@@ -44,6 +44,9 @@ contract MockCompoundOracle is CompoundOracleInterface {
         usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
         zrx = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
+
+        prices["ETH"] = 337.86 * 1e6;
+        prices["ETH"] = 10545.8 * 1e6;
     }
 
     /**
