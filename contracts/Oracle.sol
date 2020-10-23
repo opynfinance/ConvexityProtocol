@@ -24,34 +24,6 @@ contract Oracle is Ownable {
         priceOracle = CompoundOracleInterface(_oracleAddress);
         // Mainnet
         cEth = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
-        address cBat = 0x6C8c6b02E7b2BE14d4fA6022Dfd6d75921D90E4E;
-        address cDai = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
-        address cRep = 0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1;
-        address cUsdc = 0x39AA39c021dfbaE8faC545936693aC917d5E7563;
-        address cWbtc = 0xC11b1268C1A384e55C48c2391d8d480264A3A7F4;
-        address cZrx = 0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407;
-
-        address bat = 0x0D8775F648430679A709E98d2b0Cb6250d2887EF;
-        address dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address rep = 0x1985365e9f78359a9B6AD760e32412f4a445E862;
-        address usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
-        address zrx = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
-
-        isCtoken[cEth] = true;
-        isCtoken[cBat] = true;
-        isCtoken[cDai] = true;
-        isCtoken[cRep] = true;
-        isCtoken[cUsdc] = true;
-        isCtoken[cWbtc] = true;
-        isCtoken[cZrx] = true;
-
-        assetToCtokens[bat] = cBat;
-        assetToCtokens[dai] = cDai;
-        assetToCtokens[rep] = cRep;
-        assetToCtokens[usdc] = cUsdc;
-        assetToCtokens[wbtc] = cWbtc;
-        assetToCtokens[zrx] = cZrx;
     }
 
     event CtokenUpdated(address indexed ctoken, bool isCtoken);
