@@ -79,7 +79,6 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
 
     it('should get BAT asset price', async () => {
       bat = await MockERC20.new('BAT', 'BAT', 18);
-      // await oracle.setBat(bat.address, {from: owner});
       const cBatToBatExchangeRate = '203779026431652476585639266'; // 0.023779 * 1e28
       cBat = await MockCToken.new(
         'cBAT',
