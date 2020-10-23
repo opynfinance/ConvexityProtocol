@@ -27,14 +27,6 @@ contract Oracle is Ownable {
     event CtokenUpdated(address indexed ctoken, bool isCtoken);
     event AssetToCtokenUpdated(address indexed asset, address ctoken);
 
-    // /**
-    //  * @dev get BTC price in USD
-    //  * @return Price in USD with 6 decimals.
-    //  */
-    // function getETHPrice() external view returns (uint256) {
-    //     return priceOracle.price("ETH");
-    // }
-
     /**
      * @dev get an asset's price in wei
      * For ETH: return 1e18 because 1 eth = 1e18 wei
@@ -98,8 +90,6 @@ contract Oracle is Ownable {
     function setCeth(address _cEth) external onlyOwner {
         cEth = _cEth;
     }
-
-    // }
 
     function setIsCtoken(address _ctoken, bool _isCtoken) external onlyOwner {
         isCtoken[_ctoken] = _isCtoken;
