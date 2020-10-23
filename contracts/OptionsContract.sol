@@ -1059,10 +1059,6 @@ contract OptionsContract is Ownable, ERC20 {
      * @param asset The address of the asset to get the price of
      */
     function getPrice(address asset) internal view returns (uint256) {
-        if (asset == address(0)) {
-            return (10**18);
-        } else {
-            return oracle.getPrice(asset);
-        }
+        return oracle.getPrice(asset);
     }
 }

@@ -1,8 +1,10 @@
 pragma solidity ^0.5.10;
-// AT MAINNET ADDRESS: 0x02557a5E05DeFeFFD4cAe6D83eA3d173B272c904
+// AT MAINNET ADDRESS: 0x9B8Eb8b3d6e2e0Db36F41455185FEF7049a35CaE
 import "../packages/ERC20.sol";
 
 
 interface CompoundOracleInterface {
-    function getUnderlyingPrice(IERC20 cToken) external view returns (uint256);
+    function getUnderlyingPrice(address cToken) external view returns (uint256);
+
+    function price(string calldata symbol) external view returns (uint256);
 }

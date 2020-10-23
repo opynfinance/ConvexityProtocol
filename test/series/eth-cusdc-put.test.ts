@@ -32,7 +32,7 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
   let usdc: MockErc20Instance;
   let cusdc: MockCtokenInstance;
 
-  const cusdcExchagneRate = new BigNumber('211325689208873'); // 0.02112 * 1e16/
+  const cusdcExchangeRate = new BigNumber('211325689208873'); // 0.02112 * 1e16/
   // 1e8 cUSDC is roughly 0.02112 USDC
   // 32522402 USDC => 153897058714 cUSDC
   // 153897058714 * 211325689208873 / 1e18 = 32522402
@@ -43,7 +43,7 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
   // calculate equivilent amount of cUSDC
   const cusdcAmount = new BigNumber(usdcAmount)
     .times(new BigNumber(1e18))
-    .div(cusdcExchagneRate)
+    .div(cusdcExchangeRate)
     .integerValue();
 
   const _name = 'ETH put 250';
@@ -62,7 +62,7 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
       'Compound USDC',
       'cUSDC',
       usdc.address,
-      cusdcExchagneRate.toString()
+      cusdcExchangeRate.toString()
     );
 
     // create mock compound Oracle and real oracle
@@ -70,7 +70,10 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
     oracle = await Oracle.new(compoundOracle.address);
     // https://etherscan.io/address/0x1d8aedc9e924730dd3f9641cdb4d1b92b848b4bd#readContract
     // compound price for underlying (USDC) 2368601814348989000000000000
-    await compoundOracle.updatePrice('2368601814348989000000000000');
+    await compoundOracle.updateUnderlyingPriceInWei(
+      cusdc.address,
+      '2368601814348989000000000000'
+    );
     // register ctoken in oracle.
     await oracle.setUsdc(usdc.address);
     await oracle.setCusdc(cusdc.address);
@@ -189,7 +192,7 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
       const usdcAmount = new BigNumber('1000000000');
       const equivalentCUSDC = usdcAmount
         .times(new BigNumber(1e18))
-        .div(cusdcExchagneRate)
+        .div(cusdcExchangeRate)
         .integerValue()
         .minus(1)
         .toString();
