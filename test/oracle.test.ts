@@ -143,8 +143,6 @@ contract('Oracle.sol', ([owner, random, ...tokens]) => {
       await oracle.setCeth(cETH.address, {from: owner});
       await oracle.setIsCtoken(cETH.address, true);
 
-      assert.equal(await oracle.iscEth(cETH.address), true);
-
       // calculating price of cETH
       const cETHPrice = await oracle.getPrice(cETH.address);
       const priceInWei = new BigNumber(cETHtoETHExchangeRate)

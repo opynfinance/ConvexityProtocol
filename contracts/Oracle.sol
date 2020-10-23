@@ -118,13 +118,6 @@ contract Oracle is Ownable {
         }
     }
 
-    /**
-     * Asset Getters
-     */
-    function iscEth(address asset) external view returns (bool) {
-        return asset == cEth;
-    }
-
     // /**
     //  * Asset Setters
     //  */
