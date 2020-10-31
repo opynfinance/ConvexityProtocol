@@ -29,33 +29,6 @@ contract('OptionsFactory', ([creatorAddress, firstOwnerAddress, random]) => {
     dai = await MockERC20.new('DAI', 'DAI', 18);
   });
 
-  // describe('#updateAsset()', () => {
-  //   it('should whitelist an asset', async () => {
-  //     const txInfo = await optionsFactory.whitelistAsset(ZERO_ADDRESS);
-  //     expectEvent(txInfo, 'AssetWhitelisted', {
-  //       asset: ZERO_ADDRESS
-  //     });
-  //     const supported = await optionsFactory.whitelisted(ZERO_ADDRESS);
-  //     expect(supported).to.be.true;
-  //   });
-
-  //   it('should add a second asset', async () => {
-  //     const txInfo = await optionsFactory.whitelistAsset(dai.address);
-  //     expectEvent(txInfo, 'AssetWhitelisted', {
-  //       asset: dai.address
-  //     });
-  //     const supported = await optionsFactory.whitelisted(dai.address);
-  //     expect(supported).to.be.true;
-  //   });
-
-  //   it('should fails if anyone but owner tries to add asset', async () => {
-  //     await expectRevert(
-  //       optionsFactory.whitelistAsset(random, {from: random}),
-  //       'Ownable: caller is not the owner'
-  //     );
-  //   });
-  // });
-
   describe('#createOptionsContract()', () => {
     it('should not allow to create an expired new options contract', async () => {
       const expiredExpiry = '660009600'; // 1990/12/01
