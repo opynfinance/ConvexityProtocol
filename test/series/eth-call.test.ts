@@ -61,14 +61,6 @@ contract(
       // Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
 
-      // add assets to the factory
-      await optionsFactory.whitelistAsset(ZERO_ADDRESS, {
-        from: opynDeployer
-      });
-      await optionsFactory.whitelistAsset(usdc.address, {
-        from: opynDeployer
-      });
-
       // create ETH call option
       const optionsContractResult = await optionsFactory.createOptionsContract(
         ZERO_ADDRESS,
@@ -85,7 +77,7 @@ contract(
       );
 
       optionContract = await OptionsContract.at(
-        optionsContractResult.logs[1].args[0]
+        optionsContractResult.logs[0].args[0]
       );
 
       // set option details

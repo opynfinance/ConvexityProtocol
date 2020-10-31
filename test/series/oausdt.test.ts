@@ -59,10 +59,6 @@ contract('OptionsContract: Aave insurance', accounts => {
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
-    await optionsFactory.whitelistAsset(ausdt.address);
-    await optionsFactory.whitelistAsset(usdt.address);
-
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       ZERO_ADDRESS,
@@ -78,7 +74,7 @@ contract('OptionsContract: Aave insurance', accounts => {
       {from: creatorAddress}
     );
 
-    const optionsContractAddr = optionsContractResult.logs[1].args[0];
+    const optionsContractAddr = optionsContractResult.logs[0].args[0];
     oaUSDT = await OTokenContract.at(optionsContractAddr);
 
     await reverter.snapshot();
@@ -248,7 +244,7 @@ contract('OptionsContract: Aave insurance', accounts => {
 //       windowSize,
 //       {from: accounts[0], gas: '4000000'}
 //     );
-//     const newOptionAddress = logs[1].args[0];
+//     const newOptionAddress = logs[0].args[0];
 //     console.log(`newOptionAddr`, newOptionAddress);
 
 //     optionContract = await OptionsContract.at(newOptionAddress);

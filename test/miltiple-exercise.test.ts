@@ -63,11 +63,6 @@ contract('OptionsContract', accounts => {
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
-    await optionsFactory.whitelistAsset(dai.address);
-    // TODO: deploy a mock USDC and get its address
-    await optionsFactory.whitelistAsset(usdc.address);
-
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       ZERO_ADDRESS,
@@ -83,7 +78,7 @@ contract('OptionsContract', accounts => {
       {from: creatorAddress}
     );
 
-    const optionsContractAddr = optionsContractResult.logs[1].args[0];
+    const optionsContractAddr = optionsContractResult.logs[0].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
     await optionsContracts[0].updateParameters(10, 500, 16, {

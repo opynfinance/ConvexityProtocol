@@ -150,7 +150,7 @@ contract('OptionsContract', accounts => {
         {from: creatorAddress}
       );
 
-      const optionsContractAddr = optionsContractResult.logs[1].args[0];
+      const optionsContractAddr = optionsContractResult.logs[0].args[0];
       optionsContracts.push(await oToken.at(optionsContractAddr));
 
       // Create the unexpired options contract
@@ -168,7 +168,7 @@ contract('OptionsContract', accounts => {
       //   {from: creatorAddress}
       // );
 
-      // optionsContractAddr = optionsContractResult.logs[1].args[0];
+      // optionsContractAddr = optionsContractResult.logs[0].args[0];
       // optionsContracts.push(await oToken.at(optionsContractAddr));
 
       console.log('Options Exchange ' + optionsExchange.address);

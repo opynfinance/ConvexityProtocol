@@ -53,9 +53,6 @@ contract('OptionsContract: weth put', accounts => {
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(weth.address);
-    await optionsFactory.whitelistAsset(usdc.address);
-
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       usdc.address,
@@ -71,7 +68,7 @@ contract('OptionsContract: weth put', accounts => {
       {from: creatorAddress}
     );
 
-    const optionsContractAddr = optionsContractResult.logs[1].args[0];
+    const optionsContractAddr = optionsContractResult.logs[0].args[0];
     oWeth = await OTokenContract.at(optionsContractAddr);
   });
 
