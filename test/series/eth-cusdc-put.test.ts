@@ -75,8 +75,6 @@ contract('OptionsContract: ETH:cUSDC Put', accounts => {
       '2368601814348989000000000000'
     );
     // register ctoken in oracle.
-    await oracle.setUsdc(usdc.address);
-    await oracle.setCusdc(cusdc.address);
     await oracle.setAssetToCtoken(usdc.address, cusdc.address);
     await oracle.setIsCtoken(cusdc.address, true);
     exchange = await MockOtokensExchange.new();

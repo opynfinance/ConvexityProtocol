@@ -149,7 +149,7 @@
 //         {from: creatorAddress, gas: '4000000'}
 //       );
 
-//       let optionsContractAddr = optionsContractResult.logs[1].args[0];
+//       let optionsContractAddr = optionsContractResult.logs[0].args[0];
 //       optionsContracts.push(await oToken.at(optionsContractAddr));
 
 //       // Create the unexpired options contract
@@ -167,7 +167,7 @@
 //         {from: creatorAddress, gas: '4000000'}
 //       );
 
-//       optionsContractAddr = optionsContractResult.logs[1].args[0];
+//       optionsContractAddr = optionsContractResult.logs[0].args[0];
 //       optionsContracts.push(await oToken.at(optionsContractAddr));
 
 //       console.log('Options Exchange ' + OptionsExchange.address);

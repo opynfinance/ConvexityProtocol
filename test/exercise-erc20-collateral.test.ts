@@ -48,9 +48,6 @@ contract(
       // Deploy the Options Factory contract and add assets to it
       optionsFactory = await OptionsFactory.deployed();
 
-      await optionsFactory.whitelistAsset(usdc.address);
-      await optionsFactory.whitelistAsset(weth.address);
-
       // Create the unexpired options contract
       const optionsContractResult = await optionsFactory.createOptionsContract(
         usdc.address,
@@ -66,7 +63,7 @@ contract(
         {from: creatorAddress}
       );
 
-      const optionsContractAddr = optionsContractResult.logs[1].args[0];
+      const optionsContractAddr = optionsContractResult.logs[0].args[0];
       otoken = await oToken.at(optionsContractAddr);
       // change collateral ratio to 1
 

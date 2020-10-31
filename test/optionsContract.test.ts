@@ -65,11 +65,6 @@ contract('OptionsContract', accounts => {
     // Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
 
-    await optionsFactory.whitelistAsset(ZERO_ADDRESS);
-    await optionsFactory.whitelistAsset(weth.address);
-    await optionsFactory.whitelistAsset(dai.address);
-    await optionsFactory.whitelistAsset(usdc.address);
-
     // Create the unexpired options contract
     let optionsContractResult = await optionsFactory.createOptionsContract(
       ZERO_ADDRESS,
@@ -85,7 +80,7 @@ contract('OptionsContract', accounts => {
       {from: creatorAddress}
     );
 
-    let optionsContractAddr = optionsContractResult.logs[1].args[0];
+    let optionsContractAddr = optionsContractResult.logs[0].args[0];
     optionsContracts.push(await OptionsContract.at(optionsContractAddr));
 
     await optionsContracts[0].updateParameters(10, 500, 16, {
@@ -106,7 +101,7 @@ contract('OptionsContract', accounts => {
       {from: creatorAddress}
     );
 
-    optionsContractAddr = optionsContractResult.logs[1].args[0];
+    optionsContractAddr = optionsContractResult.logs[0].args[0];
     const ERC20collateralOptContract = await OptionsContract.at(
       optionsContractAddr
     );

@@ -50,10 +50,6 @@ contract('OptionsContract: COMP put', accounts => {
 
     // 2. Deploy the Options Factory contract and add assets to it
     optionsFactory = await OptionsFactory.deployed();
-
-    await optionsFactory.whitelistAsset(comp.address);
-    await optionsFactory.whitelistAsset(usdc.address);
-
     // Create the unexpired options contract
     const optionsContractResult = await optionsFactory.createOptionsContract(
       usdc.address,
@@ -69,7 +65,7 @@ contract('OptionsContract: COMP put', accounts => {
       {from: creatorAddress}
     );
 
-    const optionsContractAddr = optionsContractResult.logs[1].args[0];
+    const optionsContractAddr = optionsContractResult.logs[0].args[0];
     oComp = await OTokenContract.at(optionsContractAddr);
 
     await reverter.snapshot();

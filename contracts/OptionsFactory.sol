@@ -2,11 +2,10 @@ pragma solidity 0.5.10;
 
 import "./oToken.sol";
 import "./lib/StringComparator.sol";
-import "./packages/Ownable.sol";
 import "./packages/IERC20.sol";
 
 
-contract OptionsFactory is Ownable {
+contract OptionsFactory {
     using StringComparator for string;
 
     mapping(address => bool) public whitelisted;
@@ -17,7 +16,6 @@ contract OptionsFactory is Ownable {
     address public oracleAddress;
 
     event OptionsContractCreated(address addr);
-    event AssetWhitelisted(address indexed asset);
 
     /**
      * @param _optionsExchangeAddr: The contract which interfaces with the exchange
@@ -53,10 +51,6 @@ contract OptionsFactory is Ownable {
         string calldata _name,
         string calldata _symbol
     ) external returns (address) {
-        require(whitelisted[_collateral], "Collateral not whitelisted.");
-        require(whitelisted[_underlying], "Underlying not whitelisted.");
-        require(whitelisted[_strike], "Strike not whitelisted.");
-
         require(_expiry > block.timestamp, "Cannot create an expired option");
         require(_windowSize <= _expiry, "Invalid _windowSize");
 
@@ -79,7 +73,7 @@ contract OptionsFactory is Ownable {
         emit OptionsContractCreated(address(otoken));
 
         // Set the owner for the options contract.
-        otoken.transferOwnership(owner());
+        otoken.transferOwnership(msg.sender);
         return address(otoken);
     }
 
@@ -88,14 +82,5 @@ contract OptionsFactory is Ownable {
      */
     function getNumberOfOptionsContracts() external view returns (uint256) {
         return optionsContracts.length;
-    }
-
-    /**
-     * @notice The owner of the Factory Contract can update an asset's address, by adding it, changing the address or removing the asset
-     * @param _asset The address for the asset
-     */
-    function whitelistAsset(address _asset) external onlyOwner {
-        whitelisted[_asset] = true;
-        emit AssetWhitelisted(_asset);
     }
 }
