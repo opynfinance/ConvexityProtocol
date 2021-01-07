@@ -35,8 +35,8 @@ contract(
     const _collateralExp = -8;
 
     const _underlyingExp = -6;
-    const _oTokenExchangeExp = -6;
-    const _strikePrice = 80;
+    const _oTokenExchangeExp = -3;
+    const _strikePrice = 15625;
     const _strikeExp = -12;
 
     let _expiry: number;
@@ -46,7 +46,7 @@ contract(
     const _minCollateralizationRatioValue = 10;
     const _minCollateralizationRatioExp = -1;
 
-    const mintedAmount = '250000000000'; // ~ 20 call options
+    const mintedAmount = '1280000000'; // ~ 20 call options
     const collateralToAdd = new BigNumber(20).times(1e8).toString();
 
     before('set up contracts', async () => {
@@ -571,7 +571,7 @@ contract(
         );
         assert.equal(
           vault1After[2].toString(),
-          new BigNumber(buyerTokenBalanceBefore).dividedBy(2).toString(),
+          new BigNumber(_amountUnderlyingNeeded).dividedBy(2).toString(),
           'vault1 underlying mismatch'
         );
         assert.equal(
@@ -581,7 +581,7 @@ contract(
         );
         assert.equal(
           vault2After[2].toString(),
-          new BigNumber(buyerTokenBalanceBefore).dividedBy(2).toString(),
+          new BigNumber(_amountUnderlyingNeeded).dividedBy(2).toString(),
           'vault2 underlying mismatch'
         );
         assert.equal(
@@ -595,9 +595,7 @@ contract(
           'vault3 undelrying mismatch'
         );
         assert.equal(
-          new BigNumber(buyerTokenBalanceBefore)
-            .minus(new BigNumber(_amountUnderlyingNeeded))
-            .toString(),
+          '0',
           buyerTokenBalanceAfter,
           'buyer1 oToken balance mismatch'
         );
