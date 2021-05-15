@@ -40,6 +40,8 @@ contract OptionsFactory is Ownable {
      * @param _strike The asset in which the insurance is calculated
      * @param _expiry The time at which the insurance expires
      * @param _windowSize UNIX time. Exercise window is from `expiry - _windowSize` to `expiry`.
+     * @dev this condition must hold for the oToken to be safe: abs(oTokenExchangeExp - underlyingExp) < 19
+     * @dev this condition must hold for the oToken to be safe: max(abs(strikeExp + liqIncentiveExp - collateralExp), abs(strikeExp - collateralExp)) <= 9
      */
     function createOptionsContract(
         address _collateral,
@@ -78,8 +80,8 @@ contract OptionsFactory is Ownable {
         optionsContracts.push(address(otoken));
         emit OptionsContractCreated(address(otoken));
 
-        // Set the owner for the options contract.
-        otoken.transferOwnership(owner());
+        // Set the owner for the options contract to the person who created the options contract
+        otoken.transferOwnership(msg.sender);
         return address(otoken);
     }
 

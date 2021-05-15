@@ -213,16 +213,16 @@ contract(
           addr: lastAdded
         });
 
-        // Check the ownership
-        const ownerFactory = await optionsFactory.owner();
-        expect(ownerFactory).to.equal(creatorAddress);
+        // Check the ownership - no longer needs to be the owner of the Factory
+        // const ownerFactory = await optionsFactory.owner();
+        // expect(ownerFactory).to.equal(creatorAddress);
 
         // TODO: check that the ownership of the options contract is the creator address
         // const optionsContractAddr = result.logs[1].args[0];
         const optionContract = await OptionsContract.at(lastAdded);
 
         const optionContractOwner = await optionContract.owner();
-        expect(optionContractOwner).to.equal(creatorAddress);
+        expect(optionContractOwner).to.equal(firstOwnerAddress);
       });
     });
   }
