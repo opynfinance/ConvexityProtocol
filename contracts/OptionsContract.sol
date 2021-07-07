@@ -34,7 +34,7 @@ contract OptionsContract is Ownable, ERC20 {
 
     mapping(address => Vault) internal vaults;
 
-    address payable[] public vaultOwners;
+    address payable[] private vaultOwners;
 
     // 10 is 0.01 i.e. 1% incentive.
     Number public liquidationIncentive = Number(10, -3);
@@ -229,6 +229,13 @@ contract OptionsContract is Ownable, ERC20 {
      */
     function getVaultOwnersLength() external view returns (uint256) {
         return vaultOwners.length;
+    }
+
+    /**
+     * @notice This function returns all the vault owners
+     */
+    function getVaultOwners() external view returns (address payable[] memory) {
+        return vaultOwners;
     }
 
     /**
