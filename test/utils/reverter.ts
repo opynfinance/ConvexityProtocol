@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import { HttpProvider } from 'web3-core';
+import {HttpProvider} from 'web3-core';
 
 export default class Reverter {
   // Web3 instance

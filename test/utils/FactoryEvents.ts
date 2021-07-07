@@ -1,4 +1,4 @@
-export function AssetAdded(params: { asset: string; addr: string }) {
+export function AssetAdded(params: {asset: string; addr: string}) {
   return {
     event: 'AssetAdded',
     args: {
@@ -8,7 +8,7 @@ export function AssetAdded(params: { asset: string; addr: string }) {
   };
 }
 
-export function ContractCreated(params: { addr: string }) {
+export function ContractCreated(params: {addr: string}) {
   return {
     event: 'ContractCreated',
     args: {

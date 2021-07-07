@@ -175,5 +175,25 @@ contract('OptionsContract: ETH put', accounts => {
         vaultOwner: firstOwner
       });
     });
+
+    it('exponents should not overflow', async () => {
+      const strikePrice = await oETH.strikePrice();
+      const strikeExponent = strikePrice[1];
+      const colalteralExponent = await oETH.collateralExp();
+      const collateralToPayExponent = Math.max(
+        Math.abs(strikeExponent - colalteralExponent),
+        Math.abs(strikeExponent - colalteralExponent - 3)
+      );
+
+      assert(collateralToPayExponent <= 9, 'overflow possibility');
+
+      const oTokenExchangeExponent = await oETH.oTokenExchangeRate();
+      const underlingExponent = await oETH.underlyingExp();
+
+      assert(
+        Math.abs(oTokenExchangeExponent[1] - underlingExponent) <= 19,
+        'overflow possiblitiy'
+      );
+    });
   });
 });
