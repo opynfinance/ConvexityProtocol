@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Options smart contracts for any EVM compatible chain",
   "devDependencies": {
-    "@openzeppelin/contracts": "2.4.0",
+    "@openzeppelin/contracts": "4.4.2",
     "@openzeppelin/test-helpers": "^0.5.4",
     "@typechain/truffle-v5": "^2.0.2",
     "@types/chai": "4.2.5",
