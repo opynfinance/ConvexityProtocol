@@ -124,7 +124,7 @@
   "homepage": "https://github.com/aparnakr/OptionsProtocol#readme",
   "dependencies": {
     "bn.js-types": "^1.0.1",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "truffle-hdwallet-provider": "^1.0.17"
   }
 }
