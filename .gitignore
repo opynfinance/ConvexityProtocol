@@ -7,4 +7,4 @@ coverage/
 coverage.json
 .mnemonic
 .secret
-crytic-export
+crytic-export.git/
